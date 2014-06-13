@@ -1,0 +1,395 @@
+---
+build.dart --machine --full
+
+build.dart finished [1482 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.html
+
+build.dart finished [1609 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2043 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+
+build.dart finished [1892 ms]
+
+---
+build.dart --machine --clean
+
+build.dart finished [2185 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1513 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart --changed=web\test_polymer1.html
+
+build.dart finished [2078 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1877 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2121 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2353 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2204 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [3134 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2557 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1811 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1349 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2423 ms]
+
+---
+build.dart --machine --changed=web\clickcounter.html
+
+build.dart finished [2424 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2574 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1520 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1930 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1902 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1949 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2235 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1914 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2054 ms]
+
+---
+build.dart --machine --changed=web\clickcounter.html --changed=web\test_polymer1.dart
+
+build.dart finished [1653 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1963 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1359 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1628 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2109 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1664 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2788 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2597 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2746 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [1672 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2180 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2848 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2908 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [3062 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2381 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2385 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2360 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [2076 ms]
+
+---
+build.dart --machine --changed=web\test_polymer1.dart
+
+build.dart finished [3098 ms]
+
+---
+build.dart --machine --changed=pubspec.lock
+
+build.dart finished [3135 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart --removed=web\test_polymer1.dart
+
+build.dart finished [2373 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.html --removed=web\test_polymer1.html
+
+build.dart finished [2709 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.html
+
+build.dart finished [2700 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2210 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2783 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1467 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2152 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2586 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1937 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2212 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1853 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1463 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1366 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1214 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [1659 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2877 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2605 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [3244 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart --changed=web\clickcounter.dart
+
+build.dart finished [2709 ms]
+
+---
+build.dart --machine --changed=web\clickcounter.dart
+
+build.dart finished [2315 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart --changed=web\clickcounter.dart
+
+build.dart finished [2430 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2862 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2599 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml --changed=test\test_polymer1.dart
+
+build.dart finished [1817 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+
+build.dart finished [1771 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+
+build.dart finished [1206 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+
+build.dart finished [1482 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+
+build.dart finished [1365 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2162 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2008 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+
+build.dart finished [2179 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2789 ms]
+
+---
+build.dart --machine --changed=test\test_polymer1.dart
+
+build.dart finished [2668 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [3114 ms]
+

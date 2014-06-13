@@ -1,0 +1,6 @@
+name: bank_terminal
+description: A sample Polymer application
+dependencies:
+  hop: any
+  polymer: any
+  unittest: any

@@ -1,0 +1,270 @@
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1208 ms]
+
+---
+build.dart --machine --changed=lib\bank_account.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1146 ms]
+
+---
+build.dart --machine --changed=lib\bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1065 ms]
+
+---
+build.dart --machine --changed=lib\person.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1141 ms]
+
+---
+build.dart --machine --changed=lib\bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1084 ms]
+
+---
+build.dart --machine --changed=web\bank_app.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1055 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1216 ms]
+
+---
+build.dart --machine --changed=lib\person.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1078 ms]
+
+---
+build.dart --machine --changed=lib\bank_account.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1047 ms]
+
+---
+build.dart --machine --changed=lib\bank_account.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1078 ms]
+
+---
+build.dart --machine --changed=lib\bank_account.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1134 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2596 ms]
+
+---
+build.dart --machine --clean
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2574 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2330 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3599 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2657 ms]
+
+---
+build.dart --machine --changed=pubspec.lock
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2790 ms]
+
+---
+build.dart --machine --changed=test\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2459 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml --changed=test\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2055 ms]
+
+---
+build.dart --machine --clean
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2217 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1880 ms]
+
+---
+build.dart --machine --changed=test\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1662 ms]
+
+---
+build.dart --machine --changed=pubspec.yaml
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [1804 ms]
+
+---
+build.dart --machine --changed=test\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2378 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2161 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2982 ms]
+
+---
+build.dart --machine --full
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2564 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2394 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2289 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3250 ms]
+
+---
+build.dart --machine --changed=web\no_bank_terminal_test.dart --removed=web\bank_terminal_test.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2674 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.html
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3128 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2885 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart --changed=web\test_bank_terminal.html
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2313 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2397 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3561 ms]
+
+---
+build.dart --machine --changed=web\bank_terminal.html
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2861 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2844 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3209 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2855 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3107 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3844 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [3254 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2725 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2702 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2912 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2573 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2157 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2501 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2546 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2791 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2126 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2381 ms]
+
+---
+build.dart --machine --changed=web\test_bank_terminal.dart
+warning: now that main takes arguments, you need to explicitly pass options to build(). Running as if no options were passed.
+build.dart finished [2537 ms]
+

@@ -1,0 +1,8 @@
+name: polymer1
+description: A sample Polymer application
+dependencies:
+  polymer: any
+  unittest: any
+transformers:
+- polymer:
+    entry_points: web/polymer1.html

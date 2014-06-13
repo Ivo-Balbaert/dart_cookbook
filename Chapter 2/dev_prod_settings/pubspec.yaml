@@ -1,0 +1,7 @@
+name: dev_prod_settings
+description: A sample web application
+dependencies:
+  browser: any
+transformers: # or dev_transformers
+- $dart2js:
+    environment: {PRD: "true", DB: "MongoPROD"}

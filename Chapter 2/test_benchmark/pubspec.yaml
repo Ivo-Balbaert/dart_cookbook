@@ -1,0 +1,4 @@
+name: test_benchmark
+description: A sample command-line application
+dependencies:
+  benchmark_harness: any
