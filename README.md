@@ -1,4 +1,4 @@
-learning_dart
+dart_cookbook
 =========================
 
-Contains code of the book: Learning Dart, by Dzenan Ridjanovic and Ivo Balbaert (Packt Publishing)
+Contains the code of the book: Dart Cookbook, by Ivo Balbaert (Packt Publishing)
