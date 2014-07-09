@@ -1,0 +1,4 @@
+name: using_oracle
+description: A sample command-line application
+dependencies:
+  oracledart: any

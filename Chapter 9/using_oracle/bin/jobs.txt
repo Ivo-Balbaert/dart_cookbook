@@ -1,0 +1,10 @@
+CREATE TABLE jobs
+(
+  dbKey numeric(10) not null,
+  type varchar2(50) not null,
+  salary numeric(10) not null,
+  company varchar2(50) not null,
+  posted date,
+  open char(1),
+  CONSTRAINT jobs_pk PRIMARY KEY (dbKey)
+);
