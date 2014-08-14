@@ -1,0 +1,9 @@
+name: angular_setup
+description: A sample web application
+dependencies:
+  angular: any
+  browser: any
+  js: any
+  shadow_dom: any
+transformers:
+- angular

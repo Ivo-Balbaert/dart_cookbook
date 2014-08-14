@@ -1,0 +1,8 @@
+name: angular_service
+dependencies:
+  angular: any
+  browser: any
+  js: any
+  shadow_dom: any
+transformers:
+- angular
