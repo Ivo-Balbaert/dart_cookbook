@@ -79,11 +79,8 @@ class ContainerBuilder extends CodeEmitterHelper {
     // Includes extra receiver argument when using interceptor convention
     int indexOfLastOptionalArgumentInParameters = optionalParameterStart - 1;
 
-    TreeElements elements =
-        compiler.enqueuer.resolution.getCachedElements(member);
-
     int parameterIndex = 0;
-    parameters.orderedForEachParameter((Element element) {
+    parameters.orderedForEachParameter((ParameterElement element) {
       String jsName = backend.namer.safeName(element.name);
       assert(jsName != receiverArgumentName);
       if (count < optionalParameterStart) {
@@ -116,14 +113,14 @@ class ContainerBuilder extends CodeEmitterHelper {
     });
 
     var body;  // List or jsAst.Statement.
-    if (member.hasFixedBackendName()) {
+    if (member.hasFixedBackendName) {
       body = task.nativeEmitter.generateParameterStubStatements(
           member, isInterceptedMethod, invocationName,
           parametersBuffer, argumentsBuffer,
           indexOfLastOptionalArgumentInParameters);
-    } else if (member.isInstanceMember()) {
+    } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
-        ClassElement superClass = member.getEnclosingClass();
+        ClassElement superClass = member.enclosingClass;
         String methodName = namer.getNameOfInstanceMember(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
@@ -150,12 +147,12 @@ class ContainerBuilder extends CodeEmitterHelper {
 
   void addParameterStubs(FunctionElement member, AddStubFunction defineStub,
                          [bool canTearOff = false]) {
-    if (member.enclosingElement.isClosure()) {
+    if (member.enclosingElement.isClosure) {
       ClosureClassElement cls = member.enclosingElement;
-      if (cls.supertype.element == compiler.boundClosureClass) {
+      if (cls.supertype.element == backend.boundClosureClass) {
         compiler.internalError(cls.methodElement, 'Bound closure1.');
       }
-      if (cls.methodElement.isInstanceMember()) {
+      if (cls.methodElement.isInstanceMember) {
         compiler.internalError(cls.methodElement, 'Bound closure2.');
       }
     }
@@ -192,7 +189,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     // (2) foo$3$c(a, b, c) => MyClass.foo$4$c$d(this, a, b, c, null);
     // (3) foo$3$d(a, b, d) => MyClass.foo$4$c$d(this, a, b, null, d);
 
-    Set<Selector> selectors = member.isInstanceMember()
+    Set<Selector> selectors = member.isInstanceMember
         ? compiler.codegenWorld.invokedNames[member.name]
         : null; // No stubs needed for static methods.
 
@@ -204,7 +201,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       if (callSelectors == null) return null;
       return callSelectors.map((Selector callSelector) {
         return new Selector.call(
-            member.name, member.getLibrary(),
+            member.name, member.library,
             callSelector.argumentCount, callSelector.namedArguments);
       }).toSet();
     }
@@ -233,7 +230,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       if (selectors != null) {
         for (Selector selector in selectors) {
           selector = new Selector.call(
-              member.name, member.getLibrary(),
+              member.name, member.library,
               selector.argumentCount, selector.namedArguments);
           if (!selector.appliesUnnamed(member, compiler)) continue;
           if (untypedSelectors.add(selector)) {
@@ -254,19 +251,19 @@ class ContainerBuilder extends CodeEmitterHelper {
                              Set<Selector> selectors,
                              AddPropertyFunction addProperty) {
     assert(invariant(member, member.isDeclaration));
-    LibraryElement memberLibrary = member.getLibrary();
+    LibraryElement memberLibrary = member.library;
     // If the method is intercepted, the stub gets the
     // receiver explicitely and we need to pass it to the getter call.
     bool isInterceptedMethod = backend.isInterceptedMethod(member);
     bool isInterceptorClass =
-        backend.isInterceptorClass(member.getEnclosingClass());
+        backend.isInterceptorClass(member.enclosingClass);
 
     const String receiverArgumentName = r'$receiver';
 
     jsAst.Expression buildGetter() {
       jsAst.Expression receiver =
           js(isInterceptorClass ? receiverArgumentName : 'this');
-      if (member.isGetter()) {
+      if (member.isGetter) {
         String getterName = namer.getterName(member);
         if (isInterceptedMethod) {
           return js('this.#(#)', [getterName, receiver]);
@@ -308,7 +305,8 @@ class ContainerBuilder extends CodeEmitterHelper {
             'function(#) { return #.#(#); }',
             [ parameters, buildGetter(), closureCallName, arguments]);
 
-        addProperty(invocationName, function);
+        compiler.dumpInfoTask.registerElementAst(member,
+            addProperty(invocationName, function));
       }
     }
   }
@@ -320,7 +318,7 @@ class ContainerBuilder extends CodeEmitterHelper {
    */
   void emitExtraAccessors(Element member, ClassBuilder builder) {
     assert(invariant(member, member.isDeclaration));
-    if (member.isGetter() || member.isField()) {
+    if (member.isGetter || member.isField) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors != null && !selectors.isEmpty) {
         emitCallStubForGetter(member, selectors, builder.addProperty);
@@ -331,24 +329,18 @@ class ContainerBuilder extends CodeEmitterHelper {
   void addMember(Element member, ClassBuilder builder) {
     assert(invariant(member, member.isDeclaration));
 
-    if (member.isField()) {
+    if (member.isField) {
       addMemberField(member, builder);
-    } else if (member.isFunction() ||
-               member.isGenerativeConstructorBody() ||
-               member.isGenerativeConstructor() ||
-               member.isAccessor()) {
+    } else if (member.isFunction ||
+               member.isGenerativeConstructorBody ||
+               member.isGenerativeConstructor ||
+               member.isAccessor) {
       addMemberMethod(member, builder);
     } else {
       compiler.internalError(member,
           'Unexpected kind: "${member.kind}".');
     }
-    if (member.isInstanceMember()) emitExtraAccessors(member, builder);
-  }
-
-  bool _isOperator(FunctionElement member) {
-    // TODO(18740): there must be a better way to know if an element is an
-    // operator.
-    return Elements.operatorNameToIdentifier(member.name) != member.name;
+    if (member.isInstanceMember) emitExtraAccessors(member, builder);
   }
 
   void addMemberMethod(FunctionElement member, ClassBuilder builder) {
@@ -361,24 +353,24 @@ class ContainerBuilder extends CodeEmitterHelper {
     bool needsStubs = !parameters.optionalParameters.isEmpty;
     bool canTearOff = false;
     bool isClosure = false;
-    bool isNotApplyTarget = !member.isFunction() ||
-                            member.isConstructor() ||
-                            member.isAccessor();
+    bool isNotApplyTarget = !member.isFunction ||
+                            member.isConstructor ||
+                            member.isAccessor;
     String tearOffName;
 
     final bool canBeReflected = backend.isAccessibleByReflection(member);
 
     if (isNotApplyTarget) {
       canTearOff = false;
-    } else if (member.isInstanceMember()) {
-      if (member.getEnclosingClass().isClosure()) {
+    } else if (member.isInstanceMember) {
+      if (member.enclosingClass.isClosure) {
         canTearOff = false;
         isClosure = true;
       } else {
         // Careful with operators.
         canTearOff =
             compiler.codegenWorld.hasInvokedGetter(member, compiler) ||
-            (canBeReflected && !_isOperator(member));
+            (canBeReflected && !member.isOperator);
         assert(!needsSuperGetter(member) || canTearOff);
         tearOffName = namer.getterName(member);
       }
@@ -394,21 +386,23 @@ class ContainerBuilder extends CodeEmitterHelper {
     final bool needStructuredInfo =
         canTearOff || canBeReflected || canBeApplied;
     if (!needStructuredInfo) {
-      builder.addProperty(name, code);
+      compiler.dumpInfoTask.registerElementAst(member,
+          builder.addProperty(name, code));
       if (needsStubs) {
         addParameterStubs(
             member,
             (Selector selector, jsAst.Fun function) {
-              builder.addProperty(namer.invocationName(selector), function);
+              compiler.dumpInfoTask.registerElementAst(member,
+                  builder.addProperty(namer.invocationName(selector), function));
             });
       }
       return;
     }
 
     if (canTearOff) {
-      assert(invariant(member, !member.isGenerativeConstructor()));
-      assert(invariant(member, !member.isGenerativeConstructorBody()));
-      assert(invariant(member, !member.isConstructor()));
+      assert(invariant(member, !member.isGenerativeConstructor));
+      assert(invariant(member, !member.isGenerativeConstructorBody));
+      assert(invariant(member, !member.isConstructor));
     }
 
     // This element is needed for reflection or needs additional stubs. So we
@@ -424,7 +418,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     // M+1. Call name of first stub.
     // ...
     // N.   Getter name for tearOff.
-    // N+1. (Required parameter count << 1) + (member.isAccessor() ? 1 : 0).
+    // N+1. (Required parameter count << 1) + (member.isAccessor ? 1 : 0).
     // N+2. (Optional parameter count << 1) +
     //                      (parameters.optionalParametersAreNamed ? 1 : 0).
     // N+3. Index to function type in constant pool.
@@ -441,7 +435,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     List<jsAst.Expression> expressions = <jsAst.Expression>[];
 
     String callSelectorString = 'null';
-    if (member.isFunction()) {
+    if (member.isFunction) {
       Selector callSelector =
           new Selector.fromElement(member, compiler).toCallSelector();
       callSelectorString = '"${namer.invocationName(callSelector)}"';
@@ -450,7 +444,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     // On [requiredParameterCount], the lower bit is set if this method can be
     // called reflectively.
     int requiredParameterCount = parameters.requiredParameterCount << 1;
-    if (member.isAccessor()) requiredParameterCount++;
+    if (member.isAccessor) requiredParameterCount++;
 
     int optionalParameterCount = parameters.optionalParameterCount << 1;
     if (parameters.optionalParametersAreNamed) optionalParameterCount++;
@@ -463,7 +457,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     if (needsStubs || canTearOff) {
       addParameterStubs(member, (Selector selector, jsAst.Fun function) {
         expressions.add(function);
-        if (member.isInstanceMember()) {
+        if (member.isInstanceMember) {
           Set invokedSelectors =
               compiler.codegenWorld.invokedNames[member.name];
             expressions.add(js.string(namer.invocationName(selector)));
@@ -487,7 +481,7 @@ class ContainerBuilder extends CodeEmitterHelper {
     jsAst.Expression memberTypeExpression;
     if (canTearOff || canBeReflected) {
       DartType memberType;
-      if (member.isGenerativeConstructorBody()) {
+      if (member.isGenerativeConstructorBody) {
         var body = member;
         memberType = body.constructor.type;
       } else {
@@ -507,7 +501,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     expressions
         ..addAll(tearOffInfo)
-        ..add((tearOffName == null || member.isAccessor())
+        ..add((tearOffName == null || member.isAccessor)
               ? js("null") : js.string(tearOffName))
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
@@ -520,9 +514,8 @@ class ContainerBuilder extends CodeEmitterHelper {
         expressions.add(
             js.number(task.metadataEmitter.reifyName(parameter.name)));
         if (backend.mustRetainMetadata) {
-          List<MetadataAnnotation> annotations = parameter.metadata.toList();
           Iterable<int> metadataIndices =
-              annotations.map((MetadataAnnotation annotation) {
+              parameter.metadata.map((MetadataAnnotation annotation) {
             Constant constant =
                 backend.constants.getConstantForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);
@@ -535,21 +528,26 @@ class ContainerBuilder extends CodeEmitterHelper {
     }
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
-      if (member.isConstructor()) {
+      if (member.isConstructor) {
         String reflectionNameString = task.getReflectionName(member, name);
         reflectionName =
             new jsAst.LiteralString(
                 '"new ${Elements.reconstructConstructorName(member)}"');
       } else {
-        reflectionName = js.string(member.name);
+        reflectionName =
+            js.string(namer.privateName(member.library, member.name));
       }
       expressions
           ..add(reflectionName)
           ..addAll(task.metadataEmitter.computeMetadata(member).map(js.number));
     } else if (isClosure && canBeApplied) {
-      expressions.add(js.string(member.name));
+      expressions.add(js.string(namer.privateName(member.library,
+                                                  member.name)));
     }
-    builder.addProperty(name, new jsAst.ArrayInitializer.from(expressions));
+    jsAst.ArrayInitializer arrayInit =
+      new jsAst.ArrayInitializer.from(expressions);
+    compiler.dumpInfoTask.registerElementAst(member,
+        builder.addProperty(name, arrayInit));
   }
 
   void addMemberField(VariableElement member, ClassBuilder builder) {

@@ -1,24 +1,28 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library tracer;
 
 import '../compiler.dart' as api;
 import 'dart:async' show EventSink;
 import 'ssa/ssa.dart' as ssa;
 import 'ssa/ssa_tracer.dart' show HTracer;
-import 'ir/ir_nodes.dart' as ir;
-import 'ir/ir_tracer.dart' show IRTracer;
-import 'dart_backend/dart_tree.dart' as tree;
-import 'dart_backend/tree_tracer.dart' show TreeTracer;
+import 'cps_ir/cps_ir_nodes.dart' as cps_ir;
+import 'cps_ir/cps_ir_tracer.dart' show IRTracer;
+import 'dart_backend/tree_ir_nodes.dart' as tree_ir;
+import 'dart_backend/tree_ir_tracer.dart' show TreeTracer;
+import 'util/util.dart' show Indentation;
 import 'dart2jslib.dart';
 
 /**
- * Set to true to enable tracing.
+ * If non-null, we only trace methods whose name match the regexp defined by the
+ * given pattern.
  */
-const bool GENERATE_TRACE = false;
+const String TRACE_FILTER_PATTERN = const String.fromEnvironment("DUMP_IR");
 
-/**
- * If non-null, we only trace methods whose name contains the given substring.
- */
-const String TRACE_FILTER = null;
+final RegExp TRACE_FILTER =
+    TRACE_FILTER_PATTERN == null ? null : new RegExp(TRACE_FILTER_PATTERN);
 
 /**
  * Dumps the intermediate representation after each phase in a format
@@ -29,20 +33,19 @@ class Tracer extends TracerUtil {
   ItemCompilationContext context;
   bool traceActive = false;
   final EventSink<String> output;
-  final bool enabled = GENERATE_TRACE;
+  final bool isEnabled = TRACE_FILTER != null;
 
   Tracer(api.CompilerOutputProvider outputProvider) :
-    output = GENERATE_TRACE ? outputProvider('dart', 'cfg') : null;
+    output = TRACE_FILTER != null ? outputProvider('dart', 'cfg') : null;
 
   void traceCompilation(String methodName,
                         ItemCompilationContext compilationContext,
                         Compiler compiler) {
-    if (!enabled) return;
+    if (!isEnabled) return;
+    traceActive = TRACE_FILTER.hasMatch(methodName);
+    if (!traceActive) return;
     this.context = compilationContext;
     this.compiler = compiler;
-    traceActive =
-        TRACE_FILTER == null || methodName.contains(TRACE_FILTER);
-    if (!traceActive) return;
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);
@@ -55,10 +58,10 @@ class Tracer extends TracerUtil {
     if (irObject is ssa.HGraph) {
       new HTracer(output, compiler, context).traceGraph(name, irObject);
     }
-    else if (irObject is ir.FunctionDefinition) {
+    else if (irObject is cps_ir.FunctionDefinition) {
       new IRTracer(output).traceGraph(name, irObject);
     }
-    else if (irObject is tree.FunctionDefinition) {
+    else if (irObject is tree_ir.FunctionDefinition) {
       new TreeTracer(output).traceGraph(name, irObject);
     }
   }
@@ -72,15 +75,12 @@ class Tracer extends TracerUtil {
 
 
 abstract class TracerUtil {
-  int indent = 0;
   EventSink<String> get output;
-
+  final Indentation _ind = new Indentation();
 
   void tag(String tagName, Function f) {
     println("begin_$tagName");
-    indent++;
-    f();
-    indent--;
+    _ind.indentBlock(f);
     println("end_$tagName");
   }
 
@@ -115,8 +115,6 @@ abstract class TracerUtil {
   }
 
   void addIndent() {
-    for (int i = 0; i < indent; i++) {
-      add("  ");
-    }
+    add(_ind.indentation);
   }
 }

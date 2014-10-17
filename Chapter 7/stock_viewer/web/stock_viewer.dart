@@ -5,14 +5,15 @@ main() {
   LoadData();
 }
 void LoadData() {
-//  var url = 'http://query.yahooapis.com/v1/public/yql?q=';
-//  var select = 'select * from yahoo.finance.quotes where symbol in ("GOOG")';
-//  var format = '&env=http://datatables.org/Falltables.env&format=json';
-// var request =  url + Uri.encodeQueryComponent(select + format);
-  var stock = "GOOG";
-  var request = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20"
-                "where%20symbol%20in%20(%22$stock%22)%0A%09%09"
-                "&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json";
+  var url = 'http://query.yahooapis.com/v1/public/yql?q=';
+  var select = 'select * from yahoo.finance.quotes where symbol in ("GOOG")';
+  var format = '&env=http://datatables.org/Falltables.env&format=json';
+  var request =  url + Uri.encodeComponent(select + format);
+
+//  var stock = "GOOG";
+//  var request = "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20"
+//                "where%20symbol%20in%20(%22$stock%22)%0A%09%09"
+//                "&env=http%3A%2F%2Fdatatables.org%2Falltables.env&format=json";
   // call the web server asynchronously
   var result = HttpRequest.getString(request).then(OnDataLoaded);
 }

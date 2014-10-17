@@ -368,3 +368,38 @@ build.dart --machine --changed=web\index.html
 
 build.dart finished [3370 ms]
 
+---
+build.dart --machine --full
+
+build.dart finished [2001 ms]
+
+---
+build.dart --machine --clean
+
+build.dart finished [1618 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1546 ms]
+
+---
+build.dart --machine --full
+
+build.dart finished [1720 ms]
+
+---
+build.dart --machine --changed=web\pol_oven.dart
+
+build.dart finished [1828 ms]
+
+---
+build.dart --machine --changed=web\pol_oven.dart
+
+build.dart finished [1555 ms]
+
+---
+build.dart --machine --changed=web\pol_oven.dart
+
+build.dart finished [1746 ms]
+

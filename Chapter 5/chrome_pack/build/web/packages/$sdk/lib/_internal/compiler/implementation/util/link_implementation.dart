@@ -23,6 +23,39 @@ class LinkIterator<T> implements Iterator<T> {
   }
 }
 
+typedef T Transformation<S, T>(S input);
+
+class MappedLinkIterator<S, T> extends Iterator<T> {
+  Transformation<S, T> _transformation;
+  Link<S> _link;
+  T _current;
+
+  MappedLinkIterator(this._link, this._transformation);
+
+  T get current => _current;
+
+  bool moveNext() {
+    if (_link.isEmpty) {
+      _current = null;
+      return false;
+    }
+    _current = _transformation(_link.head);
+    _link = _link.tail;
+    return true;
+  }
+}
+
+class MappedLinkIterable<S, T> extends IterableBase<T> {
+  Transformation<S, T> _transformation;
+  Link<S> _link;
+
+  MappedLinkIterable(this._link, this._transformation);
+
+  Iterator<T> get iterator {
+    return new MappedLinkIterator<S,T>(_link, _transformation);
+  }
+}
+
 class LinkEntry<T> extends Link<T> {
   final T head;
   Link<T> tail;
@@ -119,6 +152,21 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     lastLink = null;
     head = null;
     return link;
+  }
+
+  List<T> toList() {
+    if (length == 0) return new List<T>(0);
+    List<T> list = new List<T>(length);
+    int index = 0;
+    Link<T> link = head;
+    while (!link.isEmpty) {
+      list[index] = link.head;
+      link = link.tail;
+      index++;
+    }
+    lastLink = null;
+    head = null;
+    return list;
   }
 
   void addLast(T t) {

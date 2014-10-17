@@ -15,29 +15,24 @@ class DragnDrop {
   void init() {
     generateMap();
     for (var col in cols) {
-      col.onDragStart.listen(_onDragStart);
-      col.onDragEnd.listen(_onDragEnd);
-      col.onDragEnter.listen(_onDragEnter);
-      col.onDragOver.listen(_onDragOver);
-      col.onDragLeave.listen(_onDragLeave);
-      col.onDrop.listen(_onDrop);
-      col.style.setProperty("background-image", getRandomTile(), "");
-      col.style.setProperty("background-repeat", "no-repeat", "");
-      col.style.setProperty("background-position", "center", "");
+      col
+        ..onDragStart.listen(_onDragStart)
+        ..onDragEnd.listen(_onDragEnd)
+        ..onDragEnter.listen(_onDragEnter)
+        ..onDragOver.listen(_onDragOver)
+        ..onDragLeave.listen(_onDragLeave)
+        ..onDrop.listen(_onDrop)
+        ..style.setProperty("background-image", getRandomTile(), "")
+        ..style.setProperty("background-repeat", "no-repeat", "")
+        ..style.setProperty("background-position", "center", "");
     }
   }
 
   void generateMap() {
     tiles = new Map();
-    tiles[1] = "url(img/tiles_01.jpg)";
-    tiles[2] = "url(img/tiles_02.jpg)";
-    tiles[3] = "url(img/tiles_03.jpg)";
-    tiles[4] = "url(img/tiles_04.jpg)";
-    tiles[5] = "url(img/tiles_05.jpg)";
-    tiles[6] = "url(img/tiles_06.jpg)";
-    tiles[7] = "url(img/tiles_07.jpg)";
-    tiles[8] = "url(img/tiles_08.jpg)";
-    tiles[9] = "url(img/tiles_09.jpg)";
+    for (var i = 1; i <= 9; i++) {
+      tiles[i] = "url(img/tiles_0$i.jpg)";
+    }
   }
 
   void _onDragStart(MouseEvent event) {

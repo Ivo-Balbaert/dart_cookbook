@@ -36,7 +36,7 @@
     <ul>
       <li class="pointer"
         ng-repeat="job in ctrl.jobs | orderBy:'type' | filter:{type:ctrl.typeFilterString} | companyfilter:ctrl.companyFilterMap">
-        <salary max-sal="10" salary="job.rate_salary"></salary> <span
+        <x-salary max-sal="10" salary="job.rate_salary"></x-salary> <span
         class="extra-space" ng-click="ctrl.selectJob(job)">{{job.type | uppercase}}
       </span>
       </li>
@@ -52,7 +52,7 @@
     </div>
     <div>
       <strong>Salary: </strong>
-      <salary max-sal="10" salary="ctrl.selectedJob.rate_salary"></salary>
+      <x-salary max-sal="10" salary="ctrl.selectedJob.rate_salary"></x-salary>
     </div>
     <div>
       <strong>Posted: </strong>{{ctrl.selectedJob.posted}}

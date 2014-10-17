@@ -6,7 +6,7 @@ import 'package:polymer/polymer.dart';
 class PolJs extends PolymerElement {
   @observable String result;
 
-  PolJs.created() : super.created() {  }
+  PolJs.created() : super.created();
 
   btnClick(Event e, var detail, Node target) {
     var pers1 = new JsObject(context['Person'], ['An', 'female']);

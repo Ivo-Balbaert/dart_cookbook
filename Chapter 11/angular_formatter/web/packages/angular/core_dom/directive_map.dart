@@ -4,32 +4,33 @@ class DirectiveTypeTuple {
   final Directive directive;
   final Type type;
   DirectiveTypeTuple(this.directive, this.type);
-  toString() => '@$directive#$type';
+  String toString() => '@$directive#$type';
 }
 
 @Injectable()
 class DirectiveMap {
   final Map<String, List<DirectiveTypeTuple>> map = new HashMap<String, List<DirectiveTypeTuple>>();
-  DirectiveSelectorFactory _directiveSelectorFactory;
+  final DirectiveSelectorFactory _directiveSelectorFactory;
   FormatterMap _formatters;
   DirectiveSelector _selector;
+  Injector _injector;
 
-  DirectiveMap(Injector injector,
+  DirectiveMap(Injector this._injector,
                this._formatters,
                MetadataExtractor metadataExtractor,
                this._directiveSelectorFactory) {
-    (injector as ModuleInjector).types.forEach((type) {
+    (_injector as ModuleInjector).types.forEach((type) {
       metadataExtractor(type)
-      .where((annotation) => annotation is Directive)
-      .forEach((Directive directive) {
-        map.putIfAbsent(directive.selector, () => []).add(new DirectiveTypeTuple(directive, type));
-      });
+          .where((annotation) => annotation is Directive)
+          .forEach((Directive dir) {
+            map.putIfAbsent(dir.selector, () => []).add(new DirectiveTypeTuple(dir, type));
+          });
     });
   }
 
   DirectiveSelector get selector {
     if (_selector != null) return _selector;
-    return _selector = _directiveSelectorFactory.selector(this, _formatters);
+    return _selector = _directiveSelectorFactory.selector(this, _injector, _formatters);
   }
 
   List<DirectiveTypeTuple> operator[](String key) {

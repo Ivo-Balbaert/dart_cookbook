@@ -20,7 +20,7 @@
     <ul>
         <li class="pointer"
           ng-repeat="job in ctrl.jobs">
-          <salary max-sal="10" salary="job.rate_salary"></salary>
+          <x-salary max-sal="10" salary="job.rate_salary"></x-salary>
           <span class="extra-space"
                 ng-click="ctrl.selectJob(job)">{{job.type}}
           </span>
@@ -32,7 +32,7 @@
     <div><strong>Type: </strong>{{ctrl.selectedJob.type}}</div>
     <div><strong>Company: </strong>{{ctrl.selectedJob.company}}</div>
     <div><strong>Salary: </strong>
-       <salary max-sal="10" salary="ctrl.selectedJob.rate_salary"></salary>
+       <x-salary max-sal="10" salary="ctrl.selectedJob.rate_salary"></x-salary>
     </div>
     <div><strong>Posted: </strong>{{ctrl.selectedJob.posted}}</div>
      <div><strong>Skills: </strong>

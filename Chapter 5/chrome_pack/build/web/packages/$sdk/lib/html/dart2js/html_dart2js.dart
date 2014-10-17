@@ -41,7 +41,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_gl' as gl;
 import 'dart:web_sql';
 import 'dart:_isolate_helper' show IsolateNatives;
-import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
+import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT, JS_CONST;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -54,7 +54,7 @@ import 'dart:_foreign_helper' show JS, JS_INTERCEPTOR_CONSTANT;
 // Not actually used, but imported since dart:html can generate these objects.
 import 'dart:_js_helper' show
     convertDartClosureToJS, Creates, JavaScriptIndexingBehavior,
-    JSName, Null, Returns,
+    JSName, Native, Null, Returns,
     findDispatchTagForInterceptorClass, setNativeSubclassDispatchRecord,
     makeLeafDispatchRecord;
 import 'dart:_interceptors' show
@@ -90,7 +90,8 @@ HtmlDocument get document => JS('HtmlDocument', 'document');
 
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
-class HtmlElement extends Element native "HTMLElement" {
+@Native("HTMLElement")
+class HtmlElement extends Element {
   factory HtmlElement() { throw new UnsupportedError("Not supported"); }
 
   /**
@@ -104,7 +105,8 @@ class HtmlElement extends Element native "HTMLElement" {
 // EntryArray type was removed, so explicitly adding it to allow support for
 // older Chrome versions.
 // Issue #12573.
-abstract class _EntryArray implements List<Entry> native "EntryArray" {}
+@Native("EntryArray")
+abstract class _EntryArray implements List<Entry> {}
 
 /**
  * Spawn a DOM isolate using the given URI in the same window.
@@ -124,7 +126,8 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
 
 @DocsEditable()
 @DomName('AbstractWorker')
-abstract class AbstractWorker extends Interceptor implements EventTarget native "AbstractWorker" {
+@Native("AbstractWorker")
+abstract class AbstractWorker extends Interceptor implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
@@ -151,7 +154,8 @@ abstract class AbstractWorker extends Interceptor implements EventTarget native 
 @DocsEditable()
 @DomName('Algorithm')
 @Experimental() // untriaged
-class Algorithm extends Interceptor native "Algorithm" {
+@Native("Algorithm")
+class Algorithm extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Algorithm._() { throw new UnsupportedError("Not supported"); }
 
@@ -167,7 +171,8 @@ class Algorithm extends Interceptor native "Algorithm" {
 
 @DocsEditable()
 @DomName('HTMLAnchorElement')
-class AnchorElement extends HtmlElement implements UrlUtils native "HTMLAnchorElement" {
+@Native("HTMLAnchorElement")
+class AnchorElement extends HtmlElement implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory AnchorElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -267,7 +272,8 @@ class AnchorElement extends HtmlElement implements UrlUtils native "HTMLAnchorEl
 @DocsEditable()
 @DomName('Animation')
 @Experimental() // untriaged
-class Animation extends TimedItem native "Animation" {
+@Native("Animation")
+class Animation extends TimedItem {
   // To suppress missing implicit constructor warnings.
   factory Animation._() { throw new UnsupportedError("Not supported"); }
 
@@ -299,7 +305,8 @@ class Animation extends TimedItem native "Animation" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
-class AnimationEvent extends Event native "WebKitAnimationEvent" {
+@Native("WebKitAnimationEvent")
+class AnimationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -317,6 +324,9 @@ class AnimationEvent extends Event native "WebKitAnimationEvent" {
 
 
 @DocsEditable()
+/**
+ * ApplicationCache is accessed via [Window.applicationCache].
+ */
 @DomName('ApplicationCache')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -324,7 +334,8 @@ class AnimationEvent extends Event native "WebKitAnimationEvent" {
 @SupportedBrowser(SupportedBrowser.OPERA)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicationCache,OfflineResourceList" {
+@Native("ApplicationCache,DOMApplicationCache,OfflineResourceList")
+class ApplicationCache extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory ApplicationCache._() { throw new UnsupportedError("Not supported"); }
 
@@ -508,7 +519,8 @@ class ApplicationCache extends EventTarget native "ApplicationCache,DOMApplicati
  * on MDN.
  */
 @DomName('HTMLAreaElement')
-class AreaElement extends HtmlElement implements UrlUtils native "HTMLAreaElement" {
+@Native("HTMLAreaElement")
+class AreaElement extends HtmlElement implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory AreaElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -599,7 +611,8 @@ class AreaElement extends HtmlElement implements UrlUtils native "HTMLAreaElemen
 
 @DocsEditable()
 @DomName('HTMLAudioElement')
-class AudioElement extends MediaElement native "HTMLAudioElement" {
+@Native("HTMLAudioElement")
+class AudioElement extends MediaElement {
   // To suppress missing implicit constructor warnings.
   factory AudioElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -629,7 +642,8 @@ class AudioElement extends MediaElement native "HTMLAudioElement" {
 @DomName('AutocompleteErrorEvent')
 // http://wiki.whatwg.org/wiki/RequestAutocomplete
 @Experimental()
-class AutocompleteErrorEvent extends Event native "AutocompleteErrorEvent" {
+@Native("AutocompleteErrorEvent")
+class AutocompleteErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AutocompleteErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -644,7 +658,8 @@ class AutocompleteErrorEvent extends Event native "AutocompleteErrorEvent" {
 
 @DocsEditable()
 @DomName('HTMLBRElement')
-class BRElement extends HtmlElement native "HTMLBRElement" {
+@Native("HTMLBRElement")
+class BRElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory BRElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -667,7 +682,8 @@ class BRElement extends HtmlElement native "HTMLBRElement" {
 @DomName('BarProp')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
 @deprecated // standard
-class BarProp extends Interceptor native "BarProp" {
+@Native("BarProp")
+class BarProp extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
@@ -682,7 +698,8 @@ class BarProp extends Interceptor native "BarProp" {
 
 @DocsEditable()
 @DomName('HTMLBaseElement')
-class BaseElement extends HtmlElement native "HTMLBaseElement" {
+@Native("HTMLBaseElement")
+class BaseElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory BaseElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -712,13 +729,10 @@ class BaseElement extends HtmlElement native "HTMLBaseElement" {
 @DocsEditable()
 @DomName('BeforeLoadEvent')
 @Experimental()
-class BeforeLoadEvent extends Event native "BeforeLoadEvent" {
+@Native("BeforeLoadEvent")
+class BeforeLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeLoadEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('BeforeLoadEvent.url')
-  @DocsEditable()
-  final String url;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -727,7 +741,8 @@ class BeforeLoadEvent extends Event native "BeforeLoadEvent" {
 
 @DocsEditable()
 @DomName('BeforeUnloadEvent')
-class BeforeUnloadEvent extends Event native "BeforeUnloadEvent" {
+@Native("BeforeUnloadEvent")
+class BeforeUnloadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -744,7 +759,8 @@ class BeforeUnloadEvent extends Event native "BeforeUnloadEvent" {
 
 
 @DomName('Blob')
-class Blob extends Interceptor native "Blob" {
+@Native("Blob")
+class Blob extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Blob._() { throw new UnsupportedError("Not supported"); }
 
@@ -779,7 +795,6 @@ class Blob extends Interceptor native "Blob" {
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -787,7 +802,8 @@ class Blob extends Interceptor native "Blob" {
 
 @DocsEditable()
 @DomName('HTMLBodyElement')
-class BodyElement extends HtmlElement implements WindowEventHandlers native "HTMLBodyElement" {
+@Native("HTMLBodyElement")
+class BodyElement extends HtmlElement implements WindowEventHandlers {
   // To suppress missing implicit constructor warnings.
   factory BodyElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -998,7 +1014,8 @@ class BodyElement extends HtmlElement implements WindowEventHandlers native "HTM
 
 @DocsEditable()
 @DomName('HTMLButtonElement')
-class ButtonElement extends HtmlElement native "HTMLButtonElement" {
+@Native("HTMLButtonElement")
+class ButtonElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ButtonElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1092,7 +1109,8 @@ class ButtonElement extends HtmlElement native "HTMLButtonElement" {
 @DomName('CDATASection')
 // http://dom.spec.whatwg.org/#cdatasection
 @deprecated // deprecated
-class CDataSection extends Text native "CDATASection" {
+@Native("CDATASection")
+class CDataSection extends Text {
   // To suppress missing implicit constructor warnings.
   factory CDataSection._() { throw new UnsupportedError("Not supported"); }
 }
@@ -1105,7 +1123,8 @@ class CDataSection extends Text native "CDATASection" {
 @DomName('Canvas2DContextAttributes')
 // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
 @Experimental()
-class Canvas2DContextAttributes extends Interceptor native "Canvas2DContextAttributes" {
+@Native("Canvas2DContextAttributes")
+class Canvas2DContextAttributes extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
@@ -1119,7 +1138,8 @@ class Canvas2DContextAttributes extends Interceptor native "Canvas2DContextAttri
 
 
 @DomName('HTMLCanvasElement')
-class CanvasElement extends HtmlElement implements CanvasImageSource native "HTMLCanvasElement" {
+@Native("HTMLCanvasElement")
+class CanvasElement extends HtmlElement implements CanvasImageSource {
   // To suppress missing implicit constructor warnings.
   factory CanvasElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -1316,7 +1336,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource native "HTM
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
-class CanvasGradient extends Interceptor native "CanvasGradient" {
+@Native("CanvasGradient")
+class CanvasGradient extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
@@ -1367,7 +1388,8 @@ class CanvasGradient extends Interceptor native "CanvasGradient" {
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
-class CanvasPattern extends Interceptor native "CanvasPattern" {
+@Native("CanvasPattern")
+class CanvasPattern extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 }
@@ -1384,7 +1406,8 @@ class CanvasPattern extends Interceptor native "CanvasPattern" {
  * [WebGLRenderingContext].
  */
 @DomName('CanvasRenderingContext')
-class CanvasRenderingContext extends Interceptor native "CanvasRenderingContext" {
+@Native("CanvasRenderingContext")
+class CanvasRenderingContext extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext._() { throw new UnsupportedError("Not supported"); }
 
@@ -1399,24 +1422,10 @@ class CanvasRenderingContext extends Interceptor native "CanvasRenderingContext"
 
 
 @DomName('CanvasRenderingContext2D')
-class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRenderingContext2D" {
+@Native("CanvasRenderingContext2D")
+class CanvasRenderingContext2D extends CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
-
-  /**
-   * The current default path of this canvas context, if there is one.
-   *
-   * ## Other resources
-   *
-   * * [Current default path]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#current-default-path)
-   * from WHATWG.
-   */
-  @DomName('CanvasRenderingContext2D.currentPath')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
-  @Experimental()
-  Path currentPath;
 
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
@@ -1502,23 +1511,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DocsEditable()
   String textBaseline;
 
-  @JSName('webkitBackingStorePixelRatio')
-  /**
-   * The ratio between this canvas' backing store dimensions and the canvas'
-   * logical dimensions.
-   *
-   * ## Other resources
-   *
-   * * [High DPI Canvas tutorial]
-   * (http://www.html5rocks.com/en/tutorials/canvas/hidpi/) from HTML5Rocks.
-   */
-  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRatio')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final double backingStorePixelRatio;
-
   @JSName('arc')
   @DomName('CanvasRenderingContext2D.arc')
   @DocsEditable()
@@ -1595,19 +1587,10 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @Experimental() // untriaged
   bool drawCustomFocusRing(Element element) native;
 
-  @DomName('CanvasRenderingContext2D.drawSystemFocusRing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void drawSystemFocusRing(Element element) native;
-
   @DomName('CanvasRenderingContext2D.ellipse')
   @DocsEditable()
   @Experimental() // untriaged
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation, num startAngle, num endAngle, bool anticlockwise) native;
-
-  @DomName('CanvasRenderingContext2D.fill')
-  @DocsEditable()
-  void fill([String winding]) native;
 
   @DomName('CanvasRenderingContext2D.fillRect')
   @DocsEditable()
@@ -1732,57 +1715,6 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.translate')
   @DocsEditable()
   void translate(num tx, num ty) native;
-
-  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Creates('ImageData|=Object')
-  ImageData getImageDataHD(num sx, num sy, num sw, num sh) {
-    return convertNativeToDart_ImageData(_getImageDataHD_1(sx, sy, sw, sh));
-  }
-  @JSName('webkitGetImageDataHD')
-  @DomName('CanvasRenderingContext2D.webkitGetImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Creates('ImageData|=Object')
-  _getImageDataHD_1(sx, sy, sw, sh) native;
-
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void putImageDataHD(ImageData imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) {
-    if (dirtyX == null && dirtyY == null && dirtyWidth == null && dirtyHeight == null) {
-      var imagedata_1 = convertDartToNative_ImageData(imagedata);
-      _putImageDataHD_1(imagedata_1, dx, dy);
-      return;
-    }
-    if (dirtyHeight != null && dirtyWidth != null && dirtyY != null && dirtyX != null) {
-      var imagedata_2 = convertDartToNative_ImageData(imagedata);
-      _putImageDataHD_2(imagedata_2, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight);
-      return;
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('webkitPutImageDataHD')
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void _putImageDataHD_1(imagedata, dx, dy) native;
-  @JSName('webkitPutImageDataHD')
-  @DomName('CanvasRenderingContext2D.webkitPutImageDataHD')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  void _putImageDataHD_2(imagedata, dx, dy, dirtyX, dirtyY, dirtyWidth, dirtyHeight) native;
 
 
   /**
@@ -2005,9 +1937,11 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   // TODO(14316): Firefox has this functionality with mozDashOffset, but it
   // needs to be polyfilled.
-  void set lineDashOffset(num value) => JS('void',
-      'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
-      '#.webkitLineDashOffset = #', this, this, value, this, value);
+  void set lineDashOffset(num value) {
+    JS('void',
+       'typeof #.lineDashOffset != "undefined" ? #.lineDashOffset = # : '
+       '#.webkitLineDashOffset = #', this, this, value, this, value);
+  }
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2062,8 +1996,18 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
       JS('void', '#.fillText(#, #, #)', this, text, x, y);
     }
   }
-}
 
+  @DomName('CanvasRenderingContext2D.fill')
+  void fill([String winding = 'nonzero']) {
+    JS('void', '#.fill(#)', this, winding);
+  }
+
+  /** Deprecated always returns 1.0 */
+  @DomName('CanvasRenderingContext2D.webkitBackingStorePixelRation')
+  @Experimental()
+  @deprecated
+  double get backingStorePixelRatio => 1.0;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2071,7 +2015,8 @@ class CanvasRenderingContext2D extends CanvasRenderingContext native "CanvasRend
 
 @DocsEditable()
 @DomName('CharacterData')
-class CharacterData extends Node implements ChildNode native "CharacterData" {
+@Native("CharacterData")
+class CharacterData extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory CharacterData._() { throw new UnsupportedError("Not supported"); }
 
@@ -2138,7 +2083,8 @@ abstract class ChildNode extends Interceptor {
 
 @DocsEditable()
 @DomName('CloseEvent')
-class CloseEvent extends Event native "CloseEvent" {
+@Native("CloseEvent")
+class CloseEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CloseEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -2161,7 +2107,8 @@ class CloseEvent extends Event native "CloseEvent" {
 
 @DocsEditable()
 @DomName('Comment')
-class Comment extends CharacterData native "Comment" {
+@Native("Comment")
+class Comment extends CharacterData {
   factory Comment([String data]) {
     if (data != null) {
       return JS('Comment', '#.createComment(#)', document, data);
@@ -2179,7 +2126,8 @@ class Comment extends CharacterData native "Comment" {
 
 
 @DomName('CompositionEvent')
-class CompositionEvent extends UIEvent native "CompositionEvent" {
+@Native("CompositionEvent")
+class CompositionEvent extends UIEvent {
   factory CompositionEvent(String type,
       {bool canBubble: false, bool cancelable: false, Window view,
       String data}) {
@@ -2326,7 +2274,8 @@ class Console {
 @DocsEditable()
 @DomName('ConsoleBase')
 @Experimental() // untriaged
-class ConsoleBase extends Interceptor native "ConsoleBase" {
+@Native("ConsoleBase")
+class ConsoleBase extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
@@ -2350,7 +2299,8 @@ class ConsoleBase extends Interceptor native "ConsoleBase" {
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental()
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#content-element
-class ContentElement extends HtmlElement native "HTMLContentElement" {
+@Native("HTMLContentElement")
+class ContentElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ContentElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -2388,7 +2338,8 @@ class ContentElement extends HtmlElement native "HTMLContentElement" {
 
 @DocsEditable()
 @DomName('Coordinates')
-class Coordinates extends Interceptor native "Coordinates" {
+@Native("Coordinates")
+class Coordinates extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() { throw new UnsupportedError("Not supported"); }
 
@@ -2431,7 +2382,8 @@ class Coordinates extends Interceptor native "Coordinates" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 // http://www.w3.org/TR/WebCryptoAPI/
-class Crypto extends Interceptor native "Crypto" {
+@Native("Crypto")
+class Crypto extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
@@ -2457,7 +2409,8 @@ class Crypto extends Interceptor native "Crypto" {
 @DocsEditable()
 @DomName('Key')
 @Experimental() // untriaged
-class CryptoKey extends Interceptor native "Key" {
+@Native("Key")
+class CryptoKey extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
@@ -2490,7 +2443,8 @@ class CryptoKey extends Interceptor native "Key" {
 @DomName('CSS')
 // http://www.w3.org/TR/css3-conditional/#the-css-interface
 @Experimental() // None
-class Css extends Interceptor native "CSS" {
+@Native("CSS")
+class Css extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
@@ -2512,7 +2466,8 @@ class Css extends Interceptor native "CSS" {
 @DomName('CSSCharsetRule')
 // http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
 @Experimental()
-class CssCharsetRule extends CssRule native "CSSCharsetRule" {
+@Native("CSSCharsetRule")
+class CssCharsetRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2531,7 +2486,8 @@ class CssCharsetRule extends CssRule native "CSSCharsetRule" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 // http://www.w3.org/TR/filter-effects/
-class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
+@Native("WebKitCSSFilterRule")
+class CssFilterRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssFilterRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2548,7 +2504,8 @@ class CssFilterRule extends CssRule native "WebKitCSSFilterRule" {
 @DomName('CSSFontFaceLoadEvent')
 // http://www.w3.org/TR/css3-fonts/
 @Experimental()
-class CssFontFaceLoadEvent extends Event native "CSSFontFaceLoadEvent" {
+@Native("CSSFontFaceLoadEvent")
+class CssFontFaceLoadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CssFontFaceLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -2564,7 +2521,8 @@ class CssFontFaceLoadEvent extends Event native "CSSFontFaceLoadEvent" {
 
 @DocsEditable()
 @DomName('CSSFontFaceRule')
-class CssFontFaceRule extends CssRule native "CSSFontFaceRule" {
+@Native("CSSFontFaceRule")
+class CssFontFaceRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2579,7 +2537,8 @@ class CssFontFaceRule extends CssRule native "CSSFontFaceRule" {
 
 @DocsEditable()
 @DomName('CSSImportRule')
-class CssImportRule extends CssRule native "CSSImportRule" {
+@Native("CSSImportRule")
+class CssImportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssImportRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2603,7 +2562,8 @@ class CssImportRule extends CssRule native "CSSImportRule" {
 @DocsEditable()
 @DomName('CSSKeyframeRule')
 @Experimental() // untriaged
-class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule" {
+@Native("CSSKeyframeRule,MozCSSKeyframeRule,WebKitCSSKeyframeRule")
+class CssKeyframeRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2625,7 +2585,8 @@ class CssKeyframeRule extends CssRule native "CSSKeyframeRule,MozCSSKeyframeRule
 @DocsEditable()
 @DomName('CSSKeyframesRule')
 @Experimental() // untriaged
-class CssKeyframesRule extends CssRule native "CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule" {
+@Native("CSSKeyframesRule,MozCSSKeyframesRule,WebKitCSSKeyframesRule")
+class CssKeyframesRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2669,7 +2630,8 @@ class CssKeyframesRule extends CssRule native "CSSKeyframesRule,MozCSSKeyframesR
 
 @DocsEditable()
 @DomName('CSSMediaRule')
-class CssMediaRule extends CssRule native "CSSMediaRule" {
+@Native("CSSMediaRule")
+class CssMediaRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssMediaRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2698,7 +2660,8 @@ class CssMediaRule extends CssRule native "CSSMediaRule" {
 
 @DocsEditable()
 @DomName('CSSPageRule')
-class CssPageRule extends CssRule native "CSSPageRule" {
+@Native("CSSPageRule")
+class CssPageRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssPageRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2717,7 +2680,8 @@ class CssPageRule extends CssRule native "CSSPageRule" {
 
 @DocsEditable()
 @DomName('CSSRule')
-class CssRule extends Interceptor native "CSSRule" {
+@Native("CSSRule")
+class CssRule extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -2798,14 +2762,22 @@ class CssRule extends Interceptor native "CSSRule" {
   @DocsEditable()
   final int type;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: DO NOT EDIT THIS TEMPLATE FILE.
+// The template file was generated by scripts/css_code_generator.py
+
+// Source of CSS properties:
+//   CSSPropertyNames.in
+
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration  extends Interceptor with 
-    CssStyleDeclarationBase  native "CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties" {
+@Native("CSSStyleDeclaration,MSStyleCSSProperties,CSS2Properties")
+ class CssStyleDeclaration  extends Interceptor with
+    CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
   factory CssStyleDeclaration.css(String css) {
@@ -2813,16 +2785,59 @@ class CssRule extends Interceptor native "CSSRule" {
     style.cssText = css;
     return style;
   }
-  
+
   String getPropertyValue(String propertyName) {
-    var propValue = _getPropertyValue(propertyName);
+    var propValue = _getPropertyValueHelper(propertyName);
     return propValue != null ? propValue : '';
+  }
+
+  String _getPropertyValueHelper(String propertyName) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return _getPropertyValue(propertyName);
+    } else {
+      return _getPropertyValue(Device.cssPrefix + propertyName);
+    }
+  }
+
+  /**
+   * Returns true if the provided *CSS* property name is supported on this
+   * element.
+   *
+   * Please note the property name camelCase, not-hyphens. This
+   * method returns true if the property is accessible via an unprefixed _or_
+   * prefixed property.
+   */
+  bool supportsProperty(String propertyName) {
+    return _supportsProperty(propertyName) ||
+        _supportsProperty(_camelCase(Device.cssPrefix + propertyName));
+  }
+
+  bool _supportsProperty(String propertyName) {
+    return JS('bool', '# in #', propertyName, this);
   }
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
+    if (_supportsProperty(_camelCase(propertyName))) {
+      return _setPropertyHelper(propertyName, value, priority);
+    } else {
+      return _setPropertyHelper(Device.cssPrefix + propertyName, value,
+          priority);
+    }
+  }
+
+  static String _camelCase(String hyphenated) {
+    var replacedMs = JS('String', r'#.replace(/^-ms-/, "ms-")', hyphenated);
+
+    var fToUpper = const JS_CONST(
+        r'function(_, letter) { return letter.toUpperCase(); }');
+    return JS('String', r'#.replace(/-([\da-z])/ig, #)', replacedMs, fToUpper);
+  }
+
+  void _setPropertyHelper(String propertyName, String value, [String priority]) {
     // try/catch for IE9 which throws on unsupported values.
     try {
+      if (value == null) value = '';
       if (priority == null) {
         priority = '';
       }
@@ -2833,16 +2848,12 @@ class CssRule extends Interceptor native "CSSRule" {
       }
     } catch (e) {}
   }
-  
+
   /**
    * Checks to see if CSS Transitions are supported.
    */
   static bool get supportsTransitions {
-    if (JS('bool', '"transition" in document.body.style')) {
-      return true;
-    }
-    var propertyName = '${Device.propertyPrefix}Transition';
-    return JS('bool', '# in document.body.style', propertyName);
+    return document.body.style.supportsProperty('transition');
   }
   // To suppress missing implicit constructor warnings.
   factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
@@ -2907,152 +2918,151 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 }
 
 abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);  
+  String getPropertyValue(String propertyName);
   void setProperty(String propertyName, String value, [String priority]);
 
-  // TODO(jacobr): generate this list of properties using the existing script.
   /** Gets the value of "align-content" */
   String get alignContent =>
-    getPropertyValue('${Device.cssPrefix}align-content');
+    getPropertyValue('align-content');
 
   /** Sets the value of "align-content" */
   void set alignContent(String value) {
-    setProperty('${Device.cssPrefix}align-content', value, '');
+    setProperty('align-content', value, '');
   }
 
   /** Gets the value of "align-items" */
   String get alignItems =>
-    getPropertyValue('${Device.cssPrefix}align-items');
+    getPropertyValue('align-items');
 
   /** Sets the value of "align-items" */
   void set alignItems(String value) {
-    setProperty('${Device.cssPrefix}align-items', value, '');
+    setProperty('align-items', value, '');
   }
 
   /** Gets the value of "align-self" */
   String get alignSelf =>
-    getPropertyValue('${Device.cssPrefix}align-self');
+    getPropertyValue('align-self');
 
   /** Sets the value of "align-self" */
   void set alignSelf(String value) {
-    setProperty('${Device.cssPrefix}align-self', value, '');
+    setProperty('align-self', value, '');
   }
 
   /** Gets the value of "animation" */
   String get animation =>
-    getPropertyValue('${Device.cssPrefix}animation');
+    getPropertyValue('animation');
 
   /** Sets the value of "animation" */
   void set animation(String value) {
-    setProperty('${Device.cssPrefix}animation', value, '');
+    setProperty('animation', value, '');
   }
 
   /** Gets the value of "animation-delay" */
   String get animationDelay =>
-    getPropertyValue('${Device.cssPrefix}animation-delay');
+    getPropertyValue('animation-delay');
 
   /** Sets the value of "animation-delay" */
   void set animationDelay(String value) {
-    setProperty('${Device.cssPrefix}animation-delay', value, '');
+    setProperty('animation-delay', value, '');
   }
 
   /** Gets the value of "animation-direction" */
   String get animationDirection =>
-    getPropertyValue('${Device.cssPrefix}animation-direction');
+    getPropertyValue('animation-direction');
 
   /** Sets the value of "animation-direction" */
   void set animationDirection(String value) {
-    setProperty('${Device.cssPrefix}animation-direction', value, '');
+    setProperty('animation-direction', value, '');
   }
 
   /** Gets the value of "animation-duration" */
   String get animationDuration =>
-    getPropertyValue('${Device.cssPrefix}animation-duration');
+    getPropertyValue('animation-duration');
 
   /** Sets the value of "animation-duration" */
   void set animationDuration(String value) {
-    setProperty('${Device.cssPrefix}animation-duration', value, '');
+    setProperty('animation-duration', value, '');
   }
 
   /** Gets the value of "animation-fill-mode" */
   String get animationFillMode =>
-    getPropertyValue('${Device.cssPrefix}animation-fill-mode');
+    getPropertyValue('animation-fill-mode');
 
   /** Sets the value of "animation-fill-mode" */
   void set animationFillMode(String value) {
-    setProperty('${Device.cssPrefix}animation-fill-mode', value, '');
+    setProperty('animation-fill-mode', value, '');
   }
 
   /** Gets the value of "animation-iteration-count" */
   String get animationIterationCount =>
-    getPropertyValue('${Device.cssPrefix}animation-iteration-count');
+    getPropertyValue('animation-iteration-count');
 
   /** Sets the value of "animation-iteration-count" */
   void set animationIterationCount(String value) {
-    setProperty('${Device.cssPrefix}animation-iteration-count', value, '');
+    setProperty('animation-iteration-count', value, '');
   }
 
   /** Gets the value of "animation-name" */
   String get animationName =>
-    getPropertyValue('${Device.cssPrefix}animation-name');
+    getPropertyValue('animation-name');
 
   /** Sets the value of "animation-name" */
   void set animationName(String value) {
-    setProperty('${Device.cssPrefix}animation-name', value, '');
+    setProperty('animation-name', value, '');
   }
 
   /** Gets the value of "animation-play-state" */
   String get animationPlayState =>
-    getPropertyValue('${Device.cssPrefix}animation-play-state');
+    getPropertyValue('animation-play-state');
 
   /** Sets the value of "animation-play-state" */
   void set animationPlayState(String value) {
-    setProperty('${Device.cssPrefix}animation-play-state', value, '');
+    setProperty('animation-play-state', value, '');
   }
 
   /** Gets the value of "animation-timing-function" */
   String get animationTimingFunction =>
-    getPropertyValue('${Device.cssPrefix}animation-timing-function');
+    getPropertyValue('animation-timing-function');
 
   /** Sets the value of "animation-timing-function" */
   void set animationTimingFunction(String value) {
-    setProperty('${Device.cssPrefix}animation-timing-function', value, '');
+    setProperty('animation-timing-function', value, '');
   }
 
   /** Gets the value of "app-region" */
   String get appRegion =>
-    getPropertyValue('${Device.cssPrefix}app-region');
+    getPropertyValue('app-region');
 
   /** Sets the value of "app-region" */
   void set appRegion(String value) {
-    setProperty('${Device.cssPrefix}app-region', value, '');
+    setProperty('app-region', value, '');
   }
 
   /** Gets the value of "appearance" */
   String get appearance =>
-    getPropertyValue('${Device.cssPrefix}appearance');
+    getPropertyValue('appearance');
 
   /** Sets the value of "appearance" */
   void set appearance(String value) {
-    setProperty('${Device.cssPrefix}appearance', value, '');
+    setProperty('appearance', value, '');
   }
 
   /** Gets the value of "aspect-ratio" */
   String get aspectRatio =>
-    getPropertyValue('${Device.cssPrefix}aspect-ratio');
+    getPropertyValue('aspect-ratio');
 
   /** Sets the value of "aspect-ratio" */
   void set aspectRatio(String value) {
-    setProperty('${Device.cssPrefix}aspect-ratio', value, '');
+    setProperty('aspect-ratio', value, '');
   }
 
   /** Gets the value of "backface-visibility" */
   String get backfaceVisibility =>
-    getPropertyValue('${Device.cssPrefix}backface-visibility');
+    getPropertyValue('backface-visibility');
 
   /** Sets the value of "backface-visibility" */
   void set backfaceVisibility(String value) {
-    setProperty('${Device.cssPrefix}backface-visibility', value, '');
+    setProperty('backface-visibility', value, '');
   }
 
   /** Gets the value of "background" */
@@ -3071,6 +3081,15 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "background-attachment" */
   void set backgroundAttachment(String value) {
     setProperty('background-attachment', value, '');
+  }
+
+  /** Gets the value of "background-blend-mode" */
+  String get backgroundBlendMode =>
+    getPropertyValue('background-blend-mode');
+
+  /** Sets the value of "background-blend-mode" */
+  void set backgroundBlendMode(String value) {
+    setProperty('background-blend-mode', value, '');
   }
 
   /** Gets the value of "background-clip" */
@@ -3093,11 +3112,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "background-composite" */
   String get backgroundComposite =>
-    getPropertyValue('${Device.cssPrefix}background-composite');
+    getPropertyValue('background-composite');
 
   /** Sets the value of "background-composite" */
   void set backgroundComposite(String value) {
-    setProperty('${Device.cssPrefix}background-composite', value, '');
+    setProperty('background-composite', value, '');
   }
 
   /** Gets the value of "background-image" */
@@ -3181,15 +3200,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('background-size', value, '');
   }
 
-  /** Gets the value of "blend-mode" */
-  String get blendMode =>
-    getPropertyValue('${Device.cssPrefix}blend-mode');
-
-  /** Sets the value of "blend-mode" */
-  void set blendMode(String value) {
-    setProperty('${Device.cssPrefix}blend-mode', value, '');
-  }
-
   /** Gets the value of "border" */
   String get border =>
     getPropertyValue('border');
@@ -3201,74 +3211,74 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-after" */
   String get borderAfter =>
-    getPropertyValue('${Device.cssPrefix}border-after');
+    getPropertyValue('border-after');
 
   /** Sets the value of "border-after" */
   void set borderAfter(String value) {
-    setProperty('${Device.cssPrefix}border-after', value, '');
+    setProperty('border-after', value, '');
   }
 
   /** Gets the value of "border-after-color" */
   String get borderAfterColor =>
-    getPropertyValue('${Device.cssPrefix}border-after-color');
+    getPropertyValue('border-after-color');
 
   /** Sets the value of "border-after-color" */
   void set borderAfterColor(String value) {
-    setProperty('${Device.cssPrefix}border-after-color', value, '');
+    setProperty('border-after-color', value, '');
   }
 
   /** Gets the value of "border-after-style" */
   String get borderAfterStyle =>
-    getPropertyValue('${Device.cssPrefix}border-after-style');
+    getPropertyValue('border-after-style');
 
   /** Sets the value of "border-after-style" */
   void set borderAfterStyle(String value) {
-    setProperty('${Device.cssPrefix}border-after-style', value, '');
+    setProperty('border-after-style', value, '');
   }
 
   /** Gets the value of "border-after-width" */
   String get borderAfterWidth =>
-    getPropertyValue('${Device.cssPrefix}border-after-width');
+    getPropertyValue('border-after-width');
 
   /** Sets the value of "border-after-width" */
   void set borderAfterWidth(String value) {
-    setProperty('${Device.cssPrefix}border-after-width', value, '');
+    setProperty('border-after-width', value, '');
   }
 
   /** Gets the value of "border-before" */
   String get borderBefore =>
-    getPropertyValue('${Device.cssPrefix}border-before');
+    getPropertyValue('border-before');
 
   /** Sets the value of "border-before" */
   void set borderBefore(String value) {
-    setProperty('${Device.cssPrefix}border-before', value, '');
+    setProperty('border-before', value, '');
   }
 
   /** Gets the value of "border-before-color" */
   String get borderBeforeColor =>
-    getPropertyValue('${Device.cssPrefix}border-before-color');
+    getPropertyValue('border-before-color');
 
   /** Sets the value of "border-before-color" */
   void set borderBeforeColor(String value) {
-    setProperty('${Device.cssPrefix}border-before-color', value, '');
+    setProperty('border-before-color', value, '');
   }
 
   /** Gets the value of "border-before-style" */
   String get borderBeforeStyle =>
-    getPropertyValue('${Device.cssPrefix}border-before-style');
+    getPropertyValue('border-before-style');
 
   /** Sets the value of "border-before-style" */
   void set borderBeforeStyle(String value) {
-    setProperty('${Device.cssPrefix}border-before-style', value, '');
+    setProperty('border-before-style', value, '');
   }
 
   /** Gets the value of "border-before-width" */
   String get borderBeforeWidth =>
-    getPropertyValue('${Device.cssPrefix}border-before-width');
+    getPropertyValue('border-before-width');
 
   /** Sets the value of "border-before-width" */
   void set borderBeforeWidth(String value) {
-    setProperty('${Device.cssPrefix}border-before-width', value, '');
+    setProperty('border-before-width', value, '');
   }
 
   /** Gets the value of "border-bottom" */
@@ -3345,56 +3355,56 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-end" */
   String get borderEnd =>
-    getPropertyValue('${Device.cssPrefix}border-end');
+    getPropertyValue('border-end');
 
   /** Sets the value of "border-end" */
   void set borderEnd(String value) {
-    setProperty('${Device.cssPrefix}border-end', value, '');
+    setProperty('border-end', value, '');
   }
 
   /** Gets the value of "border-end-color" */
   String get borderEndColor =>
-    getPropertyValue('${Device.cssPrefix}border-end-color');
+    getPropertyValue('border-end-color');
 
   /** Sets the value of "border-end-color" */
   void set borderEndColor(String value) {
-    setProperty('${Device.cssPrefix}border-end-color', value, '');
+    setProperty('border-end-color', value, '');
   }
 
   /** Gets the value of "border-end-style" */
   String get borderEndStyle =>
-    getPropertyValue('${Device.cssPrefix}border-end-style');
+    getPropertyValue('border-end-style');
 
   /** Sets the value of "border-end-style" */
   void set borderEndStyle(String value) {
-    setProperty('${Device.cssPrefix}border-end-style', value, '');
+    setProperty('border-end-style', value, '');
   }
 
   /** Gets the value of "border-end-width" */
   String get borderEndWidth =>
-    getPropertyValue('${Device.cssPrefix}border-end-width');
+    getPropertyValue('border-end-width');
 
   /** Sets the value of "border-end-width" */
   void set borderEndWidth(String value) {
-    setProperty('${Device.cssPrefix}border-end-width', value, '');
+    setProperty('border-end-width', value, '');
   }
 
   /** Gets the value of "border-fit" */
   String get borderFit =>
-    getPropertyValue('${Device.cssPrefix}border-fit');
+    getPropertyValue('border-fit');
 
   /** Sets the value of "border-fit" */
   void set borderFit(String value) {
-    setProperty('${Device.cssPrefix}border-fit', value, '');
+    setProperty('border-fit', value, '');
   }
 
   /** Gets the value of "border-horizontal-spacing" */
   String get borderHorizontalSpacing =>
-    getPropertyValue('${Device.cssPrefix}border-horizontal-spacing');
+    getPropertyValue('border-horizontal-spacing');
 
   /** Sets the value of "border-horizontal-spacing" */
   void set borderHorizontalSpacing(String value) {
-    setProperty('${Device.cssPrefix}border-horizontal-spacing', value, '');
+    setProperty('border-horizontal-spacing', value, '');
   }
 
   /** Gets the value of "border-image" */
@@ -3543,38 +3553,38 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-start" */
   String get borderStart =>
-    getPropertyValue('${Device.cssPrefix}border-start');
+    getPropertyValue('border-start');
 
   /** Sets the value of "border-start" */
   void set borderStart(String value) {
-    setProperty('${Device.cssPrefix}border-start', value, '');
+    setProperty('border-start', value, '');
   }
 
   /** Gets the value of "border-start-color" */
   String get borderStartColor =>
-    getPropertyValue('${Device.cssPrefix}border-start-color');
+    getPropertyValue('border-start-color');
 
   /** Sets the value of "border-start-color" */
   void set borderStartColor(String value) {
-    setProperty('${Device.cssPrefix}border-start-color', value, '');
+    setProperty('border-start-color', value, '');
   }
 
   /** Gets the value of "border-start-style" */
   String get borderStartStyle =>
-    getPropertyValue('${Device.cssPrefix}border-start-style');
+    getPropertyValue('border-start-style');
 
   /** Sets the value of "border-start-style" */
   void set borderStartStyle(String value) {
-    setProperty('${Device.cssPrefix}border-start-style', value, '');
+    setProperty('border-start-style', value, '');
   }
 
   /** Gets the value of "border-start-width" */
   String get borderStartWidth =>
-    getPropertyValue('${Device.cssPrefix}border-start-width');
+    getPropertyValue('border-start-width');
 
   /** Sets the value of "border-start-width" */
   void set borderStartWidth(String value) {
-    setProperty('${Device.cssPrefix}border-start-width', value, '');
+    setProperty('border-start-width', value, '');
   }
 
   /** Gets the value of "border-style" */
@@ -3642,11 +3652,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "border-vertical-spacing" */
   String get borderVerticalSpacing =>
-    getPropertyValue('${Device.cssPrefix}border-vertical-spacing');
+    getPropertyValue('border-vertical-spacing');
 
   /** Sets the value of "border-vertical-spacing" */
   void set borderVerticalSpacing(String value) {
-    setProperty('${Device.cssPrefix}border-vertical-spacing', value, '');
+    setProperty('border-vertical-spacing', value, '');
   }
 
   /** Gets the value of "border-width" */
@@ -3669,92 +3679,92 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "box-align" */
   String get boxAlign =>
-    getPropertyValue('${Device.cssPrefix}box-align');
+    getPropertyValue('box-align');
 
   /** Sets the value of "box-align" */
   void set boxAlign(String value) {
-    setProperty('${Device.cssPrefix}box-align', value, '');
+    setProperty('box-align', value, '');
   }
 
   /** Gets the value of "box-decoration-break" */
   String get boxDecorationBreak =>
-    getPropertyValue('${Device.cssPrefix}box-decoration-break');
+    getPropertyValue('box-decoration-break');
 
   /** Sets the value of "box-decoration-break" */
   void set boxDecorationBreak(String value) {
-    setProperty('${Device.cssPrefix}box-decoration-break', value, '');
+    setProperty('box-decoration-break', value, '');
   }
 
   /** Gets the value of "box-direction" */
   String get boxDirection =>
-    getPropertyValue('${Device.cssPrefix}box-direction');
+    getPropertyValue('box-direction');
 
   /** Sets the value of "box-direction" */
   void set boxDirection(String value) {
-    setProperty('${Device.cssPrefix}box-direction', value, '');
+    setProperty('box-direction', value, '');
   }
 
   /** Gets the value of "box-flex" */
   String get boxFlex =>
-    getPropertyValue('${Device.cssPrefix}box-flex');
+    getPropertyValue('box-flex');
 
   /** Sets the value of "box-flex" */
   void set boxFlex(String value) {
-    setProperty('${Device.cssPrefix}box-flex', value, '');
+    setProperty('box-flex', value, '');
   }
 
   /** Gets the value of "box-flex-group" */
   String get boxFlexGroup =>
-    getPropertyValue('${Device.cssPrefix}box-flex-group');
+    getPropertyValue('box-flex-group');
 
   /** Sets the value of "box-flex-group" */
   void set boxFlexGroup(String value) {
-    setProperty('${Device.cssPrefix}box-flex-group', value, '');
+    setProperty('box-flex-group', value, '');
   }
 
   /** Gets the value of "box-lines" */
   String get boxLines =>
-    getPropertyValue('${Device.cssPrefix}box-lines');
+    getPropertyValue('box-lines');
 
   /** Sets the value of "box-lines" */
   void set boxLines(String value) {
-    setProperty('${Device.cssPrefix}box-lines', value, '');
+    setProperty('box-lines', value, '');
   }
 
   /** Gets the value of "box-ordinal-group" */
   String get boxOrdinalGroup =>
-    getPropertyValue('${Device.cssPrefix}box-ordinal-group');
+    getPropertyValue('box-ordinal-group');
 
   /** Sets the value of "box-ordinal-group" */
   void set boxOrdinalGroup(String value) {
-    setProperty('${Device.cssPrefix}box-ordinal-group', value, '');
+    setProperty('box-ordinal-group', value, '');
   }
 
   /** Gets the value of "box-orient" */
   String get boxOrient =>
-    getPropertyValue('${Device.cssPrefix}box-orient');
+    getPropertyValue('box-orient');
 
   /** Sets the value of "box-orient" */
   void set boxOrient(String value) {
-    setProperty('${Device.cssPrefix}box-orient', value, '');
+    setProperty('box-orient', value, '');
   }
 
   /** Gets the value of "box-pack" */
   String get boxPack =>
-    getPropertyValue('${Device.cssPrefix}box-pack');
+    getPropertyValue('box-pack');
 
   /** Sets the value of "box-pack" */
   void set boxPack(String value) {
-    setProperty('${Device.cssPrefix}box-pack', value, '');
+    setProperty('box-pack', value, '');
   }
 
   /** Gets the value of "box-reflect" */
   String get boxReflect =>
-    getPropertyValue('${Device.cssPrefix}box-reflect');
+    getPropertyValue('box-reflect');
 
   /** Sets the value of "box-reflect" */
   void set boxReflect(String value) {
-    setProperty('${Device.cssPrefix}box-reflect', value, '');
+    setProperty('box-reflect', value, '');
   }
 
   /** Gets the value of "box-shadow" */
@@ -3767,17 +3777,12 @@ abstract class CssStyleDeclarationBase {
   }
 
   /** Gets the value of "box-sizing" */
-  String get boxSizing => Device.isFirefox ? 
-      getPropertyValue('${Device.cssPrefix}box-sizing') : 
-      getPropertyValue('box-sizing');
+  String get boxSizing =>
+    getPropertyValue('box-sizing');
 
   /** Sets the value of "box-sizing" */
   void set boxSizing(String value) {
-    if (Device.isFirefox) {
-      setProperty('${Device.cssPrefix}box-sizing', value, '');
-    } else {
-      setProperty('box-sizing', value, '');
-    }
+    setProperty('box-sizing', value, '');
   }
 
   /** Gets the value of "caption-side" */
@@ -3809,11 +3814,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "clip-path" */
   String get clipPath =>
-    getPropertyValue('${Device.cssPrefix}clip-path');
+    getPropertyValue('clip-path');
 
   /** Sets the value of "clip-path" */
   void set clipPath(String value) {
-    setProperty('${Device.cssPrefix}clip-path', value, '');
+    setProperty('clip-path', value, '');
   }
 
   /** Gets the value of "color" */
@@ -3825,139 +3830,121 @@ abstract class CssStyleDeclarationBase {
     setProperty('color', value, '');
   }
 
-  /** Gets the value of "color-correction" */
-  String get colorCorrection =>
-    getPropertyValue('${Device.cssPrefix}color-correction');
-
-  /** Sets the value of "color-correction" */
-  void set colorCorrection(String value) {
-    setProperty('${Device.cssPrefix}color-correction', value, '');
-  }
-
-  /** Gets the value of "column-axis" */
-  String get columnAxis =>
-    getPropertyValue('${Device.cssPrefix}column-axis');
-
-  /** Sets the value of "column-axis" */
-  void set columnAxis(String value) {
-    setProperty('${Device.cssPrefix}column-axis', value, '');
-  }
-
   /** Gets the value of "column-break-after" */
   String get columnBreakAfter =>
-    getPropertyValue('${Device.cssPrefix}column-break-after');
+    getPropertyValue('column-break-after');
 
   /** Sets the value of "column-break-after" */
   void set columnBreakAfter(String value) {
-    setProperty('${Device.cssPrefix}column-break-after', value, '');
+    setProperty('column-break-after', value, '');
   }
 
   /** Gets the value of "column-break-before" */
   String get columnBreakBefore =>
-    getPropertyValue('${Device.cssPrefix}column-break-before');
+    getPropertyValue('column-break-before');
 
   /** Sets the value of "column-break-before" */
   void set columnBreakBefore(String value) {
-    setProperty('${Device.cssPrefix}column-break-before', value, '');
+    setProperty('column-break-before', value, '');
   }
 
   /** Gets the value of "column-break-inside" */
   String get columnBreakInside =>
-    getPropertyValue('${Device.cssPrefix}column-break-inside');
+    getPropertyValue('column-break-inside');
 
   /** Sets the value of "column-break-inside" */
   void set columnBreakInside(String value) {
-    setProperty('${Device.cssPrefix}column-break-inside', value, '');
+    setProperty('column-break-inside', value, '');
   }
 
   /** Gets the value of "column-count" */
   String get columnCount =>
-    getPropertyValue('${Device.cssPrefix}column-count');
+    getPropertyValue('column-count');
 
   /** Sets the value of "column-count" */
   void set columnCount(String value) {
-    setProperty('${Device.cssPrefix}column-count', value, '');
+    setProperty('column-count', value, '');
+  }
+
+  /** Gets the value of "column-fill" */
+  String get columnFill =>
+    getPropertyValue('column-fill');
+
+  /** Sets the value of "column-fill" */
+  void set columnFill(String value) {
+    setProperty('column-fill', value, '');
   }
 
   /** Gets the value of "column-gap" */
   String get columnGap =>
-    getPropertyValue('${Device.cssPrefix}column-gap');
+    getPropertyValue('column-gap');
 
   /** Sets the value of "column-gap" */
   void set columnGap(String value) {
-    setProperty('${Device.cssPrefix}column-gap', value, '');
-  }
-
-  /** Gets the value of "column-progression" */
-  String get columnProgression =>
-    getPropertyValue('${Device.cssPrefix}column-progression');
-
-  /** Sets the value of "column-progression" */
-  void set columnProgression(String value) {
-    setProperty('${Device.cssPrefix}column-progression', value, '');
+    setProperty('column-gap', value, '');
   }
 
   /** Gets the value of "column-rule" */
   String get columnRule =>
-    getPropertyValue('${Device.cssPrefix}column-rule');
+    getPropertyValue('column-rule');
 
   /** Sets the value of "column-rule" */
   void set columnRule(String value) {
-    setProperty('${Device.cssPrefix}column-rule', value, '');
+    setProperty('column-rule', value, '');
   }
 
   /** Gets the value of "column-rule-color" */
   String get columnRuleColor =>
-    getPropertyValue('${Device.cssPrefix}column-rule-color');
+    getPropertyValue('column-rule-color');
 
   /** Sets the value of "column-rule-color" */
   void set columnRuleColor(String value) {
-    setProperty('${Device.cssPrefix}column-rule-color', value, '');
+    setProperty('column-rule-color', value, '');
   }
 
   /** Gets the value of "column-rule-style" */
   String get columnRuleStyle =>
-    getPropertyValue('${Device.cssPrefix}column-rule-style');
+    getPropertyValue('column-rule-style');
 
   /** Sets the value of "column-rule-style" */
   void set columnRuleStyle(String value) {
-    setProperty('${Device.cssPrefix}column-rule-style', value, '');
+    setProperty('column-rule-style', value, '');
   }
 
   /** Gets the value of "column-rule-width" */
   String get columnRuleWidth =>
-    getPropertyValue('${Device.cssPrefix}column-rule-width');
+    getPropertyValue('column-rule-width');
 
   /** Sets the value of "column-rule-width" */
   void set columnRuleWidth(String value) {
-    setProperty('${Device.cssPrefix}column-rule-width', value, '');
+    setProperty('column-rule-width', value, '');
   }
 
   /** Gets the value of "column-span" */
   String get columnSpan =>
-    getPropertyValue('${Device.cssPrefix}column-span');
+    getPropertyValue('column-span');
 
   /** Sets the value of "column-span" */
   void set columnSpan(String value) {
-    setProperty('${Device.cssPrefix}column-span', value, '');
+    setProperty('column-span', value, '');
   }
 
   /** Gets the value of "column-width" */
   String get columnWidth =>
-    getPropertyValue('${Device.cssPrefix}column-width');
+    getPropertyValue('column-width');
 
   /** Sets the value of "column-width" */
   void set columnWidth(String value) {
-    setProperty('${Device.cssPrefix}column-width', value, '');
+    setProperty('column-width', value, '');
   }
 
   /** Gets the value of "columns" */
   String get columns =>
-    getPropertyValue('${Device.cssPrefix}columns');
+    getPropertyValue('columns');
 
   /** Sets the value of "columns" */
   void set columns(String value) {
-    setProperty('${Device.cssPrefix}columns', value, '');
+    setProperty('columns', value, '');
   }
 
   /** Gets the value of "content" */
@@ -3996,15 +3983,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('cursor', value, '');
   }
 
-  /** Gets the value of "dashboard-region" */
-  String get dashboardRegion =>
-    getPropertyValue('${Device.cssPrefix}dashboard-region');
-
-  /** Sets the value of "dashboard-region" */
-  void set dashboardRegion(String value) {
-    setProperty('${Device.cssPrefix}dashboard-region', value, '');
-  }
-
   /** Gets the value of "direction" */
   String get direction =>
     getPropertyValue('direction');
@@ -4034,74 +4012,74 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "filter" */
   String get filter =>
-    getPropertyValue('${Device.cssPrefix}filter');
+    getPropertyValue('filter');
 
   /** Sets the value of "filter" */
   void set filter(String value) {
-    setProperty('${Device.cssPrefix}filter', value, '');
+    setProperty('filter', value, '');
   }
 
   /** Gets the value of "flex" */
   String get flex =>
-    getPropertyValue('${Device.cssPrefix}flex');
+    getPropertyValue('flex');
 
   /** Sets the value of "flex" */
   void set flex(String value) {
-    setProperty('${Device.cssPrefix}flex', value, '');
+    setProperty('flex', value, '');
   }
 
   /** Gets the value of "flex-basis" */
   String get flexBasis =>
-    getPropertyValue('${Device.cssPrefix}flex-basis');
+    getPropertyValue('flex-basis');
 
   /** Sets the value of "flex-basis" */
   void set flexBasis(String value) {
-    setProperty('${Device.cssPrefix}flex-basis', value, '');
+    setProperty('flex-basis', value, '');
   }
 
   /** Gets the value of "flex-direction" */
   String get flexDirection =>
-    getPropertyValue('${Device.cssPrefix}flex-direction');
+    getPropertyValue('flex-direction');
 
   /** Sets the value of "flex-direction" */
   void set flexDirection(String value) {
-    setProperty('${Device.cssPrefix}flex-direction', value, '');
+    setProperty('flex-direction', value, '');
   }
 
   /** Gets the value of "flex-flow" */
   String get flexFlow =>
-    getPropertyValue('${Device.cssPrefix}flex-flow');
+    getPropertyValue('flex-flow');
 
   /** Sets the value of "flex-flow" */
   void set flexFlow(String value) {
-    setProperty('${Device.cssPrefix}flex-flow', value, '');
+    setProperty('flex-flow', value, '');
   }
 
   /** Gets the value of "flex-grow" */
   String get flexGrow =>
-    getPropertyValue('${Device.cssPrefix}flex-grow');
+    getPropertyValue('flex-grow');
 
   /** Sets the value of "flex-grow" */
   void set flexGrow(String value) {
-    setProperty('${Device.cssPrefix}flex-grow', value, '');
+    setProperty('flex-grow', value, '');
   }
 
   /** Gets the value of "flex-shrink" */
   String get flexShrink =>
-    getPropertyValue('${Device.cssPrefix}flex-shrink');
+    getPropertyValue('flex-shrink');
 
   /** Sets the value of "flex-shrink" */
   void set flexShrink(String value) {
-    setProperty('${Device.cssPrefix}flex-shrink', value, '');
+    setProperty('flex-shrink', value, '');
   }
 
   /** Gets the value of "flex-wrap" */
   String get flexWrap =>
-    getPropertyValue('${Device.cssPrefix}flex-wrap');
+    getPropertyValue('flex-wrap');
 
   /** Sets the value of "flex-wrap" */
   void set flexWrap(String value) {
-    setProperty('${Device.cssPrefix}flex-wrap', value, '');
+    setProperty('flex-wrap', value, '');
   }
 
   /** Gets the value of "float" */
@@ -4111,24 +4089,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "float" */
   void set float(String value) {
     setProperty('float', value, '');
-  }
-
-  /** Gets the value of "flow-from" */
-  String get flowFrom =>
-    getPropertyValue('${Device.cssPrefix}flow-from');
-
-  /** Sets the value of "flow-from" */
-  void set flowFrom(String value) {
-    setProperty('${Device.cssPrefix}flow-from', value, '');
-  }
-
-  /** Gets the value of "flow-into" */
-  String get flowInto =>
-    getPropertyValue('${Device.cssPrefix}flow-into');
-
-  /** Sets the value of "flow-into" */
-  void set flowInto(String value) {
-    setProperty('${Device.cssPrefix}flow-into', value, '');
   }
 
   /** Gets the value of "font" */
@@ -4151,20 +4111,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "font-feature-settings" */
   String get fontFeatureSettings =>
-    getPropertyValue('${Device.cssPrefix}font-feature-settings');
+    getPropertyValue('font-feature-settings');
 
   /** Sets the value of "font-feature-settings" */
   void set fontFeatureSettings(String value) {
-    setProperty('${Device.cssPrefix}font-feature-settings', value, '');
+    setProperty('font-feature-settings', value, '');
   }
 
   /** Gets the value of "font-kerning" */
   String get fontKerning =>
-    getPropertyValue('${Device.cssPrefix}font-kerning');
+    getPropertyValue('font-kerning');
 
   /** Sets the value of "font-kerning" */
   void set fontKerning(String value) {
-    setProperty('${Device.cssPrefix}font-kerning', value, '');
+    setProperty('font-kerning', value, '');
   }
 
   /** Gets the value of "font-size" */
@@ -4178,20 +4138,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "font-size-delta" */
   String get fontSizeDelta =>
-    getPropertyValue('${Device.cssPrefix}font-size-delta');
+    getPropertyValue('font-size-delta');
 
   /** Sets the value of "font-size-delta" */
   void set fontSizeDelta(String value) {
-    setProperty('${Device.cssPrefix}font-size-delta', value, '');
+    setProperty('font-size-delta', value, '');
   }
 
   /** Gets the value of "font-smoothing" */
   String get fontSmoothing =>
-    getPropertyValue('${Device.cssPrefix}font-smoothing');
+    getPropertyValue('font-smoothing');
 
   /** Sets the value of "font-smoothing" */
   void set fontSmoothing(String value) {
-    setProperty('${Device.cssPrefix}font-smoothing', value, '');
+    setProperty('font-smoothing', value, '');
   }
 
   /** Gets the value of "font-stretch" */
@@ -4223,11 +4183,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "font-variant-ligatures" */
   String get fontVariantLigatures =>
-    getPropertyValue('${Device.cssPrefix}font-variant-ligatures');
+    getPropertyValue('font-variant-ligatures');
 
   /** Sets the value of "font-variant-ligatures" */
   void set fontVariantLigatures(String value) {
-    setProperty('${Device.cssPrefix}font-variant-ligatures', value, '');
+    setProperty('font-variant-ligatures', value, '');
   }
 
   /** Gets the value of "font-weight" */
@@ -4239,40 +4199,139 @@ abstract class CssStyleDeclarationBase {
     setProperty('font-weight', value, '');
   }
 
+  /** Gets the value of "grid" */
+  String get grid =>
+    getPropertyValue('grid');
+
+  /** Sets the value of "grid" */
+  void set grid(String value) {
+    setProperty('grid', value, '');
+  }
+
+  /** Gets the value of "grid-area" */
+  String get gridArea =>
+    getPropertyValue('grid-area');
+
+  /** Sets the value of "grid-area" */
+  void set gridArea(String value) {
+    setProperty('grid-area', value, '');
+  }
+
+  /** Gets the value of "grid-auto-columns" */
+  String get gridAutoColumns =>
+    getPropertyValue('grid-auto-columns');
+
+  /** Sets the value of "grid-auto-columns" */
+  void set gridAutoColumns(String value) {
+    setProperty('grid-auto-columns', value, '');
+  }
+
+  /** Gets the value of "grid-auto-flow" */
+  String get gridAutoFlow =>
+    getPropertyValue('grid-auto-flow');
+
+  /** Sets the value of "grid-auto-flow" */
+  void set gridAutoFlow(String value) {
+    setProperty('grid-auto-flow', value, '');
+  }
+
+  /** Gets the value of "grid-auto-rows" */
+  String get gridAutoRows =>
+    getPropertyValue('grid-auto-rows');
+
+  /** Sets the value of "grid-auto-rows" */
+  void set gridAutoRows(String value) {
+    setProperty('grid-auto-rows', value, '');
+  }
+
   /** Gets the value of "grid-column" */
   String get gridColumn =>
-    getPropertyValue('${Device.cssPrefix}grid-column');
+    getPropertyValue('grid-column');
 
   /** Sets the value of "grid-column" */
   void set gridColumn(String value) {
-    setProperty('${Device.cssPrefix}grid-column', value, '');
+    setProperty('grid-column', value, '');
   }
 
-  /** Gets the value of "grid-columns" */
-  String get gridColumns =>
-    getPropertyValue('${Device.cssPrefix}grid-columns');
+  /** Gets the value of "grid-column-end" */
+  String get gridColumnEnd =>
+    getPropertyValue('grid-column-end');
 
-  /** Sets the value of "grid-columns" */
-  void set gridColumns(String value) {
-    setProperty('${Device.cssPrefix}grid-columns', value, '');
+  /** Sets the value of "grid-column-end" */
+  void set gridColumnEnd(String value) {
+    setProperty('grid-column-end', value, '');
+  }
+
+  /** Gets the value of "grid-column-start" */
+  String get gridColumnStart =>
+    getPropertyValue('grid-column-start');
+
+  /** Sets the value of "grid-column-start" */
+  void set gridColumnStart(String value) {
+    setProperty('grid-column-start', value, '');
   }
 
   /** Gets the value of "grid-row" */
   String get gridRow =>
-    getPropertyValue('${Device.cssPrefix}grid-row');
+    getPropertyValue('grid-row');
 
   /** Sets the value of "grid-row" */
   void set gridRow(String value) {
-    setProperty('${Device.cssPrefix}grid-row', value, '');
+    setProperty('grid-row', value, '');
   }
 
-  /** Gets the value of "grid-rows" */
-  String get gridRows =>
-    getPropertyValue('${Device.cssPrefix}grid-rows');
+  /** Gets the value of "grid-row-end" */
+  String get gridRowEnd =>
+    getPropertyValue('grid-row-end');
 
-  /** Sets the value of "grid-rows" */
-  void set gridRows(String value) {
-    setProperty('${Device.cssPrefix}grid-rows', value, '');
+  /** Sets the value of "grid-row-end" */
+  void set gridRowEnd(String value) {
+    setProperty('grid-row-end', value, '');
+  }
+
+  /** Gets the value of "grid-row-start" */
+  String get gridRowStart =>
+    getPropertyValue('grid-row-start');
+
+  /** Sets the value of "grid-row-start" */
+  void set gridRowStart(String value) {
+    setProperty('grid-row-start', value, '');
+  }
+
+  /** Gets the value of "grid-template" */
+  String get gridTemplate =>
+    getPropertyValue('grid-template');
+
+  /** Sets the value of "grid-template" */
+  void set gridTemplate(String value) {
+    setProperty('grid-template', value, '');
+  }
+
+  /** Gets the value of "grid-template-areas" */
+  String get gridTemplateAreas =>
+    getPropertyValue('grid-template-areas');
+
+  /** Sets the value of "grid-template-areas" */
+  void set gridTemplateAreas(String value) {
+    setProperty('grid-template-areas', value, '');
+  }
+
+  /** Gets the value of "grid-template-columns" */
+  String get gridTemplateColumns =>
+    getPropertyValue('grid-template-columns');
+
+  /** Sets the value of "grid-template-columns" */
+  void set gridTemplateColumns(String value) {
+    setProperty('grid-template-columns', value, '');
+  }
+
+  /** Gets the value of "grid-template-rows" */
+  String get gridTemplateRows =>
+    getPropertyValue('grid-template-rows');
+
+  /** Sets the value of "grid-template-rows" */
+  void set gridTemplateRows(String value) {
+    setProperty('grid-template-rows', value, '');
   }
 
   /** Gets the value of "height" */
@@ -4286,65 +4345,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "highlight" */
   String get highlight =>
-    getPropertyValue('${Device.cssPrefix}highlight');
+    getPropertyValue('highlight');
 
   /** Sets the value of "highlight" */
   void set highlight(String value) {
-    setProperty('${Device.cssPrefix}highlight', value, '');
+    setProperty('highlight', value, '');
   }
 
   /** Gets the value of "hyphenate-character" */
   String get hyphenateCharacter =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-character');
+    getPropertyValue('hyphenate-character');
 
   /** Sets the value of "hyphenate-character" */
   void set hyphenateCharacter(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-character', value, '');
-  }
-
-  /** Gets the value of "hyphenate-limit-after" */
-  String get hyphenateLimitAfter =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-limit-after');
-
-  /** Sets the value of "hyphenate-limit-after" */
-  void set hyphenateLimitAfter(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-limit-after', value, '');
-  }
-
-  /** Gets the value of "hyphenate-limit-before" */
-  String get hyphenateLimitBefore =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-limit-before');
-
-  /** Sets the value of "hyphenate-limit-before" */
-  void set hyphenateLimitBefore(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-limit-before', value, '');
-  }
-
-  /** Gets the value of "hyphenate-limit-lines" */
-  String get hyphenateLimitLines =>
-    getPropertyValue('${Device.cssPrefix}hyphenate-limit-lines');
-
-  /** Sets the value of "hyphenate-limit-lines" */
-  void set hyphenateLimitLines(String value) {
-    setProperty('${Device.cssPrefix}hyphenate-limit-lines', value, '');
-  }
-
-  /** Gets the value of "hyphens" */
-  String get hyphens =>
-    getPropertyValue('${Device.cssPrefix}hyphens');
-
-  /** Sets the value of "hyphens" */
-  void set hyphens(String value) {
-    setProperty('${Device.cssPrefix}hyphens', value, '');
-  }
-
-  /** Gets the value of "image-orientation" */
-  String get imageOrientation =>
-    getPropertyValue('image-orientation');
-
-  /** Sets the value of "image-orientation" */
-  void set imageOrientation(String value) {
-    setProperty('image-orientation', value, '');
+    setProperty('hyphenate-character', value, '');
   }
 
   /** Gets the value of "image-rendering" */
@@ -4356,22 +4370,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('image-rendering', value, '');
   }
 
-  /** Gets the value of "image-resolution" */
-  String get imageResolution =>
-    getPropertyValue('image-resolution');
+  /** Gets the value of "isolation" */
+  String get isolation =>
+    getPropertyValue('isolation');
 
-  /** Sets the value of "image-resolution" */
-  void set imageResolution(String value) {
-    setProperty('image-resolution', value, '');
+  /** Sets the value of "isolation" */
+  void set isolation(String value) {
+    setProperty('isolation', value, '');
   }
 
   /** Gets the value of "justify-content" */
   String get justifyContent =>
-    getPropertyValue('${Device.cssPrefix}justify-content');
+    getPropertyValue('justify-content');
 
   /** Sets the value of "justify-content" */
   void set justifyContent(String value) {
-    setProperty('${Device.cssPrefix}justify-content', value, '');
+    setProperty('justify-content', value, '');
+  }
+
+  /** Gets the value of "justify-self" */
+  String get justifySelf =>
+    getPropertyValue('justify-self');
+
+  /** Sets the value of "justify-self" */
+  void set justifySelf(String value) {
+    setProperty('justify-self', value, '');
   }
 
   /** Gets the value of "left" */
@@ -4392,49 +4415,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('letter-spacing', value, '');
   }
 
-  /** Gets the value of "line-align" */
-  String get lineAlign =>
-    getPropertyValue('${Device.cssPrefix}line-align');
-
-  /** Sets the value of "line-align" */
-  void set lineAlign(String value) {
-    setProperty('${Device.cssPrefix}line-align', value, '');
-  }
-
   /** Gets the value of "line-box-contain" */
   String get lineBoxContain =>
-    getPropertyValue('${Device.cssPrefix}line-box-contain');
+    getPropertyValue('line-box-contain');
 
   /** Sets the value of "line-box-contain" */
   void set lineBoxContain(String value) {
-    setProperty('${Device.cssPrefix}line-box-contain', value, '');
+    setProperty('line-box-contain', value, '');
   }
 
   /** Gets the value of "line-break" */
   String get lineBreak =>
-    getPropertyValue('${Device.cssPrefix}line-break');
+    getPropertyValue('line-break');
 
   /** Sets the value of "line-break" */
   void set lineBreak(String value) {
-    setProperty('${Device.cssPrefix}line-break', value, '');
+    setProperty('line-break', value, '');
   }
 
   /** Gets the value of "line-clamp" */
   String get lineClamp =>
-    getPropertyValue('${Device.cssPrefix}line-clamp');
+    getPropertyValue('line-clamp');
 
   /** Sets the value of "line-clamp" */
   void set lineClamp(String value) {
-    setProperty('${Device.cssPrefix}line-clamp', value, '');
-  }
-
-  /** Gets the value of "line-grid" */
-  String get lineGrid =>
-    getPropertyValue('${Device.cssPrefix}line-grid');
-
-  /** Sets the value of "line-grid" */
-  void set lineGrid(String value) {
-    setProperty('${Device.cssPrefix}line-grid', value, '');
+    setProperty('line-clamp', value, '');
   }
 
   /** Gets the value of "line-height" */
@@ -4444,15 +4449,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "line-height" */
   void set lineHeight(String value) {
     setProperty('line-height', value, '');
-  }
-
-  /** Gets the value of "line-snap" */
-  String get lineSnap =>
-    getPropertyValue('${Device.cssPrefix}line-snap');
-
-  /** Sets the value of "line-snap" */
-  void set lineSnap(String value) {
-    setProperty('${Device.cssPrefix}line-snap', value, '');
   }
 
   /** Gets the value of "list-style" */
@@ -4493,29 +4489,29 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "locale" */
   String get locale =>
-    getPropertyValue('${Device.cssPrefix}locale');
+    getPropertyValue('locale');
 
   /** Sets the value of "locale" */
   void set locale(String value) {
-    setProperty('${Device.cssPrefix}locale', value, '');
+    setProperty('locale', value, '');
   }
 
   /** Gets the value of "logical-height" */
   String get logicalHeight =>
-    getPropertyValue('${Device.cssPrefix}logical-height');
+    getPropertyValue('logical-height');
 
   /** Sets the value of "logical-height" */
   void set logicalHeight(String value) {
-    setProperty('${Device.cssPrefix}logical-height', value, '');
+    setProperty('logical-height', value, '');
   }
 
   /** Gets the value of "logical-width" */
   String get logicalWidth =>
-    getPropertyValue('${Device.cssPrefix}logical-width');
+    getPropertyValue('logical-width');
 
   /** Sets the value of "logical-width" */
   void set logicalWidth(String value) {
-    setProperty('${Device.cssPrefix}logical-width', value, '');
+    setProperty('logical-width', value, '');
   }
 
   /** Gets the value of "margin" */
@@ -4529,38 +4525,38 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-after" */
   String get marginAfter =>
-    getPropertyValue('${Device.cssPrefix}margin-after');
+    getPropertyValue('margin-after');
 
   /** Sets the value of "margin-after" */
   void set marginAfter(String value) {
-    setProperty('${Device.cssPrefix}margin-after', value, '');
+    setProperty('margin-after', value, '');
   }
 
   /** Gets the value of "margin-after-collapse" */
   String get marginAfterCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-after-collapse');
+    getPropertyValue('margin-after-collapse');
 
   /** Sets the value of "margin-after-collapse" */
   void set marginAfterCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-after-collapse', value, '');
+    setProperty('margin-after-collapse', value, '');
   }
 
   /** Gets the value of "margin-before" */
   String get marginBefore =>
-    getPropertyValue('${Device.cssPrefix}margin-before');
+    getPropertyValue('margin-before');
 
   /** Sets the value of "margin-before" */
   void set marginBefore(String value) {
-    setProperty('${Device.cssPrefix}margin-before', value, '');
+    setProperty('margin-before', value, '');
   }
 
   /** Gets the value of "margin-before-collapse" */
   String get marginBeforeCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-before-collapse');
+    getPropertyValue('margin-before-collapse');
 
   /** Sets the value of "margin-before-collapse" */
   void set marginBeforeCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-before-collapse', value, '');
+    setProperty('margin-before-collapse', value, '');
   }
 
   /** Gets the value of "margin-bottom" */
@@ -4574,29 +4570,29 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-bottom-collapse" */
   String get marginBottomCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-bottom-collapse');
+    getPropertyValue('margin-bottom-collapse');
 
   /** Sets the value of "margin-bottom-collapse" */
   void set marginBottomCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-bottom-collapse', value, '');
+    setProperty('margin-bottom-collapse', value, '');
   }
 
   /** Gets the value of "margin-collapse" */
   String get marginCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-collapse');
+    getPropertyValue('margin-collapse');
 
   /** Sets the value of "margin-collapse" */
   void set marginCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-collapse', value, '');
+    setProperty('margin-collapse', value, '');
   }
 
   /** Gets the value of "margin-end" */
   String get marginEnd =>
-    getPropertyValue('${Device.cssPrefix}margin-end');
+    getPropertyValue('margin-end');
 
   /** Sets the value of "margin-end" */
   void set marginEnd(String value) {
-    setProperty('${Device.cssPrefix}margin-end', value, '');
+    setProperty('margin-end', value, '');
   }
 
   /** Gets the value of "margin-left" */
@@ -4619,11 +4615,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-start" */
   String get marginStart =>
-    getPropertyValue('${Device.cssPrefix}margin-start');
+    getPropertyValue('margin-start');
 
   /** Sets the value of "margin-start" */
   void set marginStart(String value) {
-    setProperty('${Device.cssPrefix}margin-start', value, '');
+    setProperty('margin-start', value, '');
   }
 
   /** Gets the value of "margin-top" */
@@ -4637,236 +4633,182 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "margin-top-collapse" */
   String get marginTopCollapse =>
-    getPropertyValue('${Device.cssPrefix}margin-top-collapse');
+    getPropertyValue('margin-top-collapse');
 
   /** Sets the value of "margin-top-collapse" */
   void set marginTopCollapse(String value) {
-    setProperty('${Device.cssPrefix}margin-top-collapse', value, '');
-  }
-
-  /** Gets the value of "marquee" */
-  String get marquee =>
-    getPropertyValue('${Device.cssPrefix}marquee');
-
-  /** Sets the value of "marquee" */
-  void set marquee(String value) {
-    setProperty('${Device.cssPrefix}marquee', value, '');
-  }
-
-  /** Gets the value of "marquee-direction" */
-  String get marqueeDirection =>
-    getPropertyValue('${Device.cssPrefix}marquee-direction');
-
-  /** Sets the value of "marquee-direction" */
-  void set marqueeDirection(String value) {
-    setProperty('${Device.cssPrefix}marquee-direction', value, '');
-  }
-
-  /** Gets the value of "marquee-increment" */
-  String get marqueeIncrement =>
-    getPropertyValue('${Device.cssPrefix}marquee-increment');
-
-  /** Sets the value of "marquee-increment" */
-  void set marqueeIncrement(String value) {
-    setProperty('${Device.cssPrefix}marquee-increment', value, '');
-  }
-
-  /** Gets the value of "marquee-repetition" */
-  String get marqueeRepetition =>
-    getPropertyValue('${Device.cssPrefix}marquee-repetition');
-
-  /** Sets the value of "marquee-repetition" */
-  void set marqueeRepetition(String value) {
-    setProperty('${Device.cssPrefix}marquee-repetition', value, '');
-  }
-
-  /** Gets the value of "marquee-speed" */
-  String get marqueeSpeed =>
-    getPropertyValue('${Device.cssPrefix}marquee-speed');
-
-  /** Sets the value of "marquee-speed" */
-  void set marqueeSpeed(String value) {
-    setProperty('${Device.cssPrefix}marquee-speed', value, '');
-  }
-
-  /** Gets the value of "marquee-style" */
-  String get marqueeStyle =>
-    getPropertyValue('${Device.cssPrefix}marquee-style');
-
-  /** Sets the value of "marquee-style" */
-  void set marqueeStyle(String value) {
-    setProperty('${Device.cssPrefix}marquee-style', value, '');
+    setProperty('margin-top-collapse', value, '');
   }
 
   /** Gets the value of "mask" */
   String get mask =>
-    getPropertyValue('${Device.cssPrefix}mask');
+    getPropertyValue('mask');
 
   /** Sets the value of "mask" */
   void set mask(String value) {
-    setProperty('${Device.cssPrefix}mask', value, '');
-  }
-
-  /** Gets the value of "mask-attachment" */
-  String get maskAttachment =>
-    getPropertyValue('${Device.cssPrefix}mask-attachment');
-
-  /** Sets the value of "mask-attachment" */
-  void set maskAttachment(String value) {
-    setProperty('${Device.cssPrefix}mask-attachment', value, '');
+    setProperty('mask', value, '');
   }
 
   /** Gets the value of "mask-box-image" */
   String get maskBoxImage =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image');
+    getPropertyValue('mask-box-image');
 
   /** Sets the value of "mask-box-image" */
   void set maskBoxImage(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image', value, '');
+    setProperty('mask-box-image', value, '');
   }
 
   /** Gets the value of "mask-box-image-outset" */
   String get maskBoxImageOutset =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-outset');
+    getPropertyValue('mask-box-image-outset');
 
   /** Sets the value of "mask-box-image-outset" */
   void set maskBoxImageOutset(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-outset', value, '');
+    setProperty('mask-box-image-outset', value, '');
   }
 
   /** Gets the value of "mask-box-image-repeat" */
   String get maskBoxImageRepeat =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-repeat');
+    getPropertyValue('mask-box-image-repeat');
 
   /** Sets the value of "mask-box-image-repeat" */
   void set maskBoxImageRepeat(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-repeat', value, '');
+    setProperty('mask-box-image-repeat', value, '');
   }
 
   /** Gets the value of "mask-box-image-slice" */
   String get maskBoxImageSlice =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-slice');
+    getPropertyValue('mask-box-image-slice');
 
   /** Sets the value of "mask-box-image-slice" */
   void set maskBoxImageSlice(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-slice', value, '');
+    setProperty('mask-box-image-slice', value, '');
   }
 
   /** Gets the value of "mask-box-image-source" */
   String get maskBoxImageSource =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-source');
+    getPropertyValue('mask-box-image-source');
 
   /** Sets the value of "mask-box-image-source" */
   void set maskBoxImageSource(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-source', value, '');
+    setProperty('mask-box-image-source', value, '');
   }
 
   /** Gets the value of "mask-box-image-width" */
   String get maskBoxImageWidth =>
-    getPropertyValue('${Device.cssPrefix}mask-box-image-width');
+    getPropertyValue('mask-box-image-width');
 
   /** Sets the value of "mask-box-image-width" */
   void set maskBoxImageWidth(String value) {
-    setProperty('${Device.cssPrefix}mask-box-image-width', value, '');
+    setProperty('mask-box-image-width', value, '');
   }
 
   /** Gets the value of "mask-clip" */
   String get maskClip =>
-    getPropertyValue('${Device.cssPrefix}mask-clip');
+    getPropertyValue('mask-clip');
 
   /** Sets the value of "mask-clip" */
   void set maskClip(String value) {
-    setProperty('${Device.cssPrefix}mask-clip', value, '');
+    setProperty('mask-clip', value, '');
   }
 
   /** Gets the value of "mask-composite" */
   String get maskComposite =>
-    getPropertyValue('${Device.cssPrefix}mask-composite');
+    getPropertyValue('mask-composite');
 
   /** Sets the value of "mask-composite" */
   void set maskComposite(String value) {
-    setProperty('${Device.cssPrefix}mask-composite', value, '');
+    setProperty('mask-composite', value, '');
   }
 
   /** Gets the value of "mask-image" */
   String get maskImage =>
-    getPropertyValue('${Device.cssPrefix}mask-image');
+    getPropertyValue('mask-image');
 
   /** Sets the value of "mask-image" */
   void set maskImage(String value) {
-    setProperty('${Device.cssPrefix}mask-image', value, '');
+    setProperty('mask-image', value, '');
   }
 
   /** Gets the value of "mask-origin" */
   String get maskOrigin =>
-    getPropertyValue('${Device.cssPrefix}mask-origin');
+    getPropertyValue('mask-origin');
 
   /** Sets the value of "mask-origin" */
   void set maskOrigin(String value) {
-    setProperty('${Device.cssPrefix}mask-origin', value, '');
+    setProperty('mask-origin', value, '');
   }
 
   /** Gets the value of "mask-position" */
   String get maskPosition =>
-    getPropertyValue('${Device.cssPrefix}mask-position');
+    getPropertyValue('mask-position');
 
   /** Sets the value of "mask-position" */
   void set maskPosition(String value) {
-    setProperty('${Device.cssPrefix}mask-position', value, '');
+    setProperty('mask-position', value, '');
   }
 
   /** Gets the value of "mask-position-x" */
   String get maskPositionX =>
-    getPropertyValue('${Device.cssPrefix}mask-position-x');
+    getPropertyValue('mask-position-x');
 
   /** Sets the value of "mask-position-x" */
   void set maskPositionX(String value) {
-    setProperty('${Device.cssPrefix}mask-position-x', value, '');
+    setProperty('mask-position-x', value, '');
   }
 
   /** Gets the value of "mask-position-y" */
   String get maskPositionY =>
-    getPropertyValue('${Device.cssPrefix}mask-position-y');
+    getPropertyValue('mask-position-y');
 
   /** Sets the value of "mask-position-y" */
   void set maskPositionY(String value) {
-    setProperty('${Device.cssPrefix}mask-position-y', value, '');
+    setProperty('mask-position-y', value, '');
   }
 
   /** Gets the value of "mask-repeat" */
   String get maskRepeat =>
-    getPropertyValue('${Device.cssPrefix}mask-repeat');
+    getPropertyValue('mask-repeat');
 
   /** Sets the value of "mask-repeat" */
   void set maskRepeat(String value) {
-    setProperty('${Device.cssPrefix}mask-repeat', value, '');
+    setProperty('mask-repeat', value, '');
   }
 
   /** Gets the value of "mask-repeat-x" */
   String get maskRepeatX =>
-    getPropertyValue('${Device.cssPrefix}mask-repeat-x');
+    getPropertyValue('mask-repeat-x');
 
   /** Sets the value of "mask-repeat-x" */
   void set maskRepeatX(String value) {
-    setProperty('${Device.cssPrefix}mask-repeat-x', value, '');
+    setProperty('mask-repeat-x', value, '');
   }
 
   /** Gets the value of "mask-repeat-y" */
   String get maskRepeatY =>
-    getPropertyValue('${Device.cssPrefix}mask-repeat-y');
+    getPropertyValue('mask-repeat-y');
 
   /** Sets the value of "mask-repeat-y" */
   void set maskRepeatY(String value) {
-    setProperty('${Device.cssPrefix}mask-repeat-y', value, '');
+    setProperty('mask-repeat-y', value, '');
   }
 
   /** Gets the value of "mask-size" */
   String get maskSize =>
-    getPropertyValue('${Device.cssPrefix}mask-size');
+    getPropertyValue('mask-size');
 
   /** Sets the value of "mask-size" */
   void set maskSize(String value) {
-    setProperty('${Device.cssPrefix}mask-size', value, '');
+    setProperty('mask-size', value, '');
+  }
+
+  /** Gets the value of "mask-source-type" */
+  String get maskSourceType =>
+    getPropertyValue('mask-source-type');
+
+  /** Sets the value of "mask-source-type" */
+  void set maskSourceType(String value) {
+    setProperty('mask-source-type', value, '');
   }
 
   /** Gets the value of "max-height" */
@@ -4880,20 +4822,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "max-logical-height" */
   String get maxLogicalHeight =>
-    getPropertyValue('${Device.cssPrefix}max-logical-height');
+    getPropertyValue('max-logical-height');
 
   /** Sets the value of "max-logical-height" */
   void set maxLogicalHeight(String value) {
-    setProperty('${Device.cssPrefix}max-logical-height', value, '');
+    setProperty('max-logical-height', value, '');
   }
 
   /** Gets the value of "max-logical-width" */
   String get maxLogicalWidth =>
-    getPropertyValue('${Device.cssPrefix}max-logical-width');
+    getPropertyValue('max-logical-width');
 
   /** Sets the value of "max-logical-width" */
   void set maxLogicalWidth(String value) {
-    setProperty('${Device.cssPrefix}max-logical-width', value, '');
+    setProperty('max-logical-width', value, '');
   }
 
   /** Gets the value of "max-width" */
@@ -4925,20 +4867,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "min-logical-height" */
   String get minLogicalHeight =>
-    getPropertyValue('${Device.cssPrefix}min-logical-height');
+    getPropertyValue('min-logical-height');
 
   /** Sets the value of "min-logical-height" */
   void set minLogicalHeight(String value) {
-    setProperty('${Device.cssPrefix}min-logical-height', value, '');
+    setProperty('min-logical-height', value, '');
   }
 
   /** Gets the value of "min-logical-width" */
   String get minLogicalWidth =>
-    getPropertyValue('${Device.cssPrefix}min-logical-width');
+    getPropertyValue('min-logical-width');
 
   /** Sets the value of "min-logical-width" */
   void set minLogicalWidth(String value) {
-    setProperty('${Device.cssPrefix}min-logical-width', value, '');
+    setProperty('min-logical-width', value, '');
   }
 
   /** Gets the value of "min-width" */
@@ -4959,13 +4901,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('min-zoom', value, '');
   }
 
-  /** Gets the value of "nbsp-mode" */
-  String get nbspMode =>
-    getPropertyValue('${Device.cssPrefix}nbsp-mode');
+  /** Gets the value of "mix-blend-mode" */
+  String get mixBlendMode =>
+    getPropertyValue('mix-blend-mode');
 
-  /** Sets the value of "nbsp-mode" */
-  void set nbspMode(String value) {
-    setProperty('${Device.cssPrefix}nbsp-mode', value, '');
+  /** Sets the value of "mix-blend-mode" */
+  void set mixBlendMode(String value) {
+    setProperty('mix-blend-mode', value, '');
+  }
+
+  /** Gets the value of "object-fit" */
+  String get objectFit =>
+    getPropertyValue('object-fit');
+
+  /** Sets the value of "object-fit" */
+  void set objectFit(String value) {
+    setProperty('object-fit', value, '');
+  }
+
+  /** Gets the value of "object-position" */
+  String get objectPosition =>
+    getPropertyValue('object-position');
+
+  /** Sets the value of "object-position" */
+  void set objectPosition(String value) {
+    setProperty('object-position', value, '');
   }
 
   /** Gets the value of "opacity" */
@@ -4979,11 +4939,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "order" */
   String get order =>
-    getPropertyValue('${Device.cssPrefix}order');
+    getPropertyValue('order');
 
   /** Sets the value of "order" */
   void set order(String value) {
-    setProperty('${Device.cssPrefix}order', value, '');
+    setProperty('order', value, '');
   }
 
   /** Gets the value of "orientation" */
@@ -5058,15 +5018,6 @@ abstract class CssStyleDeclarationBase {
     setProperty('overflow', value, '');
   }
 
-  /** Gets the value of "overflow-scrolling" */
-  String get overflowScrolling =>
-    getPropertyValue('${Device.cssPrefix}overflow-scrolling');
-
-  /** Sets the value of "overflow-scrolling" */
-  void set overflowScrolling(String value) {
-    setProperty('${Device.cssPrefix}overflow-scrolling', value, '');
-  }
-
   /** Gets the value of "overflow-wrap" */
   String get overflowWrap =>
     getPropertyValue('overflow-wrap');
@@ -5105,20 +5056,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "padding-after" */
   String get paddingAfter =>
-    getPropertyValue('${Device.cssPrefix}padding-after');
+    getPropertyValue('padding-after');
 
   /** Sets the value of "padding-after" */
   void set paddingAfter(String value) {
-    setProperty('${Device.cssPrefix}padding-after', value, '');
+    setProperty('padding-after', value, '');
   }
 
   /** Gets the value of "padding-before" */
   String get paddingBefore =>
-    getPropertyValue('${Device.cssPrefix}padding-before');
+    getPropertyValue('padding-before');
 
   /** Sets the value of "padding-before" */
   void set paddingBefore(String value) {
-    setProperty('${Device.cssPrefix}padding-before', value, '');
+    setProperty('padding-before', value, '');
   }
 
   /** Gets the value of "padding-bottom" */
@@ -5132,11 +5083,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "padding-end" */
   String get paddingEnd =>
-    getPropertyValue('${Device.cssPrefix}padding-end');
+    getPropertyValue('padding-end');
 
   /** Sets the value of "padding-end" */
   void set paddingEnd(String value) {
-    setProperty('${Device.cssPrefix}padding-end', value, '');
+    setProperty('padding-end', value, '');
   }
 
   /** Gets the value of "padding-left" */
@@ -5159,11 +5110,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "padding-start" */
   String get paddingStart =>
-    getPropertyValue('${Device.cssPrefix}padding-start');
+    getPropertyValue('padding-start');
 
   /** Sets the value of "padding-start" */
   void set paddingStart(String value) {
-    setProperty('${Device.cssPrefix}padding-start', value, '');
+    setProperty('padding-start', value, '');
   }
 
   /** Gets the value of "padding-top" */
@@ -5213,38 +5164,38 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "perspective" */
   String get perspective =>
-    getPropertyValue('${Device.cssPrefix}perspective');
+    getPropertyValue('perspective');
 
   /** Sets the value of "perspective" */
   void set perspective(String value) {
-    setProperty('${Device.cssPrefix}perspective', value, '');
+    setProperty('perspective', value, '');
   }
 
   /** Gets the value of "perspective-origin" */
   String get perspectiveOrigin =>
-    getPropertyValue('${Device.cssPrefix}perspective-origin');
+    getPropertyValue('perspective-origin');
 
   /** Sets the value of "perspective-origin" */
   void set perspectiveOrigin(String value) {
-    setProperty('${Device.cssPrefix}perspective-origin', value, '');
+    setProperty('perspective-origin', value, '');
   }
 
   /** Gets the value of "perspective-origin-x" */
   String get perspectiveOriginX =>
-    getPropertyValue('${Device.cssPrefix}perspective-origin-x');
+    getPropertyValue('perspective-origin-x');
 
   /** Sets the value of "perspective-origin-x" */
   void set perspectiveOriginX(String value) {
-    setProperty('${Device.cssPrefix}perspective-origin-x', value, '');
+    setProperty('perspective-origin-x', value, '');
   }
 
   /** Gets the value of "perspective-origin-y" */
   String get perspectiveOriginY =>
-    getPropertyValue('${Device.cssPrefix}perspective-origin-y');
+    getPropertyValue('perspective-origin-y');
 
   /** Sets the value of "perspective-origin-y" */
   void set perspectiveOriginY(String value) {
-    setProperty('${Device.cssPrefix}perspective-origin-y', value, '');
+    setProperty('perspective-origin-y', value, '');
   }
 
   /** Gets the value of "pointer-events" */
@@ -5267,11 +5218,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "print-color-adjust" */
   String get printColorAdjust =>
-    getPropertyValue('${Device.cssPrefix}print-color-adjust');
+    getPropertyValue('print-color-adjust');
 
   /** Sets the value of "print-color-adjust" */
   void set printColorAdjust(String value) {
-    setProperty('${Device.cssPrefix}print-color-adjust', value, '');
+    setProperty('print-color-adjust', value, '');
   }
 
   /** Gets the value of "quotes" */
@@ -5281,42 +5232,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "quotes" */
   void set quotes(String value) {
     setProperty('quotes', value, '');
-  }
-
-  /** Gets the value of "region-break-after" */
-  String get regionBreakAfter =>
-    getPropertyValue('${Device.cssPrefix}region-break-after');
-
-  /** Sets the value of "region-break-after" */
-  void set regionBreakAfter(String value) {
-    setProperty('${Device.cssPrefix}region-break-after', value, '');
-  }
-
-  /** Gets the value of "region-break-before" */
-  String get regionBreakBefore =>
-    getPropertyValue('${Device.cssPrefix}region-break-before');
-
-  /** Sets the value of "region-break-before" */
-  void set regionBreakBefore(String value) {
-    setProperty('${Device.cssPrefix}region-break-before', value, '');
-  }
-
-  /** Gets the value of "region-break-inside" */
-  String get regionBreakInside =>
-    getPropertyValue('${Device.cssPrefix}region-break-inside');
-
-  /** Sets the value of "region-break-inside" */
-  void set regionBreakInside(String value) {
-    setProperty('${Device.cssPrefix}region-break-inside', value, '');
-  }
-
-  /** Gets the value of "region-overflow" */
-  String get regionOverflow =>
-    getPropertyValue('${Device.cssPrefix}region-overflow');
-
-  /** Sets the value of "region-overflow" */
-  void set regionOverflow(String value) {
-    setProperty('${Device.cssPrefix}region-overflow', value, '');
   }
 
   /** Gets the value of "resize" */
@@ -5339,47 +5254,56 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "rtl-ordering" */
   String get rtlOrdering =>
-    getPropertyValue('${Device.cssPrefix}rtl-ordering');
+    getPropertyValue('rtl-ordering');
 
   /** Sets the value of "rtl-ordering" */
   void set rtlOrdering(String value) {
-    setProperty('${Device.cssPrefix}rtl-ordering', value, '');
+    setProperty('rtl-ordering', value, '');
   }
 
-  /** Gets the value of "shape-inside" */
-  String get shapeInside =>
-    getPropertyValue('${Device.cssPrefix}shape-inside');
+  /** Gets the value of "ruby-position" */
+  String get rubyPosition =>
+    getPropertyValue('ruby-position');
 
-  /** Sets the value of "shape-inside" */
-  void set shapeInside(String value) {
-    setProperty('${Device.cssPrefix}shape-inside', value, '');
+  /** Sets the value of "ruby-position" */
+  void set rubyPosition(String value) {
+    setProperty('ruby-position', value, '');
+  }
+
+  /** Gets the value of "scroll-behavior" */
+  String get scrollBehavior =>
+    getPropertyValue('scroll-behavior');
+
+  /** Sets the value of "scroll-behavior" */
+  void set scrollBehavior(String value) {
+    setProperty('scroll-behavior', value, '');
+  }
+
+  /** Gets the value of "shape-image-threshold" */
+  String get shapeImageThreshold =>
+    getPropertyValue('shape-image-threshold');
+
+  /** Sets the value of "shape-image-threshold" */
+  void set shapeImageThreshold(String value) {
+    setProperty('shape-image-threshold', value, '');
   }
 
   /** Gets the value of "shape-margin" */
   String get shapeMargin =>
-    getPropertyValue('${Device.cssPrefix}shape-margin');
+    getPropertyValue('shape-margin');
 
   /** Sets the value of "shape-margin" */
   void set shapeMargin(String value) {
-    setProperty('${Device.cssPrefix}shape-margin', value, '');
+    setProperty('shape-margin', value, '');
   }
 
   /** Gets the value of "shape-outside" */
   String get shapeOutside =>
-    getPropertyValue('${Device.cssPrefix}shape-outside');
+    getPropertyValue('shape-outside');
 
   /** Sets the value of "shape-outside" */
   void set shapeOutside(String value) {
-    setProperty('${Device.cssPrefix}shape-outside', value, '');
-  }
-
-  /** Gets the value of "shape-padding" */
-  String get shapePadding =>
-    getPropertyValue('${Device.cssPrefix}shape-padding');
-
-  /** Sets the value of "shape-padding" */
-  void set shapePadding(String value) {
-    setProperty('${Device.cssPrefix}shape-padding', value, '');
+    setProperty('shape-outside', value, '');
   }
 
   /** Gets the value of "size" */
@@ -5429,11 +5353,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "tap-highlight-color" */
   String get tapHighlightColor =>
-    getPropertyValue('${Device.cssPrefix}tap-highlight-color');
+    getPropertyValue('tap-highlight-color');
 
   /** Sets the value of "tap-highlight-color" */
   void set tapHighlightColor(String value) {
-    setProperty('${Device.cssPrefix}tap-highlight-color', value, '');
+    setProperty('tap-highlight-color', value, '');
   }
 
   /** Gets the value of "text-align" */
@@ -5447,20 +5371,20 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "text-align-last" */
   String get textAlignLast =>
-    getPropertyValue('${Device.cssPrefix}text-align-last');
+    getPropertyValue('text-align-last');
 
   /** Sets the value of "text-align-last" */
   void set textAlignLast(String value) {
-    setProperty('${Device.cssPrefix}text-align-last', value, '');
+    setProperty('text-align-last', value, '');
   }
 
   /** Gets the value of "text-combine" */
   String get textCombine =>
-    getPropertyValue('${Device.cssPrefix}text-combine');
+    getPropertyValue('text-combine');
 
   /** Sets the value of "text-combine" */
   void set textCombine(String value) {
-    setProperty('${Device.cssPrefix}text-combine', value, '');
+    setProperty('text-combine', value, '');
   }
 
   /** Gets the value of "text-decoration" */
@@ -5472,76 +5396,85 @@ abstract class CssStyleDeclarationBase {
     setProperty('text-decoration', value, '');
   }
 
+  /** Gets the value of "text-decoration-color" */
+  String get textDecorationColor =>
+    getPropertyValue('text-decoration-color');
+
+  /** Sets the value of "text-decoration-color" */
+  void set textDecorationColor(String value) {
+    setProperty('text-decoration-color', value, '');
+  }
+
   /** Gets the value of "text-decoration-line" */
   String get textDecorationLine =>
-    getPropertyValue('${Device.cssPrefix}text-decoration-line');
+    getPropertyValue('text-decoration-line');
 
   /** Sets the value of "text-decoration-line" */
   void set textDecorationLine(String value) {
-    setProperty('${Device.cssPrefix}text-decoration-line', value, '');
+    setProperty('text-decoration-line', value, '');
   }
 
   /** Gets the value of "text-decoration-style" */
   String get textDecorationStyle =>
-    getPropertyValue('${Device.cssPrefix}text-decoration-style');
+    getPropertyValue('text-decoration-style');
 
   /** Sets the value of "text-decoration-style" */
   void set textDecorationStyle(String value) {
-    setProperty('${Device.cssPrefix}text-decoration-style', value, '');
+    setProperty('text-decoration-style', value, '');
   }
 
   /** Gets the value of "text-decorations-in-effect" */
   String get textDecorationsInEffect =>
-    getPropertyValue('${Device.cssPrefix}text-decorations-in-effect');
+    getPropertyValue('text-decorations-in-effect');
 
   /** Sets the value of "text-decorations-in-effect" */
   void set textDecorationsInEffect(String value) {
-    setProperty('${Device.cssPrefix}text-decorations-in-effect', value, '');
+    setProperty('text-decorations-in-effect', value, '');
   }
 
   /** Gets the value of "text-emphasis" */
   String get textEmphasis =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis');
+    getPropertyValue('text-emphasis');
 
   /** Sets the value of "text-emphasis" */
   void set textEmphasis(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis', value, '');
+    setProperty('text-emphasis', value, '');
   }
 
   /** Gets the value of "text-emphasis-color" */
   String get textEmphasisColor =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis-color');
+    getPropertyValue('text-emphasis-color');
 
   /** Sets the value of "text-emphasis-color" */
   void set textEmphasisColor(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis-color', value, '');
+    setProperty('text-emphasis-color', value, '');
   }
 
   /** Gets the value of "text-emphasis-position" */
   String get textEmphasisPosition =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis-position');
+    getPropertyValue('text-emphasis-position');
 
   /** Sets the value of "text-emphasis-position" */
   void set textEmphasisPosition(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis-position', value, '');
+    setProperty('text-emphasis-position', value, '');
   }
 
   /** Gets the value of "text-emphasis-style" */
   String get textEmphasisStyle =>
-    getPropertyValue('${Device.cssPrefix}text-emphasis-style');
+    getPropertyValue('text-emphasis-style');
 
   /** Sets the value of "text-emphasis-style" */
   void set textEmphasisStyle(String value) {
-    setProperty('${Device.cssPrefix}text-emphasis-style', value, '');
+    setProperty('text-emphasis-style', value, '');
   }
 
   /** Gets the value of "text-fill-color" */
   String get textFillColor =>
-    getPropertyValue('${Device.cssPrefix}text-fill-color');
+    getPropertyValue('text-fill-color');
 
   /** Sets the value of "text-fill-color" */
   void set textFillColor(String value) {
-    setProperty('${Device.cssPrefix}text-fill-color', value, '');
+    setProperty('text-fill-color', value, '');
   }
 
   /** Gets the value of "text-indent" */
@@ -5553,13 +5486,13 @@ abstract class CssStyleDeclarationBase {
     setProperty('text-indent', value, '');
   }
 
-  /** Gets the value of "text-line-through" */
-  String get textLineThrough =>
-    getPropertyValue('text-line-through');
+  /** Gets the value of "text-justify" */
+  String get textJustify =>
+    getPropertyValue('text-justify');
 
-  /** Sets the value of "text-line-through" */
-  void set textLineThrough(String value) {
-    setProperty('text-line-through', value, '');
+  /** Sets the value of "text-justify" */
+  void set textJustify(String value) {
+    setProperty('text-justify', value, '');
   }
 
   /** Gets the value of "text-line-through-color" */
@@ -5600,11 +5533,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "text-orientation" */
   String get textOrientation =>
-    getPropertyValue('${Device.cssPrefix}text-orientation');
+    getPropertyValue('text-orientation');
 
   /** Sets the value of "text-orientation" */
   void set textOrientation(String value) {
-    setProperty('${Device.cssPrefix}text-orientation', value, '');
+    setProperty('text-orientation', value, '');
   }
 
   /** Gets the value of "text-overflow" */
@@ -5614,15 +5547,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "text-overflow" */
   void set textOverflow(String value) {
     setProperty('text-overflow', value, '');
-  }
-
-  /** Gets the value of "text-overline" */
-  String get textOverline =>
-    getPropertyValue('text-overline');
-
-  /** Sets the value of "text-overline" */
-  void set textOverline(String value) {
-    setProperty('text-overline', value, '');
   }
 
   /** Gets the value of "text-overline-color" */
@@ -5672,11 +5596,11 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "text-security" */
   String get textSecurity =>
-    getPropertyValue('${Device.cssPrefix}text-security');
+    getPropertyValue('text-security');
 
   /** Sets the value of "text-security" */
   void set textSecurity(String value) {
-    setProperty('${Device.cssPrefix}text-security', value, '');
+    setProperty('text-security', value, '');
   }
 
   /** Gets the value of "text-shadow" */
@@ -5688,40 +5612,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('text-shadow', value, '');
   }
 
-  /** Gets the value of "text-size-adjust" */
-  String get textSizeAdjust =>
-    getPropertyValue('${Device.cssPrefix}text-size-adjust');
-
-  /** Sets the value of "text-size-adjust" */
-  void set textSizeAdjust(String value) {
-    setProperty('${Device.cssPrefix}text-size-adjust', value, '');
-  }
-
   /** Gets the value of "text-stroke" */
   String get textStroke =>
-    getPropertyValue('${Device.cssPrefix}text-stroke');
+    getPropertyValue('text-stroke');
 
   /** Sets the value of "text-stroke" */
   void set textStroke(String value) {
-    setProperty('${Device.cssPrefix}text-stroke', value, '');
+    setProperty('text-stroke', value, '');
   }
 
   /** Gets the value of "text-stroke-color" */
   String get textStrokeColor =>
-    getPropertyValue('${Device.cssPrefix}text-stroke-color');
+    getPropertyValue('text-stroke-color');
 
   /** Sets the value of "text-stroke-color" */
   void set textStrokeColor(String value) {
-    setProperty('${Device.cssPrefix}text-stroke-color', value, '');
+    setProperty('text-stroke-color', value, '');
   }
 
   /** Gets the value of "text-stroke-width" */
   String get textStrokeWidth =>
-    getPropertyValue('${Device.cssPrefix}text-stroke-width');
+    getPropertyValue('text-stroke-width');
 
   /** Sets the value of "text-stroke-width" */
   void set textStrokeWidth(String value) {
-    setProperty('${Device.cssPrefix}text-stroke-width', value, '');
+    setProperty('text-stroke-width', value, '');
   }
 
   /** Gets the value of "text-transform" */
@@ -5731,15 +5646,6 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "text-transform" */
   void set textTransform(String value) {
     setProperty('text-transform', value, '');
-  }
-
-  /** Gets the value of "text-underline" */
-  String get textUnderline =>
-    getPropertyValue('text-underline');
-
-  /** Sets the value of "text-underline" */
-  void set textUnderline(String value) {
-    setProperty('text-underline', value, '');
   }
 
   /** Gets the value of "text-underline-color" */
@@ -5758,6 +5664,15 @@ abstract class CssStyleDeclarationBase {
   /** Sets the value of "text-underline-mode" */
   void set textUnderlineMode(String value) {
     setProperty('text-underline-mode', value, '');
+  }
+
+  /** Gets the value of "text-underline-position" */
+  String get textUnderlinePosition =>
+    getPropertyValue('text-underline-position');
+
+  /** Sets the value of "text-underline-position" */
+  void set textUnderlinePosition(String value) {
+    setProperty('text-underline-position', value, '');
   }
 
   /** Gets the value of "text-underline-style" */
@@ -5787,111 +5702,127 @@ abstract class CssStyleDeclarationBase {
     setProperty('top', value, '');
   }
 
+  /** Gets the value of "touch-action" */
+  String get touchAction =>
+    getPropertyValue('touch-action');
+
+  /** Sets the value of "touch-action" */
+  void set touchAction(String value) {
+    setProperty('touch-action', value, '');
+  }
+
+  /** Gets the value of "touch-action-delay" */
+  String get touchActionDelay =>
+    getPropertyValue('touch-action-delay');
+
+  /** Sets the value of "touch-action-delay" */
+  void set touchActionDelay(String value) {
+    setProperty('touch-action-delay', value, '');
+  }
+
   /** Gets the value of "transform" */
   String get transform =>
-    getPropertyValue('${Device.cssPrefix}transform');
+    getPropertyValue('transform');
 
   /** Sets the value of "transform" */
   void set transform(String value) {
-    setProperty('${Device.cssPrefix}transform', value, '');
+    setProperty('transform', value, '');
   }
 
   /** Gets the value of "transform-origin" */
   String get transformOrigin =>
-    getPropertyValue('${Device.cssPrefix}transform-origin');
+    getPropertyValue('transform-origin');
 
   /** Sets the value of "transform-origin" */
   void set transformOrigin(String value) {
-    setProperty('${Device.cssPrefix}transform-origin', value, '');
+    setProperty('transform-origin', value, '');
   }
 
   /** Gets the value of "transform-origin-x" */
   String get transformOriginX =>
-    getPropertyValue('${Device.cssPrefix}transform-origin-x');
+    getPropertyValue('transform-origin-x');
 
   /** Sets the value of "transform-origin-x" */
   void set transformOriginX(String value) {
-    setProperty('${Device.cssPrefix}transform-origin-x', value, '');
+    setProperty('transform-origin-x', value, '');
   }
 
   /** Gets the value of "transform-origin-y" */
   String get transformOriginY =>
-    getPropertyValue('${Device.cssPrefix}transform-origin-y');
+    getPropertyValue('transform-origin-y');
 
   /** Sets the value of "transform-origin-y" */
   void set transformOriginY(String value) {
-    setProperty('${Device.cssPrefix}transform-origin-y', value, '');
+    setProperty('transform-origin-y', value, '');
   }
 
   /** Gets the value of "transform-origin-z" */
   String get transformOriginZ =>
-    getPropertyValue('${Device.cssPrefix}transform-origin-z');
+    getPropertyValue('transform-origin-z');
 
   /** Sets the value of "transform-origin-z" */
   void set transformOriginZ(String value) {
-    setProperty('${Device.cssPrefix}transform-origin-z', value, '');
+    setProperty('transform-origin-z', value, '');
   }
 
   /** Gets the value of "transform-style" */
   String get transformStyle =>
-    getPropertyValue('${Device.cssPrefix}transform-style');
+    getPropertyValue('transform-style');
 
   /** Sets the value of "transform-style" */
   void set transformStyle(String value) {
-    setProperty('${Device.cssPrefix}transform-style', value, '');
+    setProperty('transform-style', value, '');
   }
 
-  /** Gets the value of "transition" */
-  @SupportedBrowser(SupportedBrowser.CHROME)
+  /** Gets the value of "transition" */@SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   String get transition =>
-    getPropertyValue('${Device.cssPrefix}transition');
+    getPropertyValue('transition');
 
-  /** Sets the value of "transition" */
-  @SupportedBrowser(SupportedBrowser.CHROME)
+  /** Sets the value of "transition" */@SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void set transition(String value) {
-    setProperty('${Device.cssPrefix}transition', value, '');
+    setProperty('transition', value, '');
   }
 
   /** Gets the value of "transition-delay" */
   String get transitionDelay =>
-    getPropertyValue('${Device.cssPrefix}transition-delay');
+    getPropertyValue('transition-delay');
 
   /** Sets the value of "transition-delay" */
   void set transitionDelay(String value) {
-    setProperty('${Device.cssPrefix}transition-delay', value, '');
+    setProperty('transition-delay', value, '');
   }
 
   /** Gets the value of "transition-duration" */
   String get transitionDuration =>
-    getPropertyValue('${Device.cssPrefix}transition-duration');
+    getPropertyValue('transition-duration');
 
   /** Sets the value of "transition-duration" */
   void set transitionDuration(String value) {
-    setProperty('${Device.cssPrefix}transition-duration', value, '');
+    setProperty('transition-duration', value, '');
   }
 
   /** Gets the value of "transition-property" */
   String get transitionProperty =>
-    getPropertyValue('${Device.cssPrefix}transition-property');
+    getPropertyValue('transition-property');
 
   /** Sets the value of "transition-property" */
   void set transitionProperty(String value) {
-    setProperty('${Device.cssPrefix}transition-property', value, '');
+    setProperty('transition-property', value, '');
   }
 
   /** Gets the value of "transition-timing-function" */
   String get transitionTimingFunction =>
-    getPropertyValue('${Device.cssPrefix}transition-timing-function');
+    getPropertyValue('transition-timing-function');
 
   /** Sets the value of "transition-timing-function" */
   void set transitionTimingFunction(String value) {
-    setProperty('${Device.cssPrefix}transition-timing-function', value, '');
+    setProperty('transition-timing-function', value, '');
   }
 
   /** Gets the value of "unicode-bidi" */
@@ -5914,29 +5845,29 @@ abstract class CssStyleDeclarationBase {
 
   /** Gets the value of "user-drag" */
   String get userDrag =>
-    getPropertyValue('${Device.cssPrefix}user-drag');
+    getPropertyValue('user-drag');
 
   /** Sets the value of "user-drag" */
   void set userDrag(String value) {
-    setProperty('${Device.cssPrefix}user-drag', value, '');
+    setProperty('user-drag', value, '');
   }
 
   /** Gets the value of "user-modify" */
   String get userModify =>
-    getPropertyValue('${Device.cssPrefix}user-modify');
+    getPropertyValue('user-modify');
 
   /** Sets the value of "user-modify" */
   void set userModify(String value) {
-    setProperty('${Device.cssPrefix}user-modify', value, '');
+    setProperty('user-modify', value, '');
   }
 
   /** Gets the value of "user-select" */
   String get userSelect =>
-    getPropertyValue('${Device.cssPrefix}user-select');
+    getPropertyValue('user-select');
 
   /** Sets the value of "user-select" */
   void set userSelect(String value) {
-    setProperty('${Device.cssPrefix}user-select', value, '');
+    setProperty('user-select', value, '');
   }
 
   /** Gets the value of "user-zoom" */
@@ -5993,6 +5924,15 @@ abstract class CssStyleDeclarationBase {
     setProperty('width', value, '');
   }
 
+  /** Gets the value of "will-change" */
+  String get willChange =>
+    getPropertyValue('will-change');
+
+  /** Sets the value of "will-change" */
+  void set willChange(String value) {
+    setProperty('will-change', value, '');
+  }
+
   /** Gets the value of "word-break" */
   String get wordBreak =>
     getPropertyValue('word-break');
@@ -6020,40 +5960,31 @@ abstract class CssStyleDeclarationBase {
     setProperty('word-wrap', value, '');
   }
 
-  /** Gets the value of "wrap" */
-  String get wrap =>
-    getPropertyValue('${Device.cssPrefix}wrap');
-
-  /** Sets the value of "wrap" */
-  void set wrap(String value) {
-    setProperty('${Device.cssPrefix}wrap', value, '');
-  }
-
   /** Gets the value of "wrap-flow" */
   String get wrapFlow =>
-    getPropertyValue('${Device.cssPrefix}wrap-flow');
+    getPropertyValue('wrap-flow');
 
   /** Sets the value of "wrap-flow" */
   void set wrapFlow(String value) {
-    setProperty('${Device.cssPrefix}wrap-flow', value, '');
+    setProperty('wrap-flow', value, '');
   }
 
   /** Gets the value of "wrap-through" */
   String get wrapThrough =>
-    getPropertyValue('${Device.cssPrefix}wrap-through');
+    getPropertyValue('wrap-through');
 
   /** Sets the value of "wrap-through" */
   void set wrapThrough(String value) {
-    setProperty('${Device.cssPrefix}wrap-through', value, '');
+    setProperty('wrap-through', value, '');
   }
 
   /** Gets the value of "writing-mode" */
   String get writingMode =>
-    getPropertyValue('${Device.cssPrefix}writing-mode');
+    getPropertyValue('writing-mode');
 
   /** Sets the value of "writing-mode" */
   void set writingMode(String value) {
-    setProperty('${Device.cssPrefix}writing-mode', value, '');
+    setProperty('writing-mode', value, '');
   }
 
   /** Gets the value of "z-index" */
@@ -6081,7 +6012,8 @@ abstract class CssStyleDeclarationBase {
 
 @DocsEditable()
 @DomName('CSSStyleRule')
-class CssStyleRule extends CssRule native "CSSStyleRule" {
+@Native("CSSStyleRule")
+class CssStyleRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssStyleRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -6100,7 +6032,8 @@ class CssStyleRule extends CssRule native "CSSStyleRule" {
 
 @DocsEditable()
 @DomName('CSSStyleSheet')
-class CssStyleSheet extends StyleSheet native "CSSStyleSheet" {
+@Native("CSSStyleSheet")
+class CssStyleSheet extends StyleSheet {
   // To suppress missing implicit constructor warnings.
   factory CssStyleSheet._() { throw new UnsupportedError("Not supported"); }
 
@@ -6146,7 +6079,8 @@ class CssStyleSheet extends StyleSheet native "CSSStyleSheet" {
 
 @DocsEditable()
 @DomName('CSSSupportsRule')
-class CssSupportsRule extends CssRule native "CSSSupportsRule" {
+@Native("CSSSupportsRule")
+class CssSupportsRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssSupportsRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -6176,7 +6110,8 @@ class CssSupportsRule extends CssRule native "CSSSupportsRule" {
 @DocsEditable()
 @DomName('CSSViewportRule')
 @Experimental() // untriaged
-class CssViewportRule extends CssRule native "CSSViewportRule" {
+@Native("CSSViewportRule")
+class CssViewportRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory CssViewportRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -6193,7 +6128,8 @@ class CssViewportRule extends CssRule native "CSSViewportRule" {
 
 
 @DomName('CustomEvent')
-class CustomEvent extends Event native "CustomEvent" {
+@Native("CustomEvent")
+class CustomEvent extends Event {
     @Creates('Null')  // Set from Dart code; does not instantiate a native type.
   var _dartDetail;
 
@@ -6254,7 +6190,8 @@ class CustomEvent extends Event native "CustomEvent" {
 
 @DocsEditable()
 @DomName('HTMLDListElement')
-class DListElement extends HtmlElement native "HTMLDListElement" {
+@Native("HTMLDListElement")
+class DListElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DListElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6279,7 +6216,8 @@ class DListElement extends HtmlElement native "HTMLDListElement" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class DataListElement extends HtmlElement native "HTMLDataListElement" {
+@Native("HTMLDataListElement")
+class DataListElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DataListElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6309,7 +6247,8 @@ class DataListElement extends HtmlElement native "HTMLDataListElement" {
 
 @DocsEditable()
 @DomName('Clipboard')
-class DataTransfer extends Interceptor native "Clipboard,DataTransfer" {
+@Native("Clipboard,DataTransfer")
+class DataTransfer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
@@ -6365,7 +6304,7 @@ class DataTransfer extends Interceptor native "Clipboard,DataTransfer" {
 
   @DomName('Clipboard.setDragImage')
   @DocsEditable()
-  void setDragImage(Element element, int x, int y) native;
+  void setDragImage(Element image, int x, int y) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6376,7 +6315,8 @@ class DataTransfer extends Interceptor native "Clipboard,DataTransfer" {
 @DomName('DataTransferItem')
 // http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface
 @Experimental()
-class DataTransferItem extends Interceptor native "DataTransferItem" {
+@Native("DataTransferItem")
+class DataTransferItem extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
@@ -6424,7 +6364,8 @@ class DataTransferItem extends Interceptor native "DataTransferItem" {
 @DomName('DataTransferItemList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-datatransferitemlist-interface
 @Experimental()
-class DataTransferItemList extends Interceptor native "DataTransferItemList" {
+@Native("DataTransferItemList")
+class DataTransferItemList extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
 
@@ -6485,7 +6426,8 @@ typedef void DatabaseCallback(database);
 @DocsEditable()
 @DomName('DedicatedWorkerGlobalScope')
 @Experimental() // untriaged
-class DedicatedWorkerGlobalScope extends WorkerGlobalScope native "DedicatedWorkerGlobalScope" {
+@Native("DedicatedWorkerGlobalScope")
+class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   // To suppress missing implicit constructor warnings.
   factory DedicatedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
@@ -6519,7 +6461,8 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope native "DedicatedWork
 @DocsEditable()
 @DomName('DeprecatedStorageInfo')
 @Experimental() // untriaged
-class DeprecatedStorageInfo extends Interceptor native "DeprecatedStorageInfo" {
+@Native("DeprecatedStorageInfo")
+class DeprecatedStorageInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
 
@@ -6551,7 +6494,8 @@ class DeprecatedStorageInfo extends Interceptor native "DeprecatedStorageInfo" {
 @DocsEditable()
 @DomName('DeprecatedStorageQuota')
 @Experimental() // untriaged
-class DeprecatedStorageQuota extends Interceptor native "DeprecatedStorageQuota" {
+@Native("DeprecatedStorageQuota")
+class DeprecatedStorageQuota extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
@@ -6575,7 +6519,8 @@ class DeprecatedStorageQuota extends Interceptor native "DeprecatedStorageQuota"
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
-class DetailsElement extends HtmlElement native "HTMLDetailsElement" {
+@Native("HTMLDetailsElement")
+class DetailsElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DetailsElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -6605,7 +6550,8 @@ class DetailsElement extends HtmlElement native "HTMLDetailsElement" {
 @DomName('DeviceAcceleration')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceAcceleration extends Interceptor native "DeviceAcceleration" {
+@Native("DeviceAcceleration")
+class DeviceAcceleration extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
@@ -6630,7 +6576,8 @@ class DeviceAcceleration extends Interceptor native "DeviceAcceleration" {
 @DomName('DeviceMotionEvent')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
+@Native("DeviceMotionEvent")
+class DeviceMotionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceMotionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -6664,7 +6611,8 @@ class DeviceMotionEvent extends Event native "DeviceMotionEvent" {
 @DomName('DeviceOrientationEvent')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
+@Native("DeviceOrientationEvent")
+class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
@@ -6707,7 +6655,8 @@ class DeviceOrientationEvent extends Event native "DeviceOrientationEvent" {
 @DomName('DeviceRotationRate')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceRotationRate extends Interceptor native "DeviceRotationRate" {
+@Native("DeviceRotationRate")
+class DeviceRotationRate extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
@@ -6731,7 +6680,8 @@ class DeviceRotationRate extends Interceptor native "DeviceRotationRate" {
 @DocsEditable()
 @DomName('HTMLDialogElement')
 @Unstable()
-class DialogElement extends HtmlElement native "HTMLDialogElement" {
+@Native("HTMLDialogElement")
+class DialogElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DialogElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -6770,7 +6720,8 @@ class DialogElement extends HtmlElement native "HTMLDialogElement" {
 @DomName('DirectoryEntry')
 // http://www.w3.org/TR/file-system-api/#the-directoryentry-interface
 @Experimental()
-class DirectoryEntry extends Entry native "DirectoryEntry" {
+@Native("DirectoryEntry")
+class DirectoryEntry extends Entry {
 
   /**
    * Create a new directory with the specified `path`. If `exclusive` is true,
@@ -6930,7 +6881,6 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
   }
 
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6940,7 +6890,8 @@ class DirectoryEntry extends Entry native "DirectoryEntry" {
 @DomName('DirectoryReader')
 // http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
 @Experimental()
-class DirectoryReader extends Interceptor native "DirectoryReader" {
+@Native("DirectoryReader")
+class DirectoryReader extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
 
@@ -6989,7 +6940,8 @@ class DirectoryReader extends Interceptor native "DirectoryReader" {
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
 @DomName('HTMLDivElement')
-class DivElement extends HtmlElement native "HTMLDivElement" {
+@Native("HTMLDivElement")
+class DivElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory DivElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7019,7 +6971,8 @@ class DivElement extends HtmlElement native "HTMLDivElement" {
  * [Target 2: Connect Dart & HTML](http://www.dartlang.org/docs/tutorials/connect-dart-html/).
  */
 @DomName('Document')
-class Document extends Node  native "Document"
+@Native("Document")
+class Document extends Node
 {
 
   // To suppress missing implicit constructor warnings.
@@ -7784,7 +7737,8 @@ class Document extends Node  native "Document"
 
 
 @DomName('DocumentFragment')
-class DocumentFragment extends Node implements ParentNode native "DocumentFragment" {
+@Native("DocumentFragment")
+class DocumentFragment extends Node implements ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
   factory DocumentFragment.html(String html,
@@ -7947,7 +7901,8 @@ class DocumentFragment extends Node implements ParentNode native "DocumentFragme
 
 @DocsEditable()
 @DomName('DOMError')
-class DomError extends Interceptor native "DOMError" {
+@Native("DOMError")
+class DomError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomError._() { throw new UnsupportedError("Not supported"); }
 
@@ -7967,7 +7922,8 @@ class DomError extends Interceptor native "DOMError" {
 
 @DomName('DOMException')
 @Unstable()
-class DomException extends Interceptor native "DOMException" {
+@Native("DOMException")
+class DomException extends Interceptor {
 
   static const String INDEX_SIZE = 'IndexSizeError';
   static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
@@ -8020,15 +7976,10 @@ class DomException extends Interceptor native "DOMException" {
 
 @DocsEditable()
 @DomName('DOMImplementation')
-class DomImplementation extends Interceptor native "DOMImplementation" {
+@Native("DOMImplementation")
+class DomImplementation extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
-
-  @JSName('createCSSStyleSheet')
-  @DomName('DOMImplementation.createCSSStyleSheet')
-  @DocsEditable()
-  @Experimental() // non-standard
-  CssStyleSheet createCssStyleSheet(String title, String media) native;
 
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
@@ -8054,7 +8005,8 @@ class DomImplementation extends Interceptor native "DOMImplementation" {
 
 @DocsEditable()
 @DomName('DOMParser')
-class DomParser extends Interceptor native "DOMParser" {
+@Native("DOMParser")
+class DomParser extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomParser._() { throw new UnsupportedError("Not supported"); }
 
@@ -8076,7 +8028,8 @@ class DomParser extends Interceptor native "DOMParser" {
 
 @DocsEditable()
 @DomName('DOMSettableTokenList')
-class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
+@Native("DOMSettableTokenList")
+class DomSettableTokenList extends DomTokenList {
   // To suppress missing implicit constructor warnings.
   factory DomSettableTokenList._() { throw new UnsupportedError("Not supported"); }
 
@@ -8095,7 +8048,8 @@ class DomSettableTokenList extends DomTokenList native "DOMSettableTokenList" {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> native "DOMStringList" {
+@Native("DOMStringList")
+class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -8179,7 +8133,8 @@ abstract class DomStringMap extends Interceptor {
 
 @DocsEditable()
 @DomName('DOMTokenList')
-class DomTokenList extends Interceptor native "DOMTokenList" {
+@Native("DOMTokenList")
+class DomTokenList extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
 
@@ -9276,7 +9231,8 @@ class _FrozenElementList<T extends Element> extends ListBase<T>
  * An abstract class, which all HTML elements extend.
  */
 @DomName('Element')
-abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode native "Element" {
+@Native("Element")
+abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -10276,6 +10232,67 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   ElementEvents get on => new ElementEvents(this);
 
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  int get offsetHeight => JS('num', '#.offsetHeight', this).round();
+
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  int get offsetLeft => JS('num', '#.offsetLeft', this).round();
+
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  int get offsetTop => JS('num', '#.offsetTop', this).round();
+
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  int get offsetWidth => JS('num', '#.offsetWidth', this).round();
+
+  @DomName('Element.clientHeight')
+  @DocsEditable()
+  int get clientHeight => JS('num', '#.clientHeight', this).round();
+
+  @DomName('Element.clientLeft')
+  @DocsEditable()
+  int get clientLeft => JS('num', '#.clientLeft', this).round();
+
+  @DomName('Element.clientTop')
+  @DocsEditable()
+  int get clientTop => JS('num', '#.clientTop', this).round();
+
+  @DomName('Element.clientWidth')
+  @DocsEditable()
+  int get clientWidth => JS('num', '#.clientWidth', this).round();
+
+  @DomName('Element.scrollHeight')
+  @DocsEditable()
+  int get scrollHeight => JS('num', '#.scrollHeight', this).round();
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  int get scrollLeft => JS('num', '#.scrollLeft', this).round();
+
+  @DomName('Element.scrollLeft')
+  @DocsEditable()
+  void set scrollLeft(int value) {
+    JS("void", "#.scrollLeft = #", this, value.round());
+  }
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  int get scrollTop => JS('num', '#.scrollTop', this).round();
+
+  @DomName('Element.scrollTop')
+  @DocsEditable()
+  void set scrollTop(int value) {
+    JS("void", "#.scrollTop = #", this, value.round());
+  }
+
+  @DomName('Element.scrollWidth')
+  @DocsEditable()
+  int get scrollWidth => JS('num', '#.scrollWidth', this).round();
+
+
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
 
@@ -10959,21 +10976,25 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DocsEditable()
   String className;
 
+  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable()
-  final int clientHeight;
+  final int _clientHeight;
 
+  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable()
-  final int clientLeft;
+  final int _clientLeft;
 
+  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable()
-  final int clientTop;
+  final int _clientTop;
 
+  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable()
-  final int clientWidth;
+  final int _clientWidth;
 
   @DomName('Element.id')
   @DocsEditable()
@@ -10990,46 +11011,54 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   // Use implementation from Node.
   // final String _namespaceUri;
 
+  @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  final int offsetHeight;
+  final int _offsetHeight;
 
+  @JSName('offsetLeft')
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  final int offsetLeft;
+  final int _offsetLeft;
 
   @DomName('Element.offsetParent')
   @DocsEditable()
   final Element offsetParent;
 
+  @JSName('offsetTop')
   @DomName('Element.offsetTop')
   @DocsEditable()
-  final int offsetTop;
+  final int _offsetTop;
 
+  @JSName('offsetWidth')
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  final int offsetWidth;
+  final int _offsetWidth;
 
   @JSName('outerHTML')
   @DomName('Element.outerHTML')
   @DocsEditable()
   final String outerHtml;
 
+  @JSName('scrollHeight')
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  final int scrollHeight;
+  final int _scrollHeight;
 
+  @JSName('scrollLeft')
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int scrollLeft;
+  int _scrollLeft;
 
+  @JSName('scrollTop')
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int scrollTop;
+  int _scrollTop;
 
+  @JSName('scrollWidth')
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  final int scrollWidth;
+  final int _scrollWidth;
 
   @DomName('Element.style')
   @DocsEditable()
@@ -11758,7 +11787,8 @@ class ScrollAlignment {
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class EmbedElement extends HtmlElement native "HTMLEmbedElement" {
+@Native("HTMLEmbedElement")
+class EmbedElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory EmbedElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -11823,7 +11853,8 @@ typedef void _EntriesCallback(List<Entry> entries);
 @DomName('Entry')
 // http://www.w3.org/TR/file-system-api/#the-entry-interface
 @Experimental()
-class Entry extends Interceptor native "Entry" {
+@Native("Entry")
+class Entry extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Entry._() { throw new UnsupportedError("Not supported"); }
 
@@ -11962,7 +11993,8 @@ typedef void _ErrorCallback(FileError error);
 @DocsEditable()
 @DomName('ErrorEvent')
 @Unstable()
-class ErrorEvent extends Event native "ErrorEvent" {
+@Native("ErrorEvent")
+class ErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -11997,7 +12029,8 @@ class ErrorEvent extends Event native "ErrorEvent" {
 
 
 @DomName('Event')
-class Event extends Interceptor native "Event" {
+@Native("Event,InputEvent,ClipboardEvent")
+class Event extends Interceptor {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -12106,6 +12139,7 @@ class Event extends Interceptor native "Event" {
   @DomName('Event.clipboardData')
   @DocsEditable()
   @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // Part of copy/paste
@@ -12191,7 +12225,8 @@ class Event extends Interceptor native "Event" {
 @DomName('EventSource')
 // http://www.w3.org/TR/eventsource/#the-eventsource-interface
 @Experimental() // stable
-class EventSource extends EventTarget native "EventSource" {
+@Native("EventSource")
+class EventSource extends EventTarget {
   factory EventSource(String title, {withCredentials: false}) {
     var parsedOptions = {
       'withCredentials': withCredentials,
@@ -12309,10 +12344,10 @@ class EventSource extends EventTarget native "EventSource" {
  *
  * Custom events can be declared as:
  *
- *    class DataGenerator {
- *      static EventStreamProvider<Event> dataEvent =
- *          new EventStreamProvider('data');
- *    }
+ *     class DataGenerator {
+ *       static EventStreamProvider<Event> dataEvent =
+ *           new EventStreamProvider('data');
+ *     }
  *
  * Then listeners should access the event with:
  *
@@ -12378,7 +12413,8 @@ class ElementEvents extends Events {
  * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
-class EventTarget extends Interceptor native "EventTarget" {
+@Native("EventTarget")
+class EventTarget extends Interceptor {
 
   // Custom element created callback.
   EventTarget._created();
@@ -12412,7 +12448,8 @@ class EventTarget extends Interceptor native "EventTarget" {
 @DocsEditable()
 @DomName('HTMLFieldSetElement')
 @Unstable()
-class FieldSetElement extends HtmlElement native "HTMLFieldSetElement" {
+@Native("HTMLFieldSetElement")
+class FieldSetElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory FieldSetElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -12475,7 +12512,8 @@ class FieldSetElement extends HtmlElement native "HTMLFieldSetElement" {
 
 @DocsEditable()
 @DomName('File')
-class File extends Blob native "File" {
+@Native("File")
+class File extends Blob {
   // To suppress missing implicit constructor warnings.
   factory File._() { throw new UnsupportedError("Not supported"); }
 
@@ -12526,7 +12564,8 @@ typedef void _FileCallback(File file);
 @DomName('FileEntry')
 // http://www.w3.org/TR/file-system-api/#the-fileentry-interface
 @Experimental()
-class FileEntry extends Entry native "FileEntry" {
+@Native("FileEntry")
+class FileEntry extends Entry {
   // To suppress missing implicit constructor warnings.
   factory FileEntry._() { throw new UnsupportedError("Not supported"); }
 
@@ -12571,7 +12610,8 @@ class FileEntry extends Entry native "FileEntry" {
 @DomName('FileError')
 // http://dev.w3.org/2009/dap/file-system/pub/FileSystem/
 @Experimental()
-class FileError extends DomError native "FileError" {
+@Native("FileError")
+class FileError extends DomError {
   // To suppress missing implicit constructor warnings.
   factory FileError._() { throw new UnsupportedError("Not supported"); }
 
@@ -12634,7 +12674,8 @@ class FileError extends DomError native "FileError" {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> native "FileList" {
+@Native("FileList")
+class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File> implements JavaScriptIndexingBehavior, List<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
@@ -12697,7 +12738,8 @@ class FileList extends Interceptor with ListMixin<File>, ImmutableListMixin<File
 
 @DocsEditable()
 @DomName('FileReader')
-class FileReader extends EventTarget native "FileReader" {
+@Native("FileReader")
+class FileReader extends EventTarget {
 
   @DomName('FileReader.result')
   @DocsEditable()
@@ -12855,7 +12897,8 @@ class FileReader extends EventTarget native "FileReader" {
 @DocsEditable()
 @DomName('Stream')
 @Experimental() // untriaged
-class FileStream extends Interceptor native "Stream" {
+@Native("Stream")
+class FileStream extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
@@ -12874,7 +12917,8 @@ class FileStream extends Interceptor native "Stream" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/
-class FileSystem extends Interceptor native "DOMFileSystem" {
+@Native("DOMFileSystem")
+class FileSystem extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() { throw new UnsupportedError("Not supported"); }
 
@@ -12909,7 +12953,8 @@ typedef void _FileSystemCallback(FileSystem fileSystem);
 @DomName('FileWriter')
 // http://www.w3.org/TR/file-writer-api/#the-filewriter-interface
 @Experimental()
-class FileWriter extends EventTarget native "FileWriter" {
+@Native("FileWriter")
+class FileWriter extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory FileWriter._() { throw new UnsupportedError("Not supported"); }
 
@@ -13065,7 +13110,8 @@ typedef void _FileWriterCallback(FileWriter fileWriter);
 
 @DocsEditable()
 @DomName('FocusEvent')
-class FocusEvent extends UIEvent native "FocusEvent" {
+@Native("FocusEvent")
+class FocusEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -13086,7 +13132,8 @@ class FocusEvent extends UIEvent native "FocusEvent" {
 @DocsEditable()
 @DomName('FontFace')
 @Experimental() // untriaged
-class FontFace extends Interceptor native "FontFace" {
+@Native("FontFace")
+class FontFace extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FontFace._() { throw new UnsupportedError("Not supported"); }
 
@@ -13150,7 +13197,8 @@ class FontFace extends Interceptor native "FontFace" {
 @DocsEditable()
 @DomName('FontFaceSet')
 @Experimental() // untriaged
-class FontFaceSet extends EventTarget native "FontFaceSet" {
+@Native("FontFaceSet")
+class FontFaceSet extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
 
@@ -13215,7 +13263,8 @@ typedef void FontFaceSetForEachCallback(FontFace fontFace, FontFace fontFaceAgai
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class FormData extends Interceptor native "FormData" {
+@Native("FormData")
+class FormData extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory FormData._() { throw new UnsupportedError("Not supported"); }
 
@@ -13249,7 +13298,8 @@ class FormData extends Interceptor native "FormData" {
 
 @DocsEditable()
 @DomName('HTMLFormElement')
-class FormElement extends HtmlElement native "HTMLFormElement" {
+@Native("HTMLFormElement")
+class FormElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory FormElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -13341,7 +13391,17 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete() native;
+  void requestAutocomplete(Map details) {
+    var details_1 = convertDartToNative_Dictionary(details);
+    _requestAutocomplete_1(details_1);
+    return;
+  }
+  @JSName('requestAutocomplete')
+  @DomName('HTMLFormElement.requestAutocomplete')
+  @DocsEditable()
+  // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
+  @Experimental()
+  void _requestAutocomplete_1(details) native;
 
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -13374,7 +13434,8 @@ class FormElement extends HtmlElement native "HTMLFormElement" {
 @DomName('Gamepad')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#gamepad-interface
 @Experimental()
-class Gamepad extends Interceptor native "Gamepad" {
+@Native("Gamepad")
+class Gamepad extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() { throw new UnsupportedError("Not supported"); }
 
@@ -13406,7 +13467,8 @@ class Gamepad extends Interceptor native "Gamepad" {
 @DocsEditable()
 @DomName('Geolocation')
 @Unstable()
-class Geolocation extends Interceptor native "Geolocation" {
+@Native("Geolocation")
+class Geolocation extends Interceptor {
 
   @DomName('Geolocation.getCurrentPosition')
   Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
@@ -13515,8 +13577,6 @@ class _GeopositionWrapper implements Geoposition {
   Coordinates get coords => JS('Coordinates', '#.coords', _ptr);
   int get timestamp => JS('int', '#.timestamp', _ptr);
 }
-
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -13525,7 +13585,8 @@ class _GeopositionWrapper implements Geoposition {
 @DocsEditable()
 @DomName('Geoposition')
 @Unstable()
-class Geoposition extends Interceptor native "Geoposition" {
+@Native("Geoposition")
+class Geoposition extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() { throw new UnsupportedError("Not supported"); }
 
@@ -13899,7 +13960,8 @@ abstract class GlobalEventHandlers extends EventTarget {
  * An `<hr>` tag.
  */
 @DomName('HTMLHRElement')
-class HRElement extends HtmlElement native "HTMLHRElement" {
+@Native("HTMLHRElement")
+class HRElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory HRElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -13929,7 +13991,8 @@ class HRElement extends HtmlElement native "HTMLHRElement" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class HashChangeEvent extends Event native "HashChangeEvent" {
+@Native("HashChangeEvent")
+class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
@@ -13966,7 +14029,8 @@ class HashChangeEvent extends Event native "HashChangeEvent" {
 
 @DocsEditable()
 @DomName('HTMLHeadElement')
-class HeadElement extends HtmlElement native "HTMLHeadElement" {
+@Native("HTMLHeadElement")
+class HeadElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory HeadElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -13987,7 +14051,8 @@ class HeadElement extends HtmlElement native "HTMLHeadElement" {
 
 @DocsEditable()
 @DomName('HTMLHeadingElement')
-class HeadingElement extends HtmlElement native "HTMLHeadingElement" {
+@Native("HTMLHeadingElement")
+class HeadingElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory HeadingElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -14027,7 +14092,8 @@ class HeadingElement extends HtmlElement native "HTMLHeadingElement" {
 
 
 @DomName('History')
-class History extends Interceptor implements HistoryBase native "History" {
+@Native("History")
+class History extends Interceptor implements HistoryBase {
 
   /**
    * Checks if the State APIs are supported on the current platform.
@@ -14091,7 +14157,8 @@ class History extends Interceptor implements HistoryBase native "History" {
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "HTMLCollection" {
+@Native("HTMLCollection")
+class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
@@ -14159,7 +14226,8 @@ class HtmlCollection extends Interceptor with ListMixin<Node>, ImmutableListMixi
 
 
 @DomName('HTMLDocument')
-class HtmlDocument extends Document native "HTMLDocument" {
+@Native("HTMLDocument")
+class HtmlDocument extends Document {
   // To suppress missing implicit constructor warnings.
   factory HtmlDocument._() { throw new UnsupportedError("Not supported"); }
 
@@ -14451,7 +14519,8 @@ class HtmlDocument extends Document native "HTMLDocument" {
 
 @DocsEditable()
 @DomName('HTMLFormControlsCollection')
-class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControlsCollection" {
+@Native("HTMLFormControlsCollection")
+class HtmlFormControlsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 }
@@ -14462,7 +14531,8 @@ class HtmlFormControlsCollection extends HtmlCollection native "HTMLFormControls
 
 @DocsEditable()
 @DomName('HTMLHtmlElement')
-class HtmlHtmlElement extends HtmlElement native "HTMLHtmlElement" {
+@Native("HTMLHtmlElement")
+class HtmlHtmlElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory HtmlHtmlElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -14483,7 +14553,8 @@ class HtmlHtmlElement extends HtmlElement native "HTMLHtmlElement" {
 
 @DocsEditable()
 @DomName('HTMLOptionsCollection')
-class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection" {
+@Native("HTMLOptionsCollection")
+class HtmlOptionsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlOptionsCollection._() { throw new UnsupportedError("Not supported"); }
 }
@@ -14540,7 +14611,8 @@ class HtmlOptionsCollection extends HtmlCollection native "HTMLOptionsCollection
   * * [Using XMLHttpRequest](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest/Using_XMLHttpRequest)
  */
 @DomName('XMLHttpRequest')
-class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
+@Native("XMLHttpRequest")
+class HttpRequest extends HttpRequestEventTarget {
 
   /**
    * Creates a GET request for the specified [url].
@@ -14626,12 +14698,18 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter.
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * requests only.
    *
    * The Future is completed when the response is available.
    *
    * If specified, `sendData` will send data in the form of a [ByteBuffer],
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
+   *
+   * If specified, [responseType] sets the desired response format for the
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
    * (already) set in the header or
@@ -15181,7 +15259,8 @@ class HttpRequest extends HttpRequestEventTarget native "XMLHttpRequest" {
 @DocsEditable()
 @DomName('XMLHttpRequestEventTarget')
 @Experimental() // untriaged
-class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarget" {
+@Native("XMLHttpRequestEventTarget")
+class HttpRequestEventTarget extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestEventTarget._() { throw new UnsupportedError("Not supported"); }
 
@@ -15321,7 +15400,8 @@ class HttpRequestEventTarget extends EventTarget native "XMLHttpRequestEventTarg
 @DomName('XMLHttpRequestUpload')
 // http://xhr.spec.whatwg.org/#xmlhttprequestupload
 @Experimental()
-class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpload" {
+@Native("XMLHttpRequestUpload")
+class HttpRequestUpload extends HttpRequestEventTarget {
   // To suppress missing implicit constructor warnings.
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 }
@@ -15332,7 +15412,8 @@ class HttpRequestUpload extends HttpRequestEventTarget native "XMLHttpRequestUpl
 
 @DocsEditable()
 @DomName('HTMLIFrameElement')
-class IFrameElement extends HtmlElement native "HTMLIFrameElement" {
+@Native("HTMLIFrameElement")
+class IFrameElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory IFrameElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -15388,7 +15469,8 @@ class IFrameElement extends HtmlElement native "HTMLIFrameElement" {
 @DocsEditable()
 @DomName('ImageBitmap')
 @Experimental() // untriaged
-class ImageBitmap extends Interceptor native "ImageBitmap" {
+@Native("ImageBitmap")
+class ImageBitmap extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
 
@@ -15407,7 +15489,8 @@ class ImageBitmap extends Interceptor native "ImageBitmap" {
 // BSD-style license that can be found in the LICENSE file.
 
 @DomName('ImageData')
-class ImageData extends Interceptor native "ImageData" {
+@Native("ImageData")
+class ImageData extends Interceptor {
 
   // To suppress missing implicit constructor warnings.
   factory ImageData._() { throw new UnsupportedError("Not supported"); }
@@ -15433,7 +15516,8 @@ class ImageData extends Interceptor native "ImageData" {
 
 
 @DomName('HTMLImageElement')
-class ImageElement extends HtmlElement implements CanvasImageSource native "HTMLImageElement" {
+@Native("HTMLImageElement")
+class ImageElement extends HtmlElement implements CanvasImageSource {
   // To suppress missing implicit constructor warnings.
   factory ImageElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -15504,7 +15588,26 @@ class ImageElement extends HtmlElement implements CanvasImageSource native "HTML
 // BSD-style license that can be found in the LICENSE file.
 
 
+@DocsEditable()
+@DomName('InjectedScriptHost')
+@Experimental() // untriaged
+@Native("InjectedScriptHost")
+class InjectedScriptHost extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('InjectedScriptHost.inspect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void inspect(Object objectId, Object hints) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
 @DomName('HTMLInputElement')
+@Native("HTMLInputElement")
 class InputElement extends HtmlElement implements
     HiddenInputElement,
     SearchInputElement,
@@ -15526,8 +15629,7 @@ class InputElement extends HtmlElement implements
     SubmitButtonInputElement,
     ImageButtonInputElement,
     ResetButtonInputElement,
-    ButtonInputElement
-     native "HTMLInputElement" {
+    ButtonInputElement {
 
   factory InputElement({String type}) {
     var e = document.createElement("input");
@@ -15762,24 +15864,6 @@ class InputElement extends HtmlElement implements
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
   final List<Entry> entries;
-
-  @JSName('webkitGrammar')
-  @DomName('HTMLInputElement.webkitGrammar')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-grammar
-  bool grammar;
-
-  @JSName('webkitSpeech')
-  @DomName('HTMLInputElement.webkitSpeech')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#attrib-speech
-  bool speech;
 
   @JSName('webkitdirectory')
   @DomName('HTMLInputElement.webkitdirectory')
@@ -16391,7 +16475,6 @@ abstract class ResetButtonInputElement implements InputElementBase {
 abstract class ButtonInputElement implements InputElementBase {
   factory ButtonInputElement() => new InputElement(type: 'button');
 }
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16401,7 +16484,8 @@ abstract class ButtonInputElement implements InputElementBase {
 @DomName('InputMethodContext')
 // http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
 @Experimental()
-class InputMethodContext extends EventTarget native "InputMethodContext" {
+@Native("InputMethodContext")
+class InputMethodContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
 
@@ -16436,7 +16520,8 @@ class InputMethodContext extends EventTarget native "InputMethodContext" {
 @DocsEditable()
 @DomName('InstallEvent')
 @Experimental() // untriaged
-class InstallEvent extends InstallPhaseEvent native "InstallEvent" {
+@Native("InstallEvent")
+class InstallEvent extends InstallPhaseEvent {
   // To suppress missing implicit constructor warnings.
   factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -16453,7 +16538,8 @@ class InstallEvent extends InstallPhaseEvent native "InstallEvent" {
 @DocsEditable()
 @DomName('InstallPhaseEvent')
 @Experimental() // untriaged
-class InstallPhaseEvent extends Event native "InstallPhaseEvent" {
+@Native("InstallPhaseEvent")
+class InstallPhaseEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory InstallPhaseEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -16470,7 +16556,8 @@ class InstallPhaseEvent extends Event native "InstallPhaseEvent" {
 @DocsEditable()
 @DomName('KeyPair')
 @Experimental() // untriaged
-class KeyPair extends Interceptor native "KeyPair" {
+@Native("KeyPair")
+class KeyPair extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory KeyPair._() { throw new UnsupportedError("Not supported"); }
 
@@ -16499,7 +16586,8 @@ class KeyPair extends Interceptor native "KeyPair" {
  * * [KeyboardEvent](https://developer.mozilla.org/en/DOM/KeyboardEvent) at MDN.
  */
 @DomName('KeyboardEvent')
-class KeyboardEvent extends UIEvent native "KeyboardEvent" {
+@Native("KeyboardEvent")
+class KeyboardEvent extends UIEvent {
 
   /** 
    * Programmatically create a KeyboardEvent. 
@@ -16632,7 +16720,8 @@ class KeyboardEvent extends UIEvent native "KeyboardEvent" {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#the-keygen-element
-class KeygenElement extends HtmlElement native "HTMLKeygenElement" {
+@Native("HTMLKeygenElement")
+class KeygenElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory KeygenElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -16711,7 +16800,8 @@ class KeygenElement extends HtmlElement native "HTMLKeygenElement" {
 
 @DocsEditable()
 @DomName('HTMLLIElement')
-class LIElement extends HtmlElement native "HTMLLIElement" {
+@Native("HTMLLIElement")
+class LIElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory LIElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -16736,7 +16826,8 @@ class LIElement extends HtmlElement native "HTMLLIElement" {
 
 @DocsEditable()
 @DomName('HTMLLabelElement')
-class LabelElement extends HtmlElement native "HTMLLabelElement" {
+@Native("HTMLLabelElement")
+class LabelElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory LabelElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -16769,7 +16860,8 @@ class LabelElement extends HtmlElement native "HTMLLabelElement" {
 
 @DocsEditable()
 @DomName('HTMLLegendElement')
-class LegendElement extends HtmlElement native "HTMLLegendElement" {
+@Native("HTMLLegendElement")
+class LegendElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory LegendElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -16794,7 +16886,8 @@ class LegendElement extends HtmlElement native "HTMLLegendElement" {
 
 @DocsEditable()
 @DomName('HTMLLinkElement')
-class LinkElement extends HtmlElement native "HTMLLinkElement" {
+@Native("HTMLLinkElement")
+class LinkElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory LinkElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -16864,7 +16957,8 @@ class LinkElement extends HtmlElement native "HTMLLinkElement" {
 
 @DocsEditable()
 @DomName('Location')
-class Location extends Interceptor implements LocationBase native "Location" {
+@Native("Location")
+class Location extends Interceptor implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() { throw new UnsupportedError("Not supported"); }
 
@@ -16960,7 +17054,8 @@ typedef void MidiSuccessCallback(MidiAccess access, bool sysex);
 
 @DocsEditable()
 @DomName('HTMLMapElement')
-class MapElement extends HtmlElement native "HTMLMapElement" {
+@Native("HTMLMapElement")
+class MapElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MapElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -16993,7 +17088,8 @@ class MapElement extends HtmlElement native "HTMLMapElement" {
 @DomName('MediaController')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#mediacontroller
 @Experimental()
-class MediaController extends EventTarget native "MediaController" {
+@Native("MediaController")
+class MediaController extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaController._() { throw new UnsupportedError("Not supported"); }
 
@@ -17068,7 +17164,8 @@ class MediaController extends EventTarget native "MediaController" {
 @DocsEditable()
 @DomName('HTMLMediaElement')
 @Unstable()
-class MediaElement extends HtmlElement native "HTMLMediaElement" {
+@Native("HTMLMediaElement")
+class MediaElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MediaElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -17711,7 +17808,8 @@ class MediaElement extends HtmlElement native "HTMLMediaElement" {
 @DocsEditable()
 @DomName('MediaError')
 @Unstable()
-class MediaError extends Interceptor native "MediaError" {
+@Native("MediaError")
+class MediaError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
@@ -17750,7 +17848,8 @@ class MediaError extends Interceptor native "MediaError" {
 @DomName('MediaKeyError')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
 @Experimental()
-class MediaKeyError extends Interceptor native "MediaKeyError" {
+@Native("MediaKeyError")
+class MediaKeyError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
 
@@ -17796,7 +17895,8 @@ class MediaKeyError extends Interceptor native "MediaKeyError" {
 @DomName('MediaKeyEvent')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#event-definitions
 @Experimental()
-class MediaKeyEvent extends Event native "MediaKeyEvent" {
+@Native("MediaKeyEvent")
+class MediaKeyEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -17838,7 +17938,8 @@ class MediaKeyEvent extends Event native "MediaKeyEvent" {
 @DomName('MediaKeyMessageEvent')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeymessageevent
 @Experimental()
-class MediaKeyMessageEvent extends Event native "MediaKeyMessageEvent" {
+@Native("MediaKeyMessageEvent")
+class MediaKeyMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -17860,7 +17961,8 @@ class MediaKeyMessageEvent extends Event native "MediaKeyMessageEvent" {
 @DomName('MediaKeyNeededEvent')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
 @Experimental()
-class MediaKeyNeededEvent extends Event native "MediaKeyNeededEvent" {
+@Native("MediaKeyNeededEvent")
+class MediaKeyNeededEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -17882,7 +17984,8 @@ class MediaKeyNeededEvent extends Event native "MediaKeyNeededEvent" {
 @DomName('MediaKeySession')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeysession
 @Experimental()
-class MediaKeySession extends EventTarget native "MediaKeySession" {
+@Native("MediaKeySession")
+class MediaKeySession extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
 
@@ -17916,7 +18019,8 @@ class MediaKeySession extends EventTarget native "MediaKeySession" {
 @DomName('MediaKeys')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
 @Experimental()
-class MediaKeys extends Interceptor native "MediaKeys" {
+@Native("MediaKeys")
+class MediaKeys extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
@@ -17943,7 +18047,8 @@ class MediaKeys extends Interceptor native "MediaKeys" {
 @DocsEditable()
 @DomName('MediaList')
 @Unstable()
-class MediaList extends Interceptor native "MediaList" {
+@Native("MediaList")
+class MediaList extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() { throw new UnsupportedError("Not supported"); }
 
@@ -17975,7 +18080,8 @@ class MediaList extends Interceptor native "MediaList" {
 @DocsEditable()
 @DomName('MediaQueryList')
 @Unstable()
-class MediaQueryList extends Interceptor native "MediaQueryList" {
+@Native("MediaQueryList")
+class MediaQueryList extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MediaQueryList._() { throw new UnsupportedError("Not supported"); }
 
@@ -17996,7 +18102,8 @@ class MediaQueryList extends Interceptor native "MediaQueryList" {
 @DomName('MediaSource')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#mediasource
 @Experimental()
-class MediaSource extends EventTarget native "MediaSource" {
+@Native("MediaSource")
+class MediaSource extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaSource._() { throw new UnsupportedError("Not supported"); }
 
@@ -18048,7 +18155,8 @@ class MediaSource extends EventTarget native "MediaSource" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastream
-class MediaStream extends EventTarget native "MediaStream" {
+@Native("MediaStream")
+class MediaStream extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaStream._() { throw new UnsupportedError("Not supported"); }
 
@@ -18182,7 +18290,8 @@ class MediaStream extends EventTarget native "MediaStream" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html
-class MediaStreamEvent extends Event native "MediaStreamEvent" {
+@Native("MediaStreamEvent")
+class MediaStreamEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -18203,7 +18312,8 @@ class MediaStreamEvent extends Event native "MediaStreamEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#mediastreamtrack
-class MediaStreamTrack extends EventTarget native "MediaStreamTrack" {
+@Native("MediaStreamTrack")
+class MediaStreamTrack extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamTrack._() { throw new UnsupportedError("Not supported"); }
 
@@ -18304,7 +18414,8 @@ class MediaStreamTrack extends EventTarget native "MediaStreamTrack" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html
-class MediaStreamTrackEvent extends Event native "MediaStreamTrackEvent" {
+@Native("MediaStreamTrackEvent")
+class MediaStreamTrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamTrackEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -18333,7 +18444,8 @@ typedef void MediaStreamTrackSourcesCallback(List<SourceInfo> sources);
 @DocsEditable()
 @DomName('MemoryInfo')
 @Experimental() // nonstandard
-class MemoryInfo extends Interceptor native "MemoryInfo" {
+@Native("MemoryInfo")
+class MemoryInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
 
@@ -18366,7 +18478,8 @@ class MemoryInfo extends Interceptor native "MemoryInfo" {
  *  * [Menu Element](http://www.w3.org/TR/html5/the-menu-element.html#the-menu-element) from the W3C.
  */
 @DomName('HTMLMenuElement')
-class MenuElement extends HtmlElement native "HTMLMenuElement" {
+@Native("HTMLMenuElement")
+class MenuElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MenuElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -18388,7 +18501,8 @@ class MenuElement extends HtmlElement native "HTMLMenuElement" {
 @DocsEditable()
 @DomName('MessageChannel')
 @Unstable()
-class MessageChannel extends Interceptor native "MessageChannel" {
+@Native("MessageChannel")
+class MessageChannel extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
 
@@ -18408,13 +18522,20 @@ class MessageChannel extends Interceptor native "MessageChannel" {
 
 
 @DomName('MessageEvent')
-class MessageEvent extends Event native "MessageEvent" {
+@Native("MessageEvent")
+class MessageEvent extends Event {
   factory MessageEvent(String type,
       {bool canBubble: false, bool cancelable: false, Object data,
       String origin, String lastEventId,
       Window source, List messagePorts}) {
     if (source == null) {
       source = window;
+    }
+    if (!Device.isIE) { // TODO: This if check should be removed once IE
+      // implements the constructor.
+      return JS('MessageEvent', 'new MessageEvent(#, {bubbles: #, cancelable: #, data: #, origin: #, lastEventId: #, source: #, ports: #})',
+          type, canBubble, cancelable, data, origin, lastEventId, source,
+          messagePorts);
     }
     var event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
@@ -18467,7 +18588,8 @@ class MessageEvent extends Event native "MessageEvent" {
 @DocsEditable()
 @DomName('MessagePort')
 @Unstable()
-class MessagePort extends EventTarget native "MessagePort" {
+@Native("MessagePort")
+class MessagePort extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MessagePort._() { throw new UnsupportedError("Not supported"); }
 
@@ -18522,7 +18644,8 @@ class MessagePort extends EventTarget native "MessagePort" {
 
 @DocsEditable()
 @DomName('HTMLMetaElement')
-class MetaElement extends HtmlElement native "HTMLMetaElement" {
+@Native("HTMLMetaElement")
+class MetaElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MetaElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -18557,7 +18680,8 @@ class MetaElement extends HtmlElement native "HTMLMetaElement" {
 @DomName('Metadata')
 // http://www.w3.org/TR/file-system-api/#the-metadata-interface
 @Experimental()
-class Metadata extends Interceptor native "Metadata" {
+@Native("Metadata")
+class Metadata extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() { throw new UnsupportedError("Not supported"); }
 
@@ -18596,7 +18720,8 @@ typedef void MetadataCallback(Metadata metadata);
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class MeterElement extends HtmlElement native "HTMLMeterElement" {
+@Native("HTMLMeterElement")
+class MeterElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory MeterElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -18653,7 +18778,8 @@ class MeterElement extends HtmlElement native "HTMLMeterElement" {
 @DomName('MIDIAccess')
 // http://webaudio.github.io/web-midi-api/#midiaccess-interface
 @Experimental()
-class MidiAccess extends EventTarget native "MIDIAccess" {
+@Native("MIDIAccess")
+class MidiAccess extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MidiAccess._() { throw new UnsupportedError("Not supported"); }
 
@@ -18703,7 +18829,8 @@ class MidiAccess extends EventTarget native "MIDIAccess" {
 @DocsEditable()
 @DomName('MIDIAccessPromise')
 @Experimental() // untriaged
-class MidiAccessPromise extends Interceptor native "MIDIAccessPromise" {
+@Native("MIDIAccessPromise")
+class MidiAccessPromise extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MidiAccessPromise._() { throw new UnsupportedError("Not supported"); }
 
@@ -18721,7 +18848,8 @@ class MidiAccessPromise extends Interceptor native "MIDIAccessPromise" {
 @DomName('MIDIConnectionEvent')
 // http://webaudio.github.io/web-midi-api/#midiconnectionevent-interface
 @Experimental()
-class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
+@Native("MIDIConnectionEvent")
+class MidiConnectionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiConnectionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -18738,7 +18866,8 @@ class MidiConnectionEvent extends Event native "MIDIConnectionEvent" {
 @DomName('MIDIInput')
 // http://webaudio.github.io/web-midi-api/#idl-def-MIDIInput
 @Experimental()
-class MidiInput extends MidiPort native "MIDIInput" {
+@Native("MIDIInput")
+class MidiInput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiInput._() { throw new UnsupportedError("Not supported"); }
 
@@ -18766,7 +18895,8 @@ class MidiInput extends MidiPort native "MIDIInput" {
 @DomName('MIDIMessageEvent')
 // http://webaudio.github.io/web-midi-api/#midimessageevent-interface
 @Experimental()
-class MidiMessageEvent extends Event native "MIDIMessageEvent" {
+@Native("MIDIMessageEvent")
+class MidiMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -18787,7 +18917,8 @@ class MidiMessageEvent extends Event native "MIDIMessageEvent" {
 @DomName('MIDIOutput')
 // http://webaudio.github.io/web-midi-api/#midioutput-interface
 @Experimental()
-class MidiOutput extends MidiPort native "MIDIOutput" {
+@Native("MIDIOutput")
+class MidiOutput extends MidiPort {
   // To suppress missing implicit constructor warnings.
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
@@ -18804,7 +18935,8 @@ class MidiOutput extends MidiPort native "MIDIOutput" {
 @DomName('MIDIPort')
 // http://webaudio.github.io/web-midi-api/#idl-def-MIDIPort
 @Experimental()
-class MidiPort extends EventTarget native "MIDIPort" {
+@Native("MIDIPort")
+class MidiPort extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MidiPort._() { throw new UnsupportedError("Not supported"); }
 
@@ -18851,7 +18983,8 @@ class MidiPort extends EventTarget native "MIDIPort" {
 @DocsEditable()
 @DomName('MimeType')
 @Experimental() // non-standard
-class MimeType extends Interceptor native "MimeType" {
+@Native("MimeType")
+class MimeType extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
@@ -18879,7 +19012,8 @@ class MimeType extends Interceptor native "MimeType" {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> native "MimeTypeArray" {
+@Native("MimeTypeArray")
+class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements JavaScriptIndexingBehavior, List<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -18951,7 +19085,8 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
 @DocsEditable()
 @DomName('HTMLModElement')
 @Unstable()
-class ModElement extends HtmlElement native "HTMLModElement" {
+@Native("HTMLModElement")
+class ModElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ModElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -18975,7 +19110,8 @@ class ModElement extends HtmlElement native "HTMLModElement" {
 
 
 @DomName('MouseEvent')
-class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent,MSPointerEvent" {
+@Native("MouseEvent,DragEvent,PointerEvent,MSPointerEvent")
+class MouseEvent extends UIEvent {
   factory MouseEvent(String type,
       {Window view, int detail: 0, int screenX: 0, int screenY: 0,
       int clientX: 0, int clientY: 0, int button: 0, bool canBubble: true,
@@ -19021,9 +19157,16 @@ class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent,MSPoi
   @Unstable()
   final DataTransfer dataTransfer;
 
+  /**
+   * The nonstandard way to access the element that the mouse comes
+   * from in the case of a `mouseover` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.fromElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   final Node fromElement;
 
   @DomName('MouseEvent.metaKey')
@@ -19054,9 +19197,16 @@ class MouseEvent extends UIEvent native "MouseEvent,DragEvent,PointerEvent,MSPoi
   @DocsEditable()
   final bool shiftKey;
 
+  /**
+   * The nonstandard way to access the element that the mouse goes
+   * to in the case of a `mouseout` event.
+   *
+   * This member is deprecated and not cross-browser compatible; use
+   * relatedTarget to get the same information in the standard way.
+   */
   @DomName('MouseEvent.toElement')
   @DocsEditable()
-  @Experimental() // nonstandard
+  @deprecated
   final Node toElement;
 
   @JSName('webkitMovementX')
@@ -19146,7 +19296,8 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
-class MutationObserver extends Interceptor native "MutationObserver,WebKitMutationObserver" {
+@Native("MutationObserver,WebKitMutationObserver")
+class MutationObserver extends Interceptor {
 
   @DomName('MutationObserver.disconnect')
   @DocsEditable()
@@ -19252,7 +19403,8 @@ class MutationObserver extends Interceptor native "MutationObserver,WebKitMutati
 
 @DocsEditable()
 @DomName('MutationRecord')
-class MutationRecord extends Interceptor native "MutationRecord" {
+@Native("MutationRecord")
+class MutationRecord extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
 
@@ -19302,7 +19454,8 @@ class MutationRecord extends Interceptor native "MutationRecord" {
 
 
 @DomName('Navigator')
-class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID native "Navigator" {
+@Native("Navigator")
+class Navigator extends Interceptor implements NavigatorOnLine, NavigatorID {
 
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
@@ -19583,7 +19736,8 @@ abstract class NavigatorOnLine extends Interceptor {
 @DomName('NavigatorUserMediaError')
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaError
 @Experimental()
-class NavigatorUserMediaError extends Interceptor native "NavigatorUserMediaError" {
+@Native("NavigatorUserMediaError")
+class NavigatorUserMediaError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
 
@@ -19789,7 +19943,8 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
 
 @DomName('Node')
-class Node extends EventTarget native "Node" {
+@Native("Node")
+class Node extends EventTarget {
 
   // Custom element created callback.
   Node._created() : super._created();
@@ -20214,7 +20369,8 @@ class Node extends EventTarget native "Node" {
 @DocsEditable()
 @DomName('NodeFilter')
 @Unstable()
-class NodeFilter extends Interceptor native "NodeFilter" {
+@Native("NodeFilter")
+class NodeFilter extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
@@ -20269,7 +20425,8 @@ class NodeFilter extends Interceptor native "NodeFilter" {
 
 @DomName('NodeIterator')
 @Unstable()
-class NodeIterator extends Interceptor native "NodeIterator" {
+@Native("NodeIterator")
+class NodeIterator extends Interceptor {
   factory NodeIterator(Node root, int whatToShow) {
     return document._createNodeIterator(root, whatToShow, null);
   }
@@ -20312,7 +20469,8 @@ class NodeIterator extends Interceptor native "NodeIterator" {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NodeList,RadioNodeList" {
+@Native("NodeList,RadioNodeList")
+class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
@@ -20377,7 +20535,8 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
 @DomName('Notification')
 // http://www.w3.org/TR/notifications/#notification
 @Experimental() // experimental
-class Notification extends EventTarget native "Notification" {
+@Native("Notification")
+class Notification extends EventTarget {
 
   factory Notification(String title, {String titleDir: null, String body: null,
       String bodyDir: null, String tag: null, String iconUrl: null}) {
@@ -20537,7 +20696,8 @@ typedef void _NotificationPermissionCallback(String permission);
 
 @DocsEditable()
 @DomName('HTMLOListElement')
-class OListElement extends HtmlElement native "HTMLOListElement" {
+@Native("HTMLOListElement")
+class OListElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory OListElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -20574,7 +20734,8 @@ class OListElement extends HtmlElement native "HTMLOListElement" {
 @SupportedBrowser(SupportedBrowser.IE)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class ObjectElement extends HtmlElement native "HTMLObjectElement" {
+@Native("HTMLObjectElement")
+class ObjectElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ObjectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -20654,7 +20815,8 @@ class ObjectElement extends HtmlElement native "HTMLObjectElement" {
 
 @DocsEditable()
 @DomName('HTMLOptGroupElement')
-class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
+@Native("HTMLOptGroupElement")
+class OptGroupElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory OptGroupElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -20682,7 +20844,8 @@ class OptGroupElement extends HtmlElement native "HTMLOptGroupElement" {
 
 
 @DomName('HTMLOptionElement')
-class OptionElement extends HtmlElement native "HTMLOptionElement" {
+@Native("HTMLOptionElement")
+class OptionElement extends HtmlElement {
   factory OptionElement({String data: '', String value : '', bool selected: false}) {
     return new OptionElement._(data, value, null, selected);
   }
@@ -20755,7 +20918,8 @@ class OptionElement extends HtmlElement native "HTMLOptionElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class OutputElement extends HtmlElement native "HTMLOutputElement" {
+@Native("HTMLOutputElement")
+class OutputElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory OutputElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -20831,7 +20995,8 @@ class OutputElement extends HtmlElement native "HTMLOutputElement" {
 @DocsEditable()
 @DomName('OverflowEvent')
 @Experimental() // nonstandard
-class OverflowEvent extends Event native "OverflowEvent" {
+@Native("OverflowEvent")
+class OverflowEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -20868,7 +21033,8 @@ class OverflowEvent extends Event native "OverflowEvent" {
 @DomName('PageTransitionEvent')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html#pagetransitionevent
 @Experimental()
-class PageTransitionEvent extends Event native "PageTransitionEvent" {
+@Native("PageTransitionEvent")
+class PageTransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PageTransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -20883,7 +21049,8 @@ class PageTransitionEvent extends Event native "PageTransitionEvent" {
 
 @DocsEditable()
 @DomName('HTMLParagraphElement')
-class ParagraphElement extends HtmlElement native "HTMLParagraphElement" {
+@Native("HTMLParagraphElement")
+class ParagraphElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ParagraphElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -20905,7 +21072,8 @@ class ParagraphElement extends HtmlElement native "HTMLParagraphElement" {
 @DocsEditable()
 @DomName('HTMLParamElement')
 @Unstable()
-class ParamElement extends HtmlElement native "HTMLParamElement" {
+@Native("HTMLParamElement")
+class ParamElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ParamElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -20956,7 +21124,8 @@ abstract class ParentNode extends Interceptor {
 @DomName('Path')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#path-objects
 @Experimental()
-class Path extends Interceptor native "Path" {
+@Native("Path")
+class Path extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Path._() { throw new UnsupportedError("Not supported"); }
 
@@ -21020,7 +21189,8 @@ class Path extends Interceptor native "Path" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE)
-class Performance extends EventTarget native "Performance" {
+@Native("Performance")
+class Performance extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Performance._() { throw new UnsupportedError("Not supported"); }
 
@@ -21134,7 +21304,8 @@ class Performance extends EventTarget native "Performance" {
 @DomName('PerformanceEntry')
 // http://www.w3.org/TR/performance-timeline/#sec-PerformanceEntry-interface
 @Experimental()
-class PerformanceEntry extends Interceptor native "PerformanceEntry" {
+@Native("PerformanceEntry")
+class PerformanceEntry extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
@@ -21163,7 +21334,8 @@ class PerformanceEntry extends Interceptor native "PerformanceEntry" {
 @DomName('PerformanceMark')
 // http://www.w3.org/TR/user-timing/#performancemark
 @Experimental()
-class PerformanceMark extends PerformanceEntry native "PerformanceMark" {
+@Native("PerformanceMark")
+class PerformanceMark extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceMark._() { throw new UnsupportedError("Not supported"); }
 }
@@ -21176,7 +21348,8 @@ class PerformanceMark extends PerformanceEntry native "PerformanceMark" {
 @DomName('PerformanceMeasure')
 // http://www.w3.org/TR/user-timing/#performancemeasure
 @Experimental()
-class PerformanceMeasure extends PerformanceEntry native "PerformanceMeasure" {
+@Native("PerformanceMeasure")
+class PerformanceMeasure extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceMeasure._() { throw new UnsupportedError("Not supported"); }
 }
@@ -21188,7 +21361,8 @@ class PerformanceMeasure extends PerformanceEntry native "PerformanceMeasure" {
 @DocsEditable()
 @DomName('PerformanceNavigation')
 @Unstable()
-class PerformanceNavigation extends Interceptor native "PerformanceNavigation" {
+@Native("PerformanceNavigation")
+class PerformanceNavigation extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
 
@@ -21225,7 +21399,8 @@ class PerformanceNavigation extends Interceptor native "PerformanceNavigation" {
 @DomName('PerformanceResourceTiming')
 // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming
 @Experimental()
-class PerformanceResourceTiming extends PerformanceEntry native "PerformanceResourceTiming" {
+@Native("PerformanceResourceTiming")
+class PerformanceResourceTiming extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
 
@@ -21288,7 +21463,8 @@ class PerformanceResourceTiming extends PerformanceEntry native "PerformanceReso
 @DocsEditable()
 @DomName('PerformanceTiming')
 @Unstable()
-class PerformanceTiming extends Interceptor native "PerformanceTiming" {
+@Native("PerformanceTiming")
+class PerformanceTiming extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
 
@@ -21384,7 +21560,8 @@ class PerformanceTiming extends Interceptor native "PerformanceTiming" {
 @DocsEditable()
 @DomName('Player')
 @Experimental() // untriaged
-class Player extends Interceptor native "Player" {
+@Native("Player")
+class Player extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Player._() { throw new UnsupportedError("Not supported"); }
 
@@ -21456,7 +21633,8 @@ class Player extends Interceptor native "Player" {
 @DocsEditable()
 @DomName('Plugin')
 @Experimental() // non-standard
-class Plugin extends Interceptor native "Plugin" {
+@Native("Plugin")
+class Plugin extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() { throw new UnsupportedError("Not supported"); }
 
@@ -21496,7 +21674,8 @@ class Plugin extends Interceptor native "Plugin" {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> native "PluginArray" {
+@Native("PluginArray")
+class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements JavaScriptIndexingBehavior, List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -21575,7 +21754,8 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class PopStateEvent extends Event native "PopStateEvent" {
+@Native("PopStateEvent")
+class PopStateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -21607,7 +21787,8 @@ typedef void _PositionCallback(Geoposition position);
 @DocsEditable()
 @DomName('PositionError')
 @Unstable()
-class PositionError extends Interceptor native "PositionError" {
+@Native("PositionError")
+class PositionError extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() { throw new UnsupportedError("Not supported"); }
 
@@ -21648,7 +21829,8 @@ typedef void _PositionErrorCallback(PositionError error);
 
 @DocsEditable()
 @DomName('HTMLPreElement')
-class PreElement extends HtmlElement native "HTMLPreElement" {
+@Native("HTMLPreElement")
+class PreElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory PreElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -21670,7 +21852,8 @@ class PreElement extends HtmlElement native "HTMLPreElement" {
 @DocsEditable()
 @DomName('ProcessingInstruction')
 @Unstable()
-class ProcessingInstruction extends CharacterData native "ProcessingInstruction" {
+@Native("ProcessingInstruction")
+class ProcessingInstruction extends CharacterData {
   // To suppress missing implicit constructor warnings.
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
 
@@ -21694,7 +21877,8 @@ class ProcessingInstruction extends CharacterData native "ProcessingInstruction"
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class ProgressElement extends HtmlElement native "HTMLProgressElement" {
+@Native("HTMLProgressElement")
+class ProgressElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ProgressElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -21737,7 +21921,8 @@ class ProgressElement extends HtmlElement native "HTMLProgressElement" {
 
 @DocsEditable()
 @DomName('ProgressEvent')
-class ProgressEvent extends Event native "ProgressEvent" {
+@Native("ProgressEvent")
+class ProgressEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -21760,7 +21945,8 @@ class ProgressEvent extends Event native "ProgressEvent" {
 
 @DocsEditable()
 @DomName('HTMLQuoteElement')
-class QuoteElement extends HtmlElement native "HTMLQuoteElement" {
+@Native("HTMLQuoteElement")
+class QuoteElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory QuoteElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -21820,7 +22006,8 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 @DomName('Range')
 @Unstable()
-class Range extends Interceptor native "Range" {
+@Native("Range")
+class Range extends Interceptor {
   factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
@@ -22012,7 +22199,8 @@ typedef void RequestAnimationFrameCallback(num highResTime);
 @DomName('ResourceProgressEvent')
 // https://chromiumcodereview.appspot.com/14773025/
 @deprecated // experimental
-class ResourceProgressEvent extends ProgressEvent native "ResourceProgressEvent" {
+@Native("ResourceProgressEvent")
+class ResourceProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -22029,7 +22217,8 @@ class ResourceProgressEvent extends ProgressEvent native "ResourceProgressEvent"
 @DomName('RTCDataChannel')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDataChannel
 @Experimental()
-class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
+@Native("RTCDataChannel,DataChannel")
+class RtcDataChannel extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory RtcDataChannel._() { throw new UnsupportedError("Not supported"); }
 
@@ -22180,7 +22369,8 @@ class RtcDataChannel extends EventTarget native "RTCDataChannel,DataChannel" {
 @DomName('RTCDataChannelEvent')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcdatachannelevent
 @Experimental()
-class RtcDataChannelEvent extends Event native "RTCDataChannelEvent" {
+@Native("RTCDataChannelEvent")
+class RtcDataChannelEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDataChannelEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -22197,7 +22387,8 @@ class RtcDataChannelEvent extends Event native "RTCDataChannelEvent" {
 @DomName('RTCDTMFSender')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDTMFSender
 @Experimental()
-class RtcDtmfSender extends EventTarget native "RTCDTMFSender" {
+@Native("RTCDTMFSender")
+class RtcDtmfSender extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory RtcDtmfSender._() { throw new UnsupportedError("Not supported"); }
 
@@ -22251,7 +22442,8 @@ class RtcDtmfSender extends EventTarget native "RTCDTMFSender" {
 @DomName('RTCDTMFToneChangeEvent')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCDTMFToneChangeEvent
 @Experimental()
-class RtcDtmfToneChangeEvent extends Event native "RTCDTMFToneChangeEvent" {
+@Native("RTCDTMFToneChangeEvent")
+class RtcDtmfToneChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDtmfToneChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -22268,7 +22460,8 @@ class RtcDtmfToneChangeEvent extends Event native "RTCDTMFToneChangeEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
-class RtcIceCandidate extends Interceptor native "RTCIceCandidate,mozRTCIceCandidate" {
+@Native("RTCIceCandidate,mozRTCIceCandidate")
+class RtcIceCandidate extends Interceptor {
   factory RtcIceCandidate(Map dictionary) {
     // TODO(efortuna): Remove this check if when you can actually construct with
     // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
@@ -22304,7 +22497,8 @@ class RtcIceCandidate extends Interceptor native "RTCIceCandidate,mozRTCIceCandi
 @DomName('RTCIceCandidateEvent')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#rtcicecandidate-type
 @Experimental()
-class RtcIceCandidateEvent extends Event native "RTCIceCandidateEvent" {
+@Native("RTCIceCandidateEvent")
+class RtcIceCandidateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -22321,7 +22515,8 @@ class RtcIceCandidateEvent extends Event native "RTCIceCandidateEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCPeerConnection
-class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeerConnection" {
+@Native("RTCPeerConnection,mozRTCPeerConnection")
+class RtcPeerConnection extends EventTarget {
   factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
     var constructorName = JS('RtcPeerConnection', 'window[#]',
         '${Device.propertyPrefix}RTCPeerConnection');
@@ -22685,7 +22880,8 @@ class RtcPeerConnection extends EventTarget native "RTCPeerConnection,mozRTCPeer
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
-class RtcSessionDescription extends Interceptor native "RTCSessionDescription,mozRTCSessionDescription" {
+@Native("RTCSessionDescription,mozRTCSessionDescription")
+class RtcSessionDescription extends Interceptor {
   factory RtcSessionDescription(Map dictionary) {
     // TODO(efortuna): Remove this check if when you can actually construct with
     // the unprefixed RTCIceCandidate in Firefox (currently both are defined,
@@ -22718,7 +22914,8 @@ class RtcSessionDescription extends Interceptor native "RTCSessionDescription,mo
 @DomName('RTCStatsReport')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsReport
 @Experimental()
-class RtcStatsReport extends Interceptor native "RTCStatsReport" {
+@Native("RTCStatsReport")
+class RtcStatsReport extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
 
@@ -22764,7 +22961,8 @@ class RtcStatsReport extends Interceptor native "RTCStatsReport" {
 @DomName('RTCStatsResponse')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id
 @Experimental()
-class RtcStatsResponse extends Interceptor native "RTCStatsResponse" {
+@Native("RTCStatsResponse")
+class RtcStatsResponse extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
@@ -22787,7 +22985,8 @@ class RtcStatsResponse extends Interceptor native "RTCStatsResponse" {
 
 @DocsEditable()
 @DomName('Screen')
-class Screen extends EventTarget native "Screen" {
+@Native("Screen")
+class Screen extends EventTarget {
 
   @DomName('Screen.availHeight')
   @DomName('Screen.availLeft')
@@ -22844,26 +23043,7 @@ class Screen extends EventTarget native "Screen" {
   @DomName('Screen.lockOrientation')
   @DocsEditable()
   @Experimental() // untriaged
-  bool lockOrientation(orientation_OR_orientations) {
-    if ((orientation_OR_orientations is String || orientation_OR_orientations == null)) {
-      return _lockOrientation_1(orientation_OR_orientations);
-    }
-    if ((orientation_OR_orientations is List<String> || orientation_OR_orientations == null)) {
-      List orientations_1 = convertDartToNative_StringArray(orientation_OR_orientations);
-      return _lockOrientation_2(orientations_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('lockOrientation')
-  @DomName('Screen.lockOrientation')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool _lockOrientation_1(String orientation) native;
-  @JSName('lockOrientation')
-  @DomName('Screen.lockOrientation')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool _lockOrientation_2(List orientations) native;
+  bool lockOrientation(String orientation) native;
 
   @DomName('Screen.unlockOrientation')
   @DocsEditable()
@@ -22877,7 +23057,8 @@ class Screen extends EventTarget native "Screen" {
 
 @DocsEditable()
 @DomName('HTMLScriptElement')
-class ScriptElement extends HtmlElement native "HTMLScriptElement" {
+@Native("HTMLScriptElement")
+class ScriptElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ScriptElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -22932,7 +23113,8 @@ class ScriptElement extends HtmlElement native "HTMLScriptElement" {
 @DomName('SecurityPolicyViolationEvent')
 // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicyviolationevent-events
 @Experimental()
-class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolationEvent" {
+@Native("SecurityPolicyViolationEvent")
+class SecurityPolicyViolationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SecurityPolicyViolationEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -22985,7 +23167,8 @@ class SecurityPolicyViolationEvent extends Event native "SecurityPolicyViolation
 
 
 @DomName('HTMLSelectElement')
-class SelectElement extends HtmlElement native "HTMLSelectElement" {
+@Native("HTMLSelectElement")
+class SelectElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory SelectElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -23108,7 +23291,8 @@ class SelectElement extends HtmlElement native "HTMLSelectElement" {
 
 @DocsEditable()
 @DomName('Selection')
-class Selection extends Interceptor native "Selection" {
+@Native("Selection")
+class Selection extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Selection._() { throw new UnsupportedError("Not supported"); }
 
@@ -23234,7 +23418,8 @@ class Selection extends Interceptor native "Selection" {
 @DocsEditable()
 @DomName('ServiceWorkerContainer')
 @Experimental() // untriaged
-class ServiceWorkerContainer extends Interceptor native "ServiceWorkerContainer" {
+@Native("ServiceWorkerContainer")
+class ServiceWorkerContainer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
 }
@@ -23246,7 +23431,8 @@ class ServiceWorkerContainer extends Interceptor native "ServiceWorkerContainer"
 @DocsEditable()
 @DomName('ServiceWorkerGlobalScope')
 @Experimental() // untriaged
-class ServiceWorkerGlobalScope extends WorkerGlobalScope native "ServiceWorkerGlobalScope" {
+@Native("ServiceWorkerGlobalScope")
+class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 }
@@ -23260,7 +23446,8 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope native "ServiceWorkerGl
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental()
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#shadow-element
-class ShadowElement extends HtmlElement native "HTMLShadowElement" {
+@Native("HTMLShadowElement")
+class ShadowElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory ShadowElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -23299,17 +23486,14 @@ class ShadowElement extends HtmlElement native "HTMLShadowElement" {
 @SupportedBrowser(SupportedBrowser.CHROME, '26')
 @Experimental()
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#api-shadow-root
-class ShadowRoot extends DocumentFragment native "ShadowRoot" {
+@Native("ShadowRoot")
+class ShadowRoot extends DocumentFragment {
   // To suppress missing implicit constructor warnings.
   factory ShadowRoot._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('ShadowRoot.activeElement')
   @DocsEditable()
   final Element activeElement;
-
-  @DomName('ShadowRoot.applyAuthorStyles')
-  @DocsEditable()
-  bool applyAuthorStyles;
 
   @DomName('ShadowRoot.host')
   @DocsEditable()
@@ -23326,9 +23510,10 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   @Experimental() // untriaged
   final ShadowRoot olderShadowRoot;
 
+  @JSName('resetStyleInheritance')
   @DomName('ShadowRoot.resetStyleInheritance')
   @DocsEditable()
-  bool resetStyleInheritance;
+  bool _resetStyleInheritance;
 
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
@@ -23367,7 +23552,43 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
   Selection getSelection() native;
 
   static bool get supported =>
-      JS('bool', '!!(Element.prototype.webkitCreateShadowRoot)');
+      JS('bool', '!!(Element.prototype.createShadowRoot||'
+                 'Element.prototype.webkitCreateShadowRoot)');
+
+  static bool _shadowRootDeprecationReported = false;
+  static void _shadowRootDeprecationReport() {
+    if (!_shadowRootDeprecationReported) {
+      window.console.warn('''
+ShadowRoot.resetStyleInheritance and ShadowRoot.applyAuthorStyles now deprecated in dart:html.
+Please remove them from your code.
+''');
+      _shadowRootDeprecationReported = true;
+    }
+  }
+
+  @deprecated
+  bool get resetStyleInheritance {
+    _shadowRootDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set resetStyleInheritance(bool value) {
+    _shadowRootDeprecationReport();
+  }
+
+  @deprecated
+  bool get applyAuthorStyles {
+    _shadowRootDeprecationReport();
+    // Default value from when it was specified.
+    return false;
+  }
+
+  @deprecated
+  void set applyAuthorStyles(bool value) {
+    _shadowRootDeprecationReport();
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23378,7 +23599,8 @@ class ShadowRoot extends DocumentFragment native "ShadowRoot" {
 @DomName('SharedWorker')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#shared-workers-and-the-sharedworker-interface
 @Experimental()
-class SharedWorker extends EventTarget implements AbstractWorker native "SharedWorker" {
+@Native("SharedWorker")
+class SharedWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory SharedWorker._() { throw new UnsupportedError("Not supported"); }
 
@@ -23420,7 +23642,8 @@ class SharedWorker extends EventTarget implements AbstractWorker native "SharedW
 @DocsEditable()
 @DomName('SharedWorkerGlobalScope')
 @Experimental() // untriaged
-class SharedWorkerGlobalScope extends WorkerGlobalScope native "SharedWorkerGlobalScope" {
+@Native("SharedWorkerGlobalScope")
+class SharedWorkerGlobalScope extends WorkerGlobalScope {
   // To suppress missing implicit constructor warnings.
   factory SharedWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
@@ -23455,7 +23678,8 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope native "SharedWorkerGlob
 @DomName('SourceBuffer')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebuffer
 @Experimental()
-class SourceBuffer extends EventTarget native "SourceBuffer" {
+@Native("SourceBuffer")
+class SourceBuffer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
@@ -23521,7 +23745,8 @@ class SourceBuffer extends EventTarget native "SourceBuffer" {
 @DomName('SourceBufferList')
 // https://dvcs.w3.org/hg/html-media/raw-file/tip/media-source/media-source.html#sourcebufferlist
 @Experimental()
-class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List<SourceBuffer> native "SourceBufferList" {
+@Native("SourceBufferList")
+class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, ImmutableListMixin<SourceBuffer> implements JavaScriptIndexingBehavior, List<SourceBuffer> {
   // To suppress missing implicit constructor warnings.
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -23584,7 +23809,8 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
 
 @DocsEditable()
 @DomName('HTMLSourceElement')
-class SourceElement extends HtmlElement native "HTMLSourceElement" {
+@Native("HTMLSourceElement")
+class SourceElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory SourceElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -23618,7 +23844,8 @@ class SourceElement extends HtmlElement native "HTMLSourceElement" {
 @DocsEditable()
 @DomName('SourceInfo')
 @Experimental() // untriaged
-class SourceInfo extends Interceptor native "SourceInfo" {
+@Native("SourceInfo")
+class SourceInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
 
@@ -23649,7 +23876,8 @@ class SourceInfo extends Interceptor native "SourceInfo" {
 
 @DocsEditable()
 @DomName('HTMLSpanElement')
-class SpanElement extends HtmlElement native "HTMLSpanElement" {
+@Native("HTMLSpanElement")
+class SpanElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory SpanElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -23672,7 +23900,8 @@ class SpanElement extends HtmlElement native "HTMLSpanElement" {
 @DomName('SpeechGrammar')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar
 @Experimental()
-class SpeechGrammar extends Interceptor native "SpeechGrammar" {
+@Native("SpeechGrammar")
+class SpeechGrammar extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammar._() { throw new UnsupportedError("Not supported"); }
 
@@ -23700,7 +23929,8 @@ class SpeechGrammar extends Interceptor native "SpeechGrammar" {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> native "SpeechGrammarList" {
+@Native("SpeechGrammarList")
+class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements JavaScriptIndexingBehavior, List<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
@@ -23780,15 +24010,10 @@ class SpeechGrammarList extends Interceptor with ListMixin<SpeechGrammar>, Immut
 @DomName('SpeechInputEvent')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_event_interface
 @Experimental()
-class SpeechInputEvent extends Event native "SpeechInputEvent" {
+@Native("SpeechInputEvent")
+class SpeechInputEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechInputEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputEvent.results')
-  @DocsEditable()
-  @Returns('_SpeechInputResultList')
-  @Creates('_SpeechInputResultList')
-  final List<SpeechInputResult> results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23799,17 +24024,10 @@ class SpeechInputEvent extends Event native "SpeechInputEvent" {
 @DomName('SpeechInputResult')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_interface
 @Experimental()
-class SpeechInputResult extends Interceptor native "SpeechInputResult" {
+@Native("SpeechInputResult")
+class SpeechInputResult extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory SpeechInputResult._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SpeechInputResult.confidence')
-  @DocsEditable()
-  final double confidence;
-
-  @DomName('SpeechInputResult.utterance')
-  @DocsEditable()
-  final String utterance;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23820,7 +24038,8 @@ class SpeechInputResult extends Interceptor native "SpeechInputResult" {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-section
-class SpeechRecognition extends EventTarget native "SpeechRecognition" {
+@Native("SpeechRecognition")
+class SpeechRecognition extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognition._() { throw new UnsupportedError("Not supported"); }
 
@@ -24039,7 +24258,8 @@ class SpeechRecognition extends EventTarget native "SpeechRecognition" {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionalternative
-class SpeechRecognitionAlternative extends Interceptor native "SpeechRecognitionAlternative" {
+@Native("SpeechRecognitionAlternative")
+class SpeechRecognitionAlternative extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
@@ -24061,7 +24281,8 @@ class SpeechRecognitionAlternative extends Interceptor native "SpeechRecognition
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-error
-class SpeechRecognitionError extends Event native "SpeechRecognitionError" {
+@Native("SpeechRecognitionError")
+class SpeechRecognitionError extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionError._() { throw new UnsupportedError("Not supported"); }
 
@@ -24083,7 +24304,8 @@ class SpeechRecognitionError extends Event native "SpeechRecognitionError" {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechreco-event
-class SpeechRecognitionEvent extends Event native "SpeechRecognitionEvent" {
+@Native("SpeechRecognitionEvent")
+class SpeechRecognitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -24115,7 +24337,8 @@ class SpeechRecognitionEvent extends Event native "SpeechRecognitionEvent" {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresult
-class SpeechRecognitionResult extends Interceptor native "SpeechRecognitionResult" {
+@Native("SpeechRecognitionResult")
+class SpeechRecognitionResult extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
 
@@ -24140,7 +24363,8 @@ class SpeechRecognitionResult extends Interceptor native "SpeechRecognitionResul
 @DomName('SpeechSynthesis')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
-class SpeechSynthesis extends EventTarget native "SpeechSynthesis" {
+@Native("SpeechSynthesis")
+class SpeechSynthesis extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesis._() { throw new UnsupportedError("Not supported"); }
 
@@ -24185,7 +24409,8 @@ class SpeechSynthesis extends EventTarget native "SpeechSynthesis" {
 @DomName('SpeechSynthesisEvent')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
-class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
+@Native("SpeechSynthesisEvent")
+class SpeechSynthesisEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -24210,7 +24435,8 @@ class SpeechSynthesisEvent extends Event native "SpeechSynthesisEvent" {
 @DomName('SpeechSynthesisUtterance')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
-class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUtterance" {
+@Native("SpeechSynthesisUtterance")
+class SpeechSynthesisUtterance extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisUtterance._() { throw new UnsupportedError("Not supported"); }
 
@@ -24363,7 +24589,8 @@ class SpeechSynthesisUtterance extends EventTarget native "SpeechSynthesisUttera
 @DomName('SpeechSynthesisVoice')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
-class SpeechSynthesisVoice extends Interceptor native "SpeechSynthesisVoice" {
+@Native("SpeechSynthesisVoice")
+class SpeechSynthesisVoice extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
 
@@ -24421,8 +24648,9 @@ class SpeechSynthesisVoice extends Interceptor native "SpeechSynthesisVoice" {
  */
 @DomName('Storage')
 @Unstable()
+@Native("Storage")
 class Storage extends Interceptor
-    implements Map<String, String>  native "Storage" {
+    implements Map<String, String> {
 
   void addAll(Map<String, String> other) {
     other.forEach((k, v) { this[k] = v; });
@@ -24542,7 +24770,8 @@ typedef void StorageErrorCallback(DomError error);
 
 @DomName('StorageEvent')
 @Unstable()
-class StorageEvent extends Event native "StorageEvent" {
+@Native("StorageEvent")
+class StorageEvent extends Event {
   factory StorageEvent(String type,
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
@@ -24590,7 +24819,8 @@ class StorageEvent extends Event native "StorageEvent" {
 @DomName('StorageInfo')
 // http://www.w3.org/TR/file-system-api/
 @Experimental()
-class StorageInfo extends Interceptor native "StorageInfo" {
+@Native("StorageInfo")
+class StorageInfo extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
@@ -24613,7 +24843,8 @@ class StorageInfo extends Interceptor native "StorageInfo" {
 @DomName('StorageQuota')
 // http://www.w3.org/TR/quota-api/#idl-def-StorageQuota
 @Experimental()
-class StorageQuota extends Interceptor native "StorageQuota" {
+@Native("StorageQuota")
+class StorageQuota extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
 
@@ -24662,7 +24893,8 @@ typedef void _StringCallback(String data);
 
 @DocsEditable()
 @DomName('HTMLStyleElement')
-class StyleElement extends HtmlElement native "HTMLStyleElement" {
+@Native("HTMLStyleElement")
+class StyleElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory StyleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -24705,7 +24937,8 @@ class StyleElement extends HtmlElement native "HTMLStyleElement" {
 @DomName('StyleMedia')
 // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
 @Experimental() // nonstandard
-class StyleMedia extends Interceptor native "StyleMedia" {
+@Native("StyleMedia")
+class StyleMedia extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
 
@@ -24724,7 +24957,8 @@ class StyleMedia extends Interceptor native "StyleMedia" {
 
 @DocsEditable()
 @DomName('StyleSheet')
-class StyleSheet extends Interceptor native "StyleSheet" {
+@Native("StyleSheet")
+class StyleSheet extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
 
@@ -24763,7 +24997,8 @@ class StyleSheet extends Interceptor native "StyleSheet" {
 
 @DocsEditable()
 @DomName('HTMLTableCaptionElement')
-class TableCaptionElement extends HtmlElement native "HTMLTableCaptionElement" {
+@Native("HTMLTableCaptionElement")
+class TableCaptionElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TableCaptionElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -24784,7 +25019,8 @@ class TableCaptionElement extends HtmlElement native "HTMLTableCaptionElement" {
 
 @DocsEditable()
 @DomName('HTMLTableCellElement')
-class TableCellElement extends HtmlElement native "HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement" {
+@Native("HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement")
+class TableCellElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TableCellElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -24821,7 +25057,8 @@ class TableCellElement extends HtmlElement native "HTMLTableCellElement,HTMLTabl
 
 @DocsEditable()
 @DomName('HTMLTableColElement')
-class TableColElement extends HtmlElement native "HTMLTableColElement" {
+@Native("HTMLTableColElement")
+class TableColElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TableColElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -24846,7 +25083,8 @@ class TableColElement extends HtmlElement native "HTMLTableColElement" {
 
 @DocsEditable()
 @DomName('HTMLTableElement')
-class TableElement extends HtmlElement native "HTMLTableElement" {
+@Native("HTMLTableElement")
+class TableElement extends HtmlElement {
 
   @DomName('HTMLTableElement.tBodies')
   List<TableSectionElement> get tBodies =>
@@ -24976,7 +25214,8 @@ class TableElement extends HtmlElement native "HTMLTableElement" {
 
 @DocsEditable()
 @DomName('HTMLTableRowElement')
-class TableRowElement extends HtmlElement native "HTMLTableRowElement" {
+@Native("HTMLTableRowElement")
+class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   List<TableCellElement> get cells =>
@@ -25047,7 +25286,8 @@ class TableRowElement extends HtmlElement native "HTMLTableRowElement" {
 
 @DocsEditable()
 @DomName('HTMLTableSectionElement')
-class TableSectionElement extends HtmlElement native "HTMLTableSectionElement" {
+@Native("HTMLTableSectionElement")
+class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.rows')
   List<TableRowElement> get rows =>
@@ -25110,7 +25350,8 @@ class TableSectionElement extends HtmlElement native "HTMLTableSectionElement" {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/templates/index.html#template-element
-class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
+@Native("HTMLTemplateElement")
+class TemplateElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TemplateElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -25156,7 +25397,8 @@ class TemplateElement extends HtmlElement native "HTMLTemplateElement" {
 
 
 @DomName('Text')
-class Text extends CharacterData native "Text" {
+@Native("Text")
+class Text extends CharacterData {
   factory Text(String data) => document._createTextNode(data);
   // To suppress missing implicit constructor warnings.
   factory Text._() { throw new UnsupportedError("Not supported"); }
@@ -25184,7 +25426,8 @@ class Text extends CharacterData native "Text" {
 
 @DocsEditable()
 @DomName('HTMLTextAreaElement')
-class TextAreaElement extends HtmlElement native "HTMLTextAreaElement" {
+@Native("HTMLTextAreaElement")
+class TextAreaElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TextAreaElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -25331,7 +25574,8 @@ class TextAreaElement extends HtmlElement native "HTMLTextAreaElement" {
 
 @DomName('TextEvent')
 @Unstable()
-class TextEvent extends UIEvent native "TextEvent" {
+@Native("TextEvent")
+class TextEvent extends UIEvent {
   factory TextEvent(String type,
     {bool canBubble: false, bool cancelable: false, Window view, String data}) {
     if (view == null) {
@@ -25361,7 +25605,8 @@ class TextEvent extends UIEvent native "TextEvent" {
 
 @DocsEditable()
 @DomName('TextMetrics')
-class TextMetrics extends Interceptor native "TextMetrics" {
+@Native("TextMetrics")
+class TextMetrics extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
 
@@ -25378,7 +25623,8 @@ class TextMetrics extends Interceptor native "TextMetrics" {
 @DomName('TextTrack')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrack
 @Experimental()
-class TextTrack extends EventTarget native "TextTrack" {
+@Native("TextTrack")
+class TextTrack extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory TextTrack._() { throw new UnsupportedError("Not supported"); }
 
@@ -25458,7 +25704,8 @@ class TextTrack extends EventTarget native "TextTrack" {
 @DomName('TextTrackCue')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcue
 @Experimental()
-class TextTrackCue extends EventTarget native "TextTrackCue" {
+@Native("TextTrackCue")
+class TextTrackCue extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCue._() { throw new UnsupportedError("Not supported"); }
 
@@ -25521,7 +25768,8 @@ class TextTrackCue extends EventTarget native "TextTrackCue" {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior native "TextTrackCueList" {
+@Native("TextTrackCueList")
+class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue>, JavaScriptIndexingBehavior {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -25590,7 +25838,8 @@ class TextTrackCueList extends Interceptor with ListMixin<TextTrackCue>, Immutab
 @DomName('TextTrackList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttracklist
 @Experimental()
-class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List<TextTrack> native "TextTrackList" {
+@Native("TextTrackList")
+class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableListMixin<TextTrack> implements JavaScriptIndexingBehavior, List<TextTrack> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackList._() { throw new UnsupportedError("Not supported"); }
 
@@ -25684,7 +25933,8 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 @DocsEditable()
 @DomName('TimeRanges')
 @Unstable()
-class TimeRanges extends Interceptor native "TimeRanges" {
+@Native("TimeRanges")
+class TimeRanges extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
@@ -25708,7 +25958,8 @@ class TimeRanges extends Interceptor native "TimeRanges" {
 @DocsEditable()
 @DomName('TimedItem')
 @Experimental() // untriaged
-class TimedItem extends Interceptor native "TimedItem" {
+@Native("TimedItem")
+class TimedItem extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory TimedItem._() { throw new UnsupportedError("Not supported"); }
 
@@ -25742,11 +25993,6 @@ class TimedItem extends Interceptor native "TimedItem" {
   @Experimental() // untriaged
   final Player player;
 
-  @DomName('TimedItem.specified')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Timing specified;
-
   @DomName('TimedItem.startTime')
   @DocsEditable()
   @Experimental() // untriaged
@@ -25760,7 +26006,8 @@ class TimedItem extends Interceptor native "TimedItem" {
 @DocsEditable()
 @DomName('Timeline')
 @Experimental() // untriaged
-class Timeline extends Interceptor native "Timeline" {
+@Native("Timeline")
+class Timeline extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Timeline._() { throw new UnsupportedError("Not supported"); }
 
@@ -25786,7 +26033,8 @@ typedef void TimeoutHandler();
 @DocsEditable()
 @DomName('Timing')
 @Experimental() // untriaged
-class Timing extends Interceptor native "Timing" {
+@Native("Timing")
+class Timing extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Timing._() { throw new UnsupportedError("Not supported"); }
 
@@ -25842,7 +26090,8 @@ class Timing extends Interceptor native "Timing" {
 
 @DocsEditable()
 @DomName('HTMLTitleElement')
-class TitleElement extends HtmlElement native "HTMLTitleElement" {
+@Native("HTMLTitleElement")
+class TitleElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TitleElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -25865,7 +26114,8 @@ class TitleElement extends HtmlElement native "HTMLTitleElement" {
 @DomName('Touch')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class Touch extends Interceptor native "Touch" {
+@Native("Touch")
+class Touch extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Touch._() { throw new UnsupportedError("Not supported"); }
 
@@ -25927,7 +26177,7 @@ class Touch extends Interceptor native "Touch" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final int radiusX;
+  final int _webkitRadiusX;
 
   @JSName('webkitRadiusY')
   @DomName('Touch.webkitRadiusY')
@@ -25935,7 +26185,7 @@ class Touch extends Interceptor native "Touch" {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  final int radiusY;
+  final int _webkitRadiusY;
 
   @JSName('webkitRotationAngle')
   @DomName('Touch.webkitRotationAngle')
@@ -25946,17 +26196,43 @@ class Touch extends Interceptor native "Touch" {
   final double rotationAngle;
 
 
+// As of Chrome 37, these all changed from long to double.  This code
+// preserves backwards compatability for the time being.
+  int get __clientX => JS('num', '#.clientX', this).round();
+  int get __clientY => JS('num', '#.clientY', this).round();
+  int get __screenX => JS('num', '#.screenX', this).round();
+  int get __screenY => JS('num', '#.screenY', this).round();
+  int get __pageX => JS('num', '#.pageX', this).round();
+  int get __pageY => JS('num', '#.pageY', this).round();
+  int get __webkitRadiusX => JS('num', '#.webkitRadiusX', this).round();
+  int get __webkitRadiusY => JS('num', '#.webkitRadiusY', this).round();
+
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
-  Point get client => new Point(_clientX, _clientY);
+  Point get client => new Point(__clientX, __clientY);
 
   @DomName('Touch.pageX')
   @DomName('Touch.pageY')
-  Point get page => new Point(_pageX, _pageY);
+  Point get page => new Point(__pageX, __pageY);
 
   @DomName('Touch.screenX')
   @DomName('Touch.screenY')
-  Point get screen => new Point(_screenX, _screenY);
+  Point get screen => new Point(__screenX, __screenY);
+
+  @DomName('Touch.webkitRadiusX')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusX => __webkitRadiusX;
+
+  @DomName('Touch.webkitRadiusY')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  int get radiusY => __webkitRadiusY;
+
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25968,7 +26244,8 @@ class Touch extends Interceptor native "Touch" {
 @DomName('TouchEvent')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchEvent extends UIEvent native "TouchEvent" {
+@Native("TouchEvent")
+class TouchEvent extends UIEvent {
   factory TouchEvent(TouchList touches, TouchList targetTouches,
       TouchList changedTouches, String type,
       {Window view, int screenX: 0, int screenY: 0, int clientX: 0,
@@ -26037,7 +26314,8 @@ class TouchEvent extends UIEvent native "TouchEvent" {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> native "TouchList" {
+@Native("TouchList")
+class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<Touch> implements JavaScriptIndexingBehavior, List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -26114,7 +26392,8 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
 @SupportedBrowser(SupportedBrowser.SAFARI)
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#the-track-element
 @Experimental()
-class TrackElement extends HtmlElement native "HTMLTrackElement" {
+@Native("HTMLTrackElement")
+class TrackElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory TrackElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -26184,7 +26463,8 @@ class TrackElement extends HtmlElement native "HTMLTrackElement" {
 @DocsEditable()
 @DomName('TrackEvent')
 @Unstable()
-class TrackEvent extends Event native "TrackEvent" {
+@Native("TrackEvent")
+class TrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TrackEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -26200,7 +26480,8 @@ class TrackEvent extends Event native "TrackEvent" {
 
 @DocsEditable()
 @DomName('TransitionEvent')
-class TransitionEvent extends Event native "TransitionEvent,WebKitTransitionEvent" {
+@Native("TransitionEvent,WebKitTransitionEvent")
+class TransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -26223,7 +26504,8 @@ class TransitionEvent extends Event native "TransitionEvent,WebKitTransitionEven
 
 @DomName('TreeWalker')
 @Unstable()
-class TreeWalker extends Interceptor native "TreeWalker" {
+@Native("TreeWalker")
+class TreeWalker extends Interceptor {
   factory TreeWalker(Node root, int whatToShow) {
     return document._createTreeWalker(root, whatToShow, null);
   }
@@ -26283,7 +26565,8 @@ class TreeWalker extends Interceptor native "TreeWalker" {
 
 
 @DomName('UIEvent')
-class UIEvent extends Event native "UIEvent" {
+@Native("UIEvent")
+class UIEvent extends Event {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -26383,7 +26666,8 @@ class UIEvent extends Event native "UIEvent" {
 
 @DocsEditable()
 @DomName('HTMLUListElement')
-class UListElement extends HtmlElement native "HTMLUListElement" {
+@Native("HTMLUListElement")
+class UListElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory UListElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -26404,7 +26688,8 @@ class UListElement extends HtmlElement native "HTMLUListElement" {
 
 @DocsEditable()
 @DomName('HTMLUnknownElement')
-class UnknownElement extends HtmlElement native "HTMLUnknownElement" {
+@Native("HTMLUnknownElement")
+class UnknownElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory UnknownElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -26420,7 +26705,8 @@ class UnknownElement extends HtmlElement native "HTMLUnknownElement" {
 
 
 @DomName('URL')
-class Url extends Interceptor implements UrlUtils native "URL" {
+@Native("URL")
+class Url extends Interceptor implements UrlUtils {
 
   static String createObjectUrl(blob_OR_source_OR_stream) =>
       JS('String',
@@ -26573,7 +26859,8 @@ abstract class UrlUtilsReadOnly extends Interceptor {
 
 @DocsEditable()
 @DomName('ValidityState')
-class ValidityState extends Interceptor native "ValidityState" {
+@Native("ValidityState")
+class ValidityState extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
@@ -26623,7 +26910,8 @@ class ValidityState extends Interceptor native "ValidityState" {
 
 
 @DomName('HTMLVideoElement')
-class VideoElement extends MediaElement implements CanvasImageSource native "HTMLVideoElement" {
+@Native("HTMLVideoElement")
+class VideoElement extends MediaElement implements CanvasImageSource {
   // To suppress missing implicit constructor warnings.
   factory VideoElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -26705,7 +26993,8 @@ class VideoElement extends MediaElement implements CanvasImageSource native "HTM
 @DocsEditable()
 @DomName('VideoPlaybackQuality')
 @Experimental() // untriaged
-class VideoPlaybackQuality extends Interceptor native "VideoPlaybackQuality" {
+@Native("VideoPlaybackQuality")
+class VideoPlaybackQuality extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() { throw new UnsupportedError("Not supported"); }
 
@@ -26748,7 +27037,8 @@ typedef void VoidCallback();
 @DocsEditable()
 @DomName('VTTCue')
 @Experimental() // untriaged
-class VttCue extends TextTrackCue native "VTTCue" {
+@Native("VTTCue")
+class VttCue extends TextTrackCue {
   // To suppress missing implicit constructor warnings.
   factory VttCue._() { throw new UnsupportedError("Not supported"); }
 
@@ -26813,7 +27103,8 @@ class VttCue extends TextTrackCue native "VTTCue" {
 @DocsEditable()
 @DomName('VTTRegion')
 @Experimental() // untriaged
-class VttRegion extends Interceptor native "VTTRegion" {
+@Native("VTTRegion")
+class VttRegion extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory VttRegion._() { throw new UnsupportedError("Not supported"); }
 
@@ -26877,7 +27168,8 @@ class VttRegion extends Interceptor native "VTTRegion" {
 @DocsEditable()
 @DomName('VTTRegionList')
 @Experimental() // untriaged
-class VttRegionList extends Interceptor native "VTTRegionList" {
+@Native("VTTRegionList")
+class VttRegionList extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory VttRegionList._() { throw new UnsupportedError("Not supported"); }
 
@@ -26942,7 +27234,8 @@ class VttRegionList extends Interceptor native "VTTRegionList" {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Unstable()
-class WebSocket extends EventTarget native "WebSocket" {
+@Native("WebSocket")
+class WebSocket extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory WebSocket._() { throw new UnsupportedError("Not supported"); }
 
@@ -27136,7 +27429,8 @@ class WebSocket extends EventTarget native "WebSocket" {
 
 
 @DomName('WheelEvent')
-class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScrollEvent" {
+@Native("WheelEvent,MouseWheelEvent,MouseScrollEvent")
+class WheelEvent extends MouseEvent {
 
   factory WheelEvent(String type,
       {Window view, int deltaX: 0, int deltaY: 0,
@@ -27427,7 +27721,8 @@ class WheelEvent extends MouseEvent native "WheelEvent,MouseWheelEvent,MouseScro
  * * [Window](http://www.w3.org/TR/Window/) from the W3C.
  */
 @DomName('Window')
-class Window extends EventTarget implements WindowEventHandlers, WindowBase, GlobalEventHandlers, _WindowTimers, WindowBase64 native "Window,DOMWindow" {
+@Native("Window,DOMWindow")
+class Window extends EventTarget implements WindowEventHandlers, WindowBase, GlobalEventHandlers, _WindowTimers, WindowBase64 {
 
   /**
    * Returns a Future that completes just before the window is about to
@@ -29368,7 +29663,8 @@ abstract class WindowEventHandlers extends EventTarget {
 @SupportedBrowser(SupportedBrowser.SAFARI)
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#worker
 @Experimental() // stable
-class Worker extends EventTarget implements AbstractWorker native "Worker" {
+@Native("Worker")
+class Worker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory Worker._() { throw new UnsupportedError("Not supported"); }
 
@@ -29430,7 +29726,8 @@ class Worker extends EventTarget implements AbstractWorker native "Worker" {
 @DocsEditable()
 @DomName('WorkerConsole')
 @Experimental() // untriaged
-class WorkerConsole extends ConsoleBase native "WorkerConsole" {
+@Native("WorkerConsole")
+class WorkerConsole extends ConsoleBase {
   // To suppress missing implicit constructor warnings.
   factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
 }
@@ -29442,16 +29739,10 @@ class WorkerConsole extends ConsoleBase native "WorkerConsole" {
 @DocsEditable()
 @DomName('WorkerCrypto')
 @Experimental() // untriaged
-class WorkerCrypto extends Interceptor native "WorkerCrypto" {
+@Native("WorkerCrypto")
+class WorkerCrypto extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory WorkerCrypto._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WorkerCrypto.getRandomValues')
-  @DocsEditable()
-  @Experimental() // untriaged
-  @Creates('TypedData')
-  @Returns('TypedData|Null')
-  TypedData getRandomValues(TypedData array) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29461,7 +29752,8 @@ class WorkerCrypto extends Interceptor native "WorkerCrypto" {
 @DocsEditable()
 @DomName('WorkerGlobalScope')
 @Experimental() // untriaged
-class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase64 native "WorkerGlobalScope" {
+@Native("WorkerGlobalScope")
+class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase64 {
   // To suppress missing implicit constructor warnings.
   factory WorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
 
@@ -29520,15 +29812,6 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DocsEditable()
   @Experimental() // untriaged
   final WorkerGlobalScope self;
-
-  @JSName('webkitNotifications')
-  @DomName('WorkerGlobalScope.webkitNotifications')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  @Experimental() // untriaged
-  final _NotificationCenter _webkitNotifications;
 
   @DomName('WorkerGlobalScope.close')
   @DocsEditable()
@@ -29651,7 +29934,8 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
 @DocsEditable()
 @DomName('WorkerPerformance')
 @Experimental() // untriaged
-class WorkerPerformance extends Interceptor native "WorkerPerformance" {
+@Native("WorkerPerformance")
+class WorkerPerformance extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
@@ -29669,7 +29953,8 @@ class WorkerPerformance extends Interceptor native "WorkerPerformance" {
 @DomName('XPathEvaluator')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
 @deprecated // experimental
-class XPathEvaluator extends Interceptor native "XPathEvaluator" {
+@Native("XPathEvaluator")
+class XPathEvaluator extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory XPathEvaluator._() { throw new UnsupportedError("Not supported"); }
 
@@ -29701,7 +29986,8 @@ class XPathEvaluator extends Interceptor native "XPathEvaluator" {
 @DomName('XPathExpression')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
 @deprecated // experimental
-class XPathExpression extends Interceptor native "XPathExpression" {
+@Native("XPathExpression")
+class XPathExpression extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
@@ -29718,7 +30004,8 @@ class XPathExpression extends Interceptor native "XPathExpression" {
 @DomName('XPathNSResolver')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
 @deprecated // experimental
-class XPathNSResolver extends Interceptor native "XPathNSResolver" {
+@Native("XPathNSResolver")
+class XPathNSResolver extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
@@ -29736,7 +30023,8 @@ class XPathNSResolver extends Interceptor native "XPathNSResolver" {
 @DomName('XPathResult')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
 @deprecated // experimental
-class XPathResult extends Interceptor native "XPathResult" {
+@Native("XPathResult")
+class XPathResult extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() { throw new UnsupportedError("Not supported"); }
 
@@ -29824,7 +30112,8 @@ class XPathResult extends Interceptor native "XPathResult" {
 @DocsEditable()
 @DomName('XMLDocument')
 @Experimental() // untriaged
-class XmlDocument extends Document native "XMLDocument" {
+@Native("XMLDocument")
+class XmlDocument extends Document {
   // To suppress missing implicit constructor warnings.
   factory XmlDocument._() { throw new UnsupportedError("Not supported"); }
 }
@@ -29837,7 +30126,8 @@ class XmlDocument extends Document native "XMLDocument" {
 @DomName('XMLSerializer')
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
-class XmlSerializer extends Interceptor native "XMLSerializer" {
+@Native("XMLSerializer")
+class XmlSerializer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory XmlSerializer._() { throw new UnsupportedError("Not supported"); }
 
@@ -29863,7 +30153,8 @@ class XmlSerializer extends Interceptor native "XMLSerializer" {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @deprecated // nonstandard
-class XsltProcessor extends Interceptor native "XSLTProcessor" {
+@Native("XSLTProcessor")
+class XsltProcessor extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory XsltProcessor._() { throw new UnsupportedError("Not supported"); }
 
@@ -29916,7 +30207,8 @@ class XsltProcessor extends Interceptor native "XSLTProcessor" {
 
 @DocsEditable()
 @DomName('Attr')
-class _Attr extends Node native "Attr" {
+@Native("Attr")
+class _Attr extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Attr._() { throw new UnsupportedError("Not supported"); }
 
@@ -29943,7 +30235,8 @@ class _Attr extends Node native "Attr" {
 @DomName('CSSPrimitiveValue')
 // http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
 @deprecated // deprecated
-abstract class _CSSPrimitiveValue extends _CSSValue native "CSSPrimitiveValue" {
+@Native("CSSPrimitiveValue")
+abstract class _CSSPrimitiveValue extends _CSSValue {
   // To suppress missing implicit constructor warnings.
   factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
 }
@@ -29956,7 +30249,8 @@ abstract class _CSSPrimitiveValue extends _CSSValue native "CSSPrimitiveValue" {
 @DomName('CSSUnknownRule')
 // http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
 @deprecated // deprecated
-abstract class _CSSUnknownRule extends CssRule native "CSSUnknownRule" {
+@Native("CSSUnknownRule")
+abstract class _CSSUnknownRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
 }
@@ -29969,7 +30263,8 @@ abstract class _CSSUnknownRule extends CssRule native "CSSUnknownRule" {
 @DomName('CSSValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _CSSValue extends Interceptor native "CSSValue" {
+@Native("CSSValue")
+abstract class _CSSValue extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 }
@@ -29980,7 +30275,8 @@ abstract class _CSSValue extends Interceptor native "CSSValue" {
 
 @DocsEditable()
 @DomName('ClientRect')
-class _ClientRect extends Interceptor implements Rectangle native "ClientRect,DOMRect" {
+@Native("ClientRect,DOMRect")
+class _ClientRect extends Interceptor implements Rectangle {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {
@@ -30142,7 +30438,8 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle>, JavaScriptIndexingBehavior native "ClientRectList" {
+@Native("ClientRectList,DOMRectList")
+class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle>, JavaScriptIndexingBehavior {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
@@ -30207,7 +30504,8 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
 @DomName('Counter')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _Counter extends Interceptor native "Counter" {
+@Native("Counter")
+abstract class _Counter extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30218,7 +30516,8 @@ abstract class _Counter extends Interceptor native "Counter" {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> native "CSSRuleList" {
+@Native("CSSRuleList")
+class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements JavaScriptIndexingBehavior, List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
@@ -30283,7 +30582,8 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
 @DomName('CSSValueList')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List<_CSSValue> native "CSSValueList" {
+@Native("CSSValueList")
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List<_CSSValue> {
   // To suppress missing implicit constructor warnings.
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -30349,7 +30649,8 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
-abstract class _DOMFileSystemSync extends Interceptor native "DOMFileSystemSync" {
+@Native("DOMFileSystemSync")
+abstract class _DOMFileSystemSync extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30365,7 +30666,8 @@ abstract class _DOMFileSystemSync extends Interceptor native "DOMFileSystemSync"
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#databasesync
 @deprecated // deprecated
-abstract class _DatabaseSync extends Interceptor native "DatabaseSync" {
+@Native("DatabaseSync")
+abstract class _DatabaseSync extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _DatabaseSync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30378,7 +30680,8 @@ abstract class _DatabaseSync extends Interceptor native "DatabaseSync" {
 @DomName('DirectoryEntrySync')
 // http://www.w3.org/TR/file-system-api/#the-directoryentrysync-interface
 @Experimental()
-abstract class _DirectoryEntrySync extends _EntrySync native "DirectoryEntrySync" {
+@Native("DirectoryEntrySync")
+abstract class _DirectoryEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryEntrySync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30391,7 +30694,8 @@ abstract class _DirectoryEntrySync extends _EntrySync native "DirectoryEntrySync
 @DomName('DirectoryReaderSync')
 // http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
 @Experimental()
-abstract class _DirectoryReaderSync extends Interceptor native "DirectoryReaderSync" {
+@Native("DirectoryReaderSync")
+abstract class _DirectoryReaderSync extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30404,7 +30708,8 @@ abstract class _DirectoryReaderSync extends Interceptor native "DirectoryReaderS
 @DomName('DocumentType')
 // http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-412266927
 @deprecated // stable
-abstract class _DocumentType extends Node implements ChildNode native "DocumentType" {
+@Native("DocumentType")
+abstract class _DocumentType extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
@@ -30422,7 +30727,8 @@ abstract class _DocumentType extends Node implements ChildNode native "DocumentT
 @Experimental()
 // http://developer.apple.com/library/safari/#documentation/DataManagement/Reference/DOMWindowAdditionsReference/DOMWindowAdditions/DOMWindowAdditions.html
 @Experimental() // non-standard
-class _DomPoint extends Interceptor native "WebKitPoint" {
+@Native("WebKitPoint")
+class _DomPoint extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _DomPoint._() { throw new UnsupportedError("Not supported"); }
 
@@ -30453,7 +30759,8 @@ class _DomPoint extends Interceptor native "WebKitPoint" {
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
-abstract class _EntrySync extends Interceptor native "EntrySync" {
+@Native("EntrySync")
+abstract class _EntrySync extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30466,7 +30773,8 @@ abstract class _EntrySync extends Interceptor native "EntrySync" {
 @DomName('FileEntrySync')
 // http://www.w3.org/TR/file-system-api/#the-fileentrysync-interface
 @Experimental()
-abstract class _FileEntrySync extends _EntrySync native "FileEntrySync" {
+@Native("FileEntrySync")
+abstract class _FileEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _FileEntrySync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30479,7 +30787,8 @@ abstract class _FileEntrySync extends _EntrySync native "FileEntrySync" {
 @DomName('FileReaderSync')
 // http://www.w3.org/TR/FileAPI/#FileReaderSync
 @Experimental()
-abstract class _FileReaderSync extends Interceptor native "FileReaderSync" {
+@Native("FileReaderSync")
+abstract class _FileReaderSync extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _FileReaderSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -30499,7 +30808,8 @@ abstract class _FileReaderSync extends Interceptor native "FileReaderSync" {
 @DomName('FileWriterSync')
 // http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
 @Experimental()
-abstract class _FileWriterSync extends Interceptor native "FileWriterSync" {
+@Native("FileWriterSync")
+abstract class _FileWriterSync extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30512,7 +30822,8 @@ abstract class _FileWriterSync extends Interceptor native "FileWriterSync" {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> native "GamepadList" {
+@Native("GamepadList")
+class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements JavaScriptIndexingBehavior, List<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
@@ -30577,7 +30888,8 @@ class _GamepadList extends Interceptor with ListMixin<Gamepad>, ImmutableListMix
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-abstract class _HTMLAllCollection extends Interceptor native "HTMLAllCollection" {
+@Native("HTMLAllCollection")
+abstract class _HTMLAllCollection extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
 
@@ -30595,7 +30907,8 @@ abstract class _HTMLAllCollection extends Interceptor native "HTMLAllCollection"
 @DomName('HTMLAppletElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
 @deprecated // deprecated
-abstract class _HTMLAppletElement extends HtmlElement native "HTMLAppletElement" {
+@Native("HTMLAppletElement")
+abstract class _HTMLAppletElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -30614,7 +30927,8 @@ abstract class _HTMLAppletElement extends HtmlElement native "HTMLAppletElement"
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
-abstract class _HTMLDirectoryElement extends HtmlElement native "HTMLDirectoryElement" {
+@Native("HTMLDirectoryElement")
+abstract class _HTMLDirectoryElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -30633,7 +30947,8 @@ abstract class _HTMLDirectoryElement extends HtmlElement native "HTMLDirectoryEl
 @DomName('HTMLFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlfontelement
 @deprecated // deprecated
-abstract class _HTMLFontElement extends HtmlElement native "HTMLFontElement" {
+@Native("HTMLFontElement")
+abstract class _HTMLFontElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -30652,7 +30967,8 @@ abstract class _HTMLFontElement extends HtmlElement native "HTMLFontElement" {
 @DomName('HTMLFrameElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlframeelement
 @deprecated // deprecated
-abstract class _HTMLFrameElement extends HtmlElement native "HTMLFrameElement" {
+@Native("HTMLFrameElement")
+abstract class _HTMLFrameElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -30671,7 +30987,8 @@ abstract class _HTMLFrameElement extends HtmlElement native "HTMLFrameElement" {
 @DomName('HTMLFrameSetElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#frameset
 @deprecated // deprecated
-abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers native "HTMLFrameSetElement" {
+@Native("HTMLFrameSetElement")
+abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -30690,7 +31007,8 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
 @DomName('HTMLMarqueeElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-marquee-element
 @deprecated // deprecated
-abstract class _HTMLMarqueeElement extends HtmlElement native "HTMLMarqueeElement" {
+@Native("HTMLMarqueeElement")
+abstract class _HTMLMarqueeElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
   /**
@@ -30708,7 +31026,8 @@ abstract class _HTMLMarqueeElement extends HtmlElement native "HTMLMarqueeElemen
 @DomName('MutationEvent')
 // http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
 @deprecated
-abstract class _MutationEvent extends Event native "MutationEvent" {
+@Native("MutationEvent")
+abstract class _MutationEvent extends Event {
   factory _MutationEvent(String type,
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
@@ -30722,9 +31041,6 @@ abstract class _MutationEvent extends Event native "MutationEvent" {
   factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
 
 }
-
-
-
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -30734,7 +31050,8 @@ abstract class _MutationEvent extends Event native "MutationEvent" {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> native "NamedNodeMap,MozNamedAttrMap" {
+@Native("NamedNodeMap,MozNamedAttrMap")
+class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node> implements JavaScriptIndexingBehavior, List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -30827,7 +31144,8 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
 @DomName('Notation')
 // http://dom.spec.whatwg.org/#notation
 @deprecated // deprecated
-abstract class _Notation extends Node native "Notation" {
+@Native("Notation")
+abstract class _Notation extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Notation._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30843,7 +31161,8 @@ abstract class _Notation extends Node native "Notation" {
 @Experimental()
 // http://www.w3.org/TR/notifications/#showing-a-notification
 @deprecated // deprecated
-abstract class _NotificationCenter extends Interceptor native "NotificationCenter" {
+@Native("NotificationCenter")
+abstract class _NotificationCenter extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _NotificationCenter._() { throw new UnsupportedError("Not supported"); }
 
@@ -30858,7 +31177,8 @@ abstract class _NotificationCenter extends Interceptor native "NotificationCente
 @DocsEditable()
 @DomName('PagePopupController')
 @deprecated // nonstandard
-abstract class _PagePopupController extends Interceptor native "PagePopupController" {
+@Native("PagePopupController")
+abstract class _PagePopupController extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30871,7 +31191,8 @@ abstract class _PagePopupController extends Interceptor native "PagePopupControl
 @DomName('RGBColor')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _RGBColor extends Interceptor native "RGBColor" {
+@Native("RGBColor")
+abstract class _RGBColor extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30893,7 +31214,8 @@ abstract class _RGBColor extends Interceptor native "RGBColor" {
 @DomName('Rect')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _Rect extends Interceptor native "Rect" {
+@Native("Rect")
+abstract class _Rect extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30905,7 +31227,8 @@ abstract class _Rect extends Interceptor native "Rect" {
 @DocsEditable()
 @DomName('ServiceWorker')
 @Experimental() // untriaged
-abstract class _ServiceWorker extends Interceptor native "ServiceWorker" {
+@Native("ServiceWorker")
+abstract class _ServiceWorker extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
 }
@@ -30918,7 +31241,8 @@ abstract class _ServiceWorker extends Interceptor native "ServiceWorker" {
 @DomName('SpeechInputResultList')
 // http://lists.w3.org/Archives/Public/public-xg-htmlspeech/2011Feb/att-0020/api-draft.html#speech_input_result_list_interface
 @Experimental()
-class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> native "SpeechInputResultList" {
+@Native("SpeechInputResultList")
+class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResult>, ImmutableListMixin<SpeechInputResult> implements JavaScriptIndexingBehavior, List<SpeechInputResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechInputResultList._() { throw new UnsupportedError("Not supported"); }
 
@@ -30983,7 +31307,8 @@ class _SpeechInputResultList extends Interceptor with ListMixin<SpeechInputResul
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> native "SpeechRecognitionResultList" {
+@Native("SpeechRecognitionResultList")
+class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements JavaScriptIndexingBehavior, List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
@@ -31046,7 +31371,8 @@ class _SpeechRecognitionResultList extends Interceptor with ListMixin<SpeechReco
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> native "StyleSheetList" {
+@Native("StyleSheetList")
+class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements JavaScriptIndexingBehavior, List<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
@@ -31114,7 +31440,8 @@ class _StyleSheetList extends Interceptor with ListMixin<StyleSheet>, ImmutableL
 @DocsEditable()
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
-abstract class _SubtleCrypto extends Interceptor native "SubtleCrypto" {
+@Native("SubtleCrypto")
+abstract class _SubtleCrypto extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 }
@@ -31127,7 +31454,8 @@ abstract class _SubtleCrypto extends Interceptor native "SubtleCrypto" {
 @DomName('WebKitCSSFilterValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSFilterValue extends _CssValueList native "WebKitCSSFilterValue" {
+@Native("WebKitCSSFilterValue")
+abstract class _WebKitCSSFilterValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
 }
@@ -31143,7 +31471,8 @@ abstract class _WebKitCSSFilterValue extends _CssValueList native "WebKitCSSFilt
 @Experimental()
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSMatrix extends Interceptor native "WebKitCSSMatrix" {
+@Native("WebKitCSSMatrix")
+abstract class _WebKitCSSMatrix extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSMatrix._() { throw new UnsupportedError("Not supported"); }
 
@@ -31167,7 +31496,8 @@ abstract class _WebKitCSSMatrix extends Interceptor native "WebKitCSSMatrix" {
 @DomName('WebKitCSSTransformValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSTransformValue extends _CssValueList native "WebKitCSSTransformValue" {
+@Native("WebKitCSSTransformValue")
+abstract class _WebKitCSSTransformValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
 }
@@ -31179,7 +31509,8 @@ abstract class _WebKitCSSTransformValue extends _CssValueList native "WebKitCSST
 @DocsEditable()
 @DomName('WebKitMediaSource')
 @Experimental() // untriaged
-abstract class _WebKitMediaSource extends EventTarget native "WebKitMediaSource" {
+@Native("WebKitMediaSource")
+abstract class _WebKitMediaSource extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory _WebKitMediaSource._() { throw new UnsupportedError("Not supported"); }
 
@@ -31198,7 +31529,8 @@ abstract class _WebKitMediaSource extends EventTarget native "WebKitMediaSource"
 @DocsEditable()
 @DomName('WebKitNotification')
 @Experimental() // untriaged
-abstract class _WebKitNotification extends EventTarget native "WebKitNotification" {
+@Native("WebKitNotification")
+abstract class _WebKitNotification extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory _WebKitNotification._() { throw new UnsupportedError("Not supported"); }
 }
@@ -31210,7 +31542,8 @@ abstract class _WebKitNotification extends EventTarget native "WebKitNotificatio
 @DocsEditable()
 @DomName('WebKitSourceBuffer')
 @Experimental() // untriaged
-abstract class _WebKitSourceBuffer extends Interceptor native "WebKitSourceBuffer" {
+@Native("WebKitSourceBuffer")
+abstract class _WebKitSourceBuffer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _WebKitSourceBuffer._() { throw new UnsupportedError("Not supported"); }
 }
@@ -31222,7 +31555,8 @@ abstract class _WebKitSourceBuffer extends Interceptor native "WebKitSourceBuffe
 @DocsEditable()
 @DomName('WebKitSourceBufferList')
 @Experimental() // untriaged
-abstract class _WebKitSourceBufferList extends EventTarget native "WebKitSourceBufferList" {
+@Native("WebKitSourceBufferList")
+abstract class _WebKitSourceBufferList extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory _WebKitSourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
@@ -31261,7 +31595,8 @@ abstract class _WindowTimers extends Interceptor {
 @DomName('WorkerLocation')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
 @Experimental()
-abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly native "WorkerLocation" {
+@Native("WorkerLocation")
+abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
@@ -31276,7 +31611,8 @@ abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly n
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-abstract class _WorkerNavigator extends Interceptor implements NavigatorOnLine, NavigatorID native "WorkerNavigator" {
+@Native("WorkerNavigator")
+abstract class _WorkerNavigator extends Interceptor implements NavigatorOnLine, NavigatorID {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
@@ -31292,7 +31628,8 @@ abstract class _WorkerNavigator extends Interceptor implements NavigatorOnLine, 
 @DocsEditable()
 @DomName('XMLHttpRequestProgressEvent')
 @Experimental() // nonstandard
-abstract class _XMLHttpRequestProgressEvent extends ProgressEvent native "XMLHttpRequestProgressEvent" {
+@Native("XMLHttpRequestProgressEvent")
+abstract class _XMLHttpRequestProgressEvent extends ProgressEvent {
   // To suppress missing implicit constructor warnings.
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 }
@@ -34934,95 +35271,6 @@ abstract class ReadyState {
 
 
 /**
- * Helper class to implement custom events which wrap DOM events.
- */
-class _WrappedEvent implements Event {
-  final Event wrapped;
-
-  /** The CSS selector involved with event delegation. */
-  String _selector;
-
-  _WrappedEvent(this.wrapped);
-
-  bool get bubbles => wrapped.bubbles;
-
-  bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
-
-  EventTarget get currentTarget => wrapped.currentTarget;
-
-  bool get defaultPrevented => wrapped.defaultPrevented;
-
-  int get eventPhase => wrapped.eventPhase;
-
-  EventTarget get target => wrapped.target;
-
-  int get timeStamp => wrapped.timeStamp;
-
-  String get type => wrapped.type;
-
-  void _initEvent(String eventTypeArg, bool canBubbleArg,
-      bool cancelableArg) {
-    throw new UnsupportedError(
-        'Cannot initialize this Event.');
-  }
-
-  void preventDefault() {
-    wrapped.preventDefault();
-  }
-
-  void stopImmediatePropagation() {
-    wrapped.stopImmediatePropagation();
-  }
-
-  void stopPropagation() {
-    wrapped.stopPropagation();
-  }
-
-  /**
-   * A pointer to the element whose CSS selector matched within which an event
-   * was fired. If this Event was not associated with any Event delegation,
-   * accessing this value will throw an [UnsupportedError].
-   */
-  Element get matchingTarget {
-    if (_selector == null) {
-      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
-          ' not arise as a result of event delegation.');
-    }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
-    var matchedTarget;
-    do {
-      if (target.matches(_selector)) return target;
-      target = target.parent;
-    } while (target != null && target != currentTarget.parent);
-    throw new StateError('No selector matched for populating matchedTarget.');
-  }
-
-  /**
-   * This event's path, taking into account shadow DOM.
-   *
-   * ## Other resources
-   *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
-   */
-  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  @Experimental()
-  List<Node> get path => wrapped.path;
-
-  dynamic get _get_currentTarget => wrapped._get_currentTarget;
-
-  dynamic get _get_target => wrapped._get_target;
-}
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-/**
  * A list which just wraps another list, for either intercepting list calls or
  * retyping the list (for example, from List<A> to List<B> where B extends A).
  */
@@ -35199,10 +35447,10 @@ EventTarget _convertNativeToDart_EventTarget(e) {
   if (e == null) {
     return null;
   }
-  // Assume it's a Window if it contains the setInterval property.  It may be
+  // Assume it's a Window if it contains the postMessage property.  It may be
   // from a different frame - without a patched prototype - so we cannot
   // rely on Dart type checking.
-  if (JS('bool', r'"setInterval" in #', e)) {
+  if (JS('bool', r'"postMessage" in #', e)) {
     var window = _DOMWindowCrossFrame._createSafe(e);
     // If it's a native window.
     if (window is EventTarget) {
@@ -35447,9 +35695,12 @@ class _DOMWindowCrossFrame implements WindowBase {
 
   void postMessage(var message, String targetOrigin, [List messagePorts = null]) {
     if (messagePorts == null) {
-      JS('void', '#.postMessage(#,#)', _window, message, targetOrigin);
+      JS('void', '#.postMessage(#,#)', _window,
+          convertDartToNative_SerializedScriptValue(message), targetOrigin);
     } else {
-      JS('void', '#.postMessage(#,#,#)', _window, message, targetOrigin, messagePorts);
+      JS('void', '#.postMessage(#,#,#)', _window,
+          convertDartToNative_SerializedScriptValue(message), targetOrigin,
+          messagePorts);
     }
   }
 
@@ -35787,6 +36038,95 @@ class Platform {
    * error.
    */
   static final supportsSimd = false;
+}
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+/**
+ * Helper class to implement custom events which wrap DOM events.
+ */
+class _WrappedEvent implements Event {
+  final Event wrapped;
+
+  /** The CSS selector involved with event delegation. */
+  String _selector;
+
+  _WrappedEvent(this.wrapped);
+
+  bool get bubbles => wrapped.bubbles;
+
+  bool get cancelable => wrapped.cancelable;
+
+  DataTransfer get clipboardData => wrapped.clipboardData;
+
+  EventTarget get currentTarget => wrapped.currentTarget;
+
+  bool get defaultPrevented => wrapped.defaultPrevented;
+
+  int get eventPhase => wrapped.eventPhase;
+
+  EventTarget get target => wrapped.target;
+
+  int get timeStamp => wrapped.timeStamp;
+
+  String get type => wrapped.type;
+
+  void _initEvent(String eventTypeArg, bool canBubbleArg,
+      bool cancelableArg) {
+    throw new UnsupportedError(
+        'Cannot initialize this Event.');
+  }
+
+  void preventDefault() {
+    wrapped.preventDefault();
+  }
+
+  void stopImmediatePropagation() {
+    wrapped.stopImmediatePropagation();
+  }
+
+  void stopPropagation() {
+    wrapped.stopPropagation();
+  }
+
+  /**
+   * A pointer to the element whose CSS selector matched within which an event
+   * was fired. If this Event was not associated with any Event delegation,
+   * accessing this value will throw an [UnsupportedError].
+   */
+  Element get matchingTarget {
+    if (_selector == null) {
+      throw new UnsupportedError('Cannot call matchingTarget if this Event did'
+          ' not arise as a result of event delegation.');
+    }
+    var currentTarget = this.currentTarget;
+    var target = this.target;
+    var matchedTarget;
+    do {
+      if (target.matches(_selector)) return target;
+      target = target.parent;
+    } while (target != null && target != currentTarget.parent);
+    throw new StateError('No selector matched for populating matchedTarget.');
+  }
+
+  /**
+   * This event's path, taking into account shadow DOM.
+   *
+   * ## Other resources
+   *
+   * * [Shadow DOM extensions to Event]
+   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
+   * W3C.
+   */
+  // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
+  @Experimental()
+  List<Node> get path => wrapped.path;
+
+  dynamic get _get_currentTarget => wrapped._get_currentTarget;
+
+  dynamic get _get_target => wrapped._get_target;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

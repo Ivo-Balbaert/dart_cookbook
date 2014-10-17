@@ -40,9 +40,9 @@ import 'source_file_provider.dart' as source_file_provider;
 
 import 'ssa/ssa.dart' as ssa;
 
-import 'ir/ir_nodes.dart' as ir_nodes;
+import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
 
-import 'ir/ir_builder.dart' as ir_builder;
+import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 
 class ElementVisitor extends elements_visitor.ElementVisitor {
   visitElement(e) {}
@@ -54,6 +54,7 @@ void main(List<String> arguments) {
   useConstant(null, null);
   useNode(null);
   useUtil(null);
+  useSetlet(null);
   useElementVisitor(new ElementVisitor());
   useJs(new js.Program(null));
   useJs(new js.Blob(null));
@@ -66,6 +67,7 @@ void main(List<String> arguments) {
   usedByTests();
   useElements(null, null);
   useIr(null, null);
+  useCompiler(null);
 }
 
 useApi() {
@@ -105,6 +107,7 @@ void useNode(tree.Node node) {
     ..asPart()
     ..asPartOf()
     ..asRethrow()
+    ..asReturn()
     ..asStatement()
     ..asStringInterpolation()
     ..asStringInterpolationPart()
@@ -123,12 +126,15 @@ void useUtil(util.Link link) {
   link.reversePrependAll(link);
 }
 
+void useSetlet(util.Setlet setlet) {
+  setlet.difference(setlet);
+}
+
 void useElementVisitor(ElementVisitor visitor) {
   visitor
     ..visit(null)
     ..visitAbstractFieldElement(null)
     ..visitAmbiguousElement(null)
-    ..visitBoxElement(null)
     ..visitBoxFieldElement(null)
     ..visitClassElement(null)
     ..visitClosureClassElement(null)
@@ -139,19 +145,14 @@ void useElementVisitor(ElementVisitor visitor) {
     ..visitErroneousElement(null)
     ..visitFieldParameterElement(null)
     ..visitFunctionElement(null)
-    ..visitInterceptedElement(null)
-    ..visitLabelElement(null)
     ..visitLibraryElement(null)
     ..visitMixinApplicationElement(null)
     ..visitPrefixElement(null)
     ..visitScopeContainerElement(null)
-    ..visitTargetElement(null)
-    ..visitThisElement(null)
     ..visitTypeDeclarationElement(null)
     ..visitTypeVariableElement(null)
     ..visitTypedefElement(null)
     ..visitVariableElement(null)
-    ..visitVoidElement(null)
     ..visitWarnOnUseElement(null);
 }
 
@@ -193,13 +194,12 @@ usedByTests() {
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
   world.hasAnyUserDefinedGetter(null);
-  compiler.importHelperLibrary(null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
-  new dart_types.Types(compiler, null).copy(compiler);
-  new universe.TypedSelector.subclass(null, null);
-  new universe.TypedSelector.subtype(null, null);
-  new universe.TypedSelector.exact(null, null);
+  new dart_types.Types(compiler).copy(compiler);
+  new universe.TypedSelector.subclass(null, null, compiler);
+  new universe.TypedSelector.subtype(null, null, compiler);
+  new universe.TypedSelector.exact(null, null, compiler);
   sourceFileProvider.readStringFromUri(null);
 }
 
@@ -209,9 +209,9 @@ useElements(elements.ClassElement e, elements.Name n) {
   n.isAccessibleFrom(null);
 }
 
-useIr(ir_nodes.SExpressionStringifier stringifier,
+useIr(cps_ir_nodes_sexpr.SExpressionStringifier stringifier,
       ir_builder.IrBuilderTask task) {
-  new ir_nodes.SExpressionStringifier();
+  new cps_ir_nodes_sexpr.SExpressionStringifier();
   stringifier
     ..newContinuationName()
     ..newValueName()
@@ -227,4 +227,9 @@ useIr(ir_nodes.SExpressionStringifier stringifier,
   task
     ..hasIr(null)
     ..getIr(null);
+}
+
+useCompiler(dart2jslib.Compiler compiler) {
+  compiler.libraryLoader.reset();
+  compiler.libraryLoader.lookupLibrary(null);
 }

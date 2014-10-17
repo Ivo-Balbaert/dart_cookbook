@@ -3,7 +3,7 @@ library salary;
 import 'package:angular/angular.dart';
 
 @Component(
-    selector: 'salary',
+    selector: 'x-salary',
     templateUrl: 'packages/angular_service/salary/salary_component.html',
     cssUrl: 'packages/angular_service/salary/salary_component.css',
     publishAs: 'cmp')

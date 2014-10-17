@@ -2,8 +2,8 @@ import 'dart:html';
 import 'dart:math';
 
 void main() {
-  var tch = new Touch();
-  tch.init();
+  var touch = new Touch();
+  touch.init();
 }
 
 class Touch {
@@ -15,12 +15,13 @@ class Touch {
   void init() {
     generateMap();
     for (var col in cols) {
-      col.onTouchStart.listen(_onTouchStart);
-      col.onTouchEnd.listen(_onTouchEnd);
-      col.onTouchMove.listen(_onTouchMove);
-      col.style.setProperty("background-image", getRandomTile(), "");
-      col.style.setProperty("background-repeat", "no-repeat", "");
-      col.style.setProperty("background-position", "center", "");
+      col
+        ..onTouchStart.listen(_onTouchStart)
+        ..onTouchEnd.listen(_onTouchEnd)
+        ..onTouchMove.listen(_onTouchMove)
+        ..style.setProperty("background-image", getRandomTile(), "")
+        ..style.setProperty("background-repeat", "no-repeat", "")
+        ..style.setProperty("background-position", "center", "");
     }
   }
 

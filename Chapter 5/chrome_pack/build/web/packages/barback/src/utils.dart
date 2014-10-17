@@ -308,3 +308,40 @@ Stream callbackStream(Stream callback()) {
       sync: true);
   return controller.stream;
 }
+
+/// Creates a single-subscription stream from a broadcast stream.
+///
+/// The returned stream will enqueue events from [broadcast] until a listener is
+/// attached, then pipe events to that listener.
+Stream broadcastToSingleSubscription(Stream broadcast) {
+  if (!broadcast.isBroadcast) return broadcast;
+
+  // TODO(nweiz): Implement this using a transformer when issues 18588 and 18586
+  // are fixed.
+  var subscription;
+  var controller = new StreamController(onCancel: () => subscription.cancel());
+  subscription = broadcast.listen(controller.add,
+      onError: controller.addError,
+      onDone: controller.close);
+  return controller.stream;
+}
+
+/// A regular expression to match the exception prefix that some exceptions'
+/// [Object.toString] values contain.
+final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
+
+/// Get a string description of an exception.
+///
+/// Many exceptions include the exception class name at the beginning of their
+/// [toString], so we remove that if it exists.
+String getErrorMessage(error) =>
+  error.toString().replaceFirst(_exceptionPrefix, '');
+
+/// Returns a human-friendly representation of [duration].
+String niceDuration(Duration duration) {
+  var result = duration.inMinutes > 0 ? "${duration.inMinutes}:" : "";
+
+  var s = duration.inSeconds % 59;
+  var ms = (duration.inMilliseconds % 1000) ~/ 100;
+  return result + "$s.${ms}s";
+}

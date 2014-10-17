@@ -13,6 +13,7 @@
  */
 library generate_localized;
 
+import 'intl.dart';
 import 'src/intl_message.dart';
 import 'dart:io';
 import 'package:path/path.dart' as path;
@@ -52,6 +53,11 @@ List<String> allLocales = [];
 String generatedFilePrefix = '';
 
 /**
+ * Should we use deferred loading for the generated libraries.
+ */
+bool useDeferredLoading = true;
+
+/**
  * This represents a message and its translation. We assume that the translation
  * has some identifier that allows us to figure out the original message it
  * corresponds to, and that it may want to transform the translated text in
@@ -66,13 +72,22 @@ abstract class TranslatedMessage {
    * but it can be any identifier that this program and the output of the
    * translation can agree on as identifying a message.
    */
-  String id;
+  final String id;
 
-  /** Our translated version of [originalMessage]. */
-  Message translated;
+  /** Our translated version of all the [originalMessages]. */
+  final Message translated;
 
-  /** The original message that we are a translation of. */
-  MainMessage originalMessage;
+  /**
+   * The original messages that we are a translation of. There can
+   *  be more than one original message for the same translation.
+   */
+  List<MainMessage> originalMessages;
+
+  /**
+   * For backward compatibility, we still have the originalMessage API.
+   */
+  MainMessage get originalMessage => originalMessages.first;
+  set originalMessage(MainMessage m) => originalMessages = [m];
 
   TranslatedMessage(this.id, this.translated);
 
@@ -91,35 +106,45 @@ String _libraryName(String x) => 'messages_' + x.replaceAll('-', '_');
  * Generate a file <[generated_file_prefix]>_messages_<[locale]>.dart
  * for the [translations] in [locale] and put it in [targetDir].
  */
-void generateIndividualMessageFile(String locale,
+void generateIndividualMessageFile(String basicLocale,
     Iterable<TranslatedMessage> translations, String targetDir) {
   var result = new StringBuffer();
-  locale = new MainMessage().escapeAndValidateString(locale);
+  var locale = new MainMessage().escapeAndValidateString(
+      Intl.canonicalizedLocale(basicLocale));
   result.write(prologue(locale));
   // Exclude messages with no translation and translations with no matching
   // original message (e.g. if we're using some messages from a larger catalog)
   var usableTranslations =  translations.where(
-      (each) => each.originalMessage != null && each.message != null).toList();
+      (each) => each.originalMessages != null && each.message != null).toList();
   for (var each in usableTranslations) {
-      each.originalMessage.addTranslation(locale, each.message);
+    for (var original in each.originalMessages) {
+      original.addTranslation(locale, each.message);
+    }
   }
   usableTranslations.sort((a, b) =>
-      a.originalMessage.name.compareTo(b.originalMessage.name));
+      a.originalMessages.first.name.compareTo(b.originalMessages.first.name));
   for (var translation in usableTranslations) {
-    result.write("  ");
-    result.write(translation.originalMessage.toCodeForLocale(locale));
-    result.write("\n\n");
+    for (var original in translation.originalMessages) {
+      result
+          ..write("  ")
+          ..write(original.toCodeForLocale(locale))
+          ..write("\n\n");
+    }
   }
   result.write("\n  final messages = const {\n");
   var entries = usableTranslations
-      .map((translation) => translation.originalMessage.name)
+      .expand((translation) => translation.originalMessages)
+      .map((original) => original.name)
       .map((name) => "    \"$name\" : $name");
-  result.write(entries.join(",\n"));
-  result.write("\n  };\n}");
+  result
+      ..write(entries.join(",\n"))
+      ..write("\n  };\n}");
 
-  var output = new File(path.join(targetDir,
-      "${generatedFilePrefix}messages_$locale.dart"));
-  output.writeAsStringSync(result.toString());
+  // To preserve compatibility, we don't use the canonical version of the locale
+  // in the file name.
+  var filename =
+      path.join(targetDir,"${generatedFilePrefix}messages_$basicLocale.dart");
+  new File(filename).writeAsStringSync(result.toString());
 }
 
 /**
@@ -159,26 +184,25 @@ String generateMainImportFile() {
   for (var locale in allLocales) {
     var baseFile = '${generatedFilePrefix}messages_$locale.dart';
     var file = importForGeneratedFile(baseFile);
-    // TODO(alanknight): Restore this once deferred loading works in dartj2s.
-    // Issue 12824
-    //    output.write("@${_deferredName(locale)}\n");
-    output.write("import '$file' as ${_libraryName(locale)};\n");
+    output.write("import '$file' ");
+    if (useDeferredLoading) output.write("deferred ");
+    output.write("as ${_libraryName(locale)};\n");
   }
   output.write("\n");
-  // Issue 12824
-  //for (var locale in allLocales) {
-  //  output.write("const ${_deferredName(locale)} = const DeferredLibrary");
-  //  output.write("('${_libraryName(locale)}');\n");
-  //}
-  //output.write("\nconst deferredLibraries = const {\n");
-  //for (var locale in allLocales) {
-  //  output.write("  '$locale' : ${_deferredName(locale)},\n");
-  //}
-  //output.write("};\n");
+  output.write("\nMap<String, Function> _deferredLibraries = {\n");
+  for (var rawLocale in allLocales) {
+    var locale = Intl.canonicalizedLocale(rawLocale);
+    var loadOperation = (useDeferredLoading)
+        ? "  '$locale' : () => ${_libraryName(locale)}.loadLibrary(),\n"
+        : "  '$locale' : () => new Future.value(null),\n";
+    output.write(loadOperation);
+  }
+  output.write("};\n");
   output.write(
     "\nMessageLookupByLibrary _findExact(localeName) {\n"
     "  switch (localeName) {\n");
-  for (var locale in allLocales) {
+  for (var rawLocale in allLocales) {
+    var locale = Intl.canonicalizedLocale(rawLocale);
     output.write(
         "    case '$locale' : return ${_libraryName(locale)}.messages;\n");
   }
@@ -217,15 +241,15 @@ const closing = """
 /** User programs should call this before using [localeName] for messages.*/
 Future initializeMessages(String localeName) {
   initializeInternalMessageLookup(() => new CompositeMessageLookup());
-  messageLookup.addLocale(localeName, _findGeneratedMessagesFor);
-  // TODO(alanknight): Restore once Issue 12824 is fixed.
-  // var lib = deferredLibraries[localeName];
-  // return lib == null ? new Future.value(false) : lib.load();
-  return new Future.value(true);
+  var lib = _deferredLibraries[Intl.canonicalizedLocale(localeName)];
+  var load = lib == null ? new Future.value(false) : lib();
+  return load.then((_) =>
+      messageLookup.addLocale(localeName, _findGeneratedMessagesFor));
 }
 
 MessageLookupByLibrary _findGeneratedMessagesFor(locale) {
-  var actualLocale = Intl.verifiedLocale(locale, (x) => _findExact(x) != null);
+  var actualLocale = Intl.verifiedLocale(locale, (x) => _findExact(x) != null,
+      onFailure: (_) => null);
   if (actualLocale == null) return null;
   return _findExact(actualLocale);
 }

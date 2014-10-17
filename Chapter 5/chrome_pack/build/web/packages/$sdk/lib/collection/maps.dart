@@ -20,9 +20,26 @@ part of dart.collection;
  * A more efficient implementation is usually possible by overriding
  * some of the other members as well.
  */
-abstract class MapBase<K, V> implements Map<K, V> {
-  MapBase();  // Prevents use as mixin.
+abstract class MapBase<K, V> = Object with MapMixin<K, V>;
 
+
+/**
+ * Mixin implementing a [Map].
+ *
+ * This mixin has a basic implementation of all but five of the members of
+ * [Map].
+ * A basic `Map` class can be implemented by mixin in this class and
+ * implementing `keys`, `operator[]`, `operator[]=`, `remove` and `clear`.
+ * The remaining operations are implemented in terms of these five.
+ *
+ * The `keys` iterable should have efficient [length] and [contains]
+ * operations, and it should catch concurrent modifications of the keys
+ * while iterating.
+ *
+ * A more efficient implementation is usually possible by overriding
+ * some of the other members as well.
+ */
+abstract class MapMixin<K, V> implements Map<K, V> {
   Iterable<K> get keys;
   V operator[](Object key);
   operator []=(K key, V value);
@@ -165,7 +182,7 @@ abstract class _UnmodifiableMapMixin<K, V> implements Map<K, V> {
  */
 class MapView<K, V> implements Map<K, V> {
   final Map<K, V> _map;
-  MapView(Map<K, V> map) : _map = map;
+  const MapView(Map<K, V> map) : _map = map;
 
   V operator[](Object key) => _map[key];
   void operator[]=(K key, V value) { _map[key] = value; }
@@ -250,9 +267,6 @@ class Maps {
 
   static bool isNotEmpty(Map map) => map.keys.isNotEmpty;
 
-  // A list to identify cyclic maps during toString() calls.
-  static List _toStringList = new List();
-
   /**
    * Returns a string representing the specified map. The returned string
    * looks like this: [:'{key0: value0, key1: value1, ... keyN: valueN}':].
@@ -270,13 +284,12 @@ class Maps {
    * simply return the results of this method applied to the collection.
    */
   static String mapToString(Map m) {
-    for (int i = 0; i < _toStringList.length; i++) {
-      if (identical(_toStringList[i], m)) { return '{...}'; }
-    }
+    // Reuse the list in IterableBase for detecting toString cycles.
+    if (IterableBase._isToStringVisiting(m)) { return '{...}'; }
 
     var result = new StringBuffer();
     try {
-      _toStringList.add(m);
+      IterableBase._toStringVisiting.add(m);
       result.write('{');
       bool first = true;
       m.forEach((k, v) {
@@ -290,8 +303,8 @@ class Maps {
       });
       result.write('}');
     } finally {
-      assert(identical(_toStringList.last, m));
-      _toStringList.removeLast();
+      assert(identical(IterableBase._toStringVisiting.last, m));
+      IterableBase._toStringVisiting.removeLast();
     }
 
     return result.toString();

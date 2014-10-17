@@ -60,7 +60,7 @@ packages:
   perf_api:
     description: perf_api
     source: hosted
-    version: "0.0.8"
+    version: "0.0.9"
   route_hierarchical:
     description: route_hierarchical
     source: hosted

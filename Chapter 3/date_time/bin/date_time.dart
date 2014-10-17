@@ -37,6 +37,9 @@ void main() {
   print(new DateFormat('dd/MMM/y HH:mm:ss').format(now)); // 08/May/2014 14:39:07
   // locale data:
   initializeDateFormatting("fr_FR", null).then(formatDates);
+
+  // 6 - using the UTC constructor:
+  DateTime moonLanding  = new DateTime.utc(1969, DateTime.JULY, 20);
  }
 
 formatDates (var d) {

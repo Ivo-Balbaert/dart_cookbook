@@ -494,3 +494,13 @@ build.dart --machine --full
 
 build.dart finished [2574 ms]
 
+---
+build.dart --machine --full
+
+build.dart finished [1725 ms]
+
+---
+build.dart --machine --changed=web\pol_events.dart
+
+build.dart finished [1597 ms]
+

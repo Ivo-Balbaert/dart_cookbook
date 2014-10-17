@@ -21,6 +21,7 @@ import '../utils.dart';
 import 'node_status.dart';
 import 'node_streams.dart';
 import 'phase.dart';
+import 'transformer_classifier.dart';
 
 /// Describes a transform on a set of assets and its relationship to the build
 /// dependency graph.
@@ -31,8 +32,11 @@ class TransformNode {
   /// The aggregate key for this node.
   final String key;
 
+  /// The [TransformerClassifier] that [this] belongs to.
+  final TransformerClassifier classifier;
+
   /// The [Phase] that this transform runs in.
-  final Phase phase;
+  Phase get phase => classifier.phase;
 
   /// The [AggregateTransformer] to apply to this node's inputs.
   final AggregateTransformer transformer;
@@ -162,7 +166,19 @@ class TransformNode {
   /// [_State.NEEDS_DECLARE], and always `null` otherwise.
   AggregateTransformController _applyController;
 
-  TransformNode(this.phase, this.transformer, this.key, this._location) {
+  /// The number of secondary inputs that have been requested but not yet
+  /// produced.
+  int _pendingSecondaryInputs = 0;
+
+  /// A stopwatch that tracks the total time spent in a transformer's `apply`
+  /// function.
+  final _timeInTransformer = new Stopwatch();
+
+  /// A stopwatch that tracks the time in a transformer's `apply` function spent
+  /// waiting for [getInput] calls to complete.
+  final _timeAwaitingInputs = new Stopwatch();
+
+  TransformNode(this.classifier, this.transformer, this.key, this._location) {
     _forced = transformer is! DeclaringAggregateTransformer;
 
     _phaseAssetSubscription = phase.previous.onAsset.listen((node) {
@@ -174,6 +190,11 @@ class TransformNode {
     _phaseStatusSubscription = phase.previous.onStatusChange.listen((status) {
       if (status == NodeStatus.RUNNING) return;
 
+      _maybeFinishDeclareController();
+      _maybeFinishApplyController();
+    });
+
+    classifier.onDoneClassifying.listen((_) {
       _maybeFinishDeclareController();
       _maybeFinishApplyController();
     });
@@ -198,7 +219,13 @@ class TransformNode {
       // If we're running `apply`, we need to wait until [input] is available
       // before we pass it into the stream. If it's available now, great; if
       // not, [_onPrimaryStateChange] will handle it.
-      if (!input.state.isAvailable) return;
+      if (!input.state.isAvailable) {
+        // If we started running eagerly without being forced, abort that run if
+        // a new unavailable asset comes in.
+        if (input.isLazy && !_forced) _restartRun();
+        return;
+      }
+
       _onPrimaryStateChange(input);
       _maybeFinishApplyController();
     } else {
@@ -326,9 +353,12 @@ class TransformNode {
       }
     } else {
       if (_forced) input.force();
-      if (_state == _State.APPLYING && !_applyController.addedId(input.id)) {
+      if (_state == _State.APPLYING && !_applyController.addedId(input.id) &&
+          (_forced || !input.isLazy)) {
         // If the input hasn't yet been added to the transform's input stream,
-        // there's no need to consider the transformation dirty.
+        // there's no need to consider the transformation dirty. However, if the
+        // input is lazy and we're running eagerly, we need to restart the
+        // transformation.
         return;
       }
       _dirty();
@@ -389,6 +419,7 @@ class TransformNode {
     for (var primary in _primaries) {
       controller.addId(primary.id);
     }
+    _maybeFinishDeclareController();
 
     syncFuture(() {
       return (transformer as DeclaringAggregateTransformer)
@@ -529,6 +560,8 @@ class TransformNode {
   ///
   /// If an input with [id] cannot be found, throws an [AssetNotFoundException].
   Future<Asset> getInput(AssetId id) {
+    _timeAwaitingInputs.start();
+    _pendingSecondaryInputs++;
     return phase.previous.getOutput(id).then((node) {
       // Throw if the input isn't found. This ensures the transformer's apply
       // is exited. We'll then catch this and report it through the proper
@@ -543,6 +576,9 @@ class TransformNode {
       });
 
       return node.asset;
+    }).whenComplete(() {
+      _pendingSecondaryInputs--;
+      if (_pendingSecondaryInputs != 0) _timeAwaitingInputs.stop();
     });
   }
 
@@ -557,10 +593,17 @@ class TransformNode {
       if (!primary.state.isAvailable) continue;
       controller.addInput(primary.asset);
     }
+    _maybeFinishApplyController();
 
     return syncFuture(() {
+      _timeInTransformer.reset();
+      _timeAwaitingInputs.reset();
+      _timeInTransformer.start();
       return transformer.apply(controller.transform);
     }).whenComplete(() {
+      _timeInTransformer.stop();
+      _timeAwaitingInputs.stop();
+
       // Cancel the controller here even if `apply` wasn't interrupted. Since
       // the apply is finished, we want to close out the controller's streams.
       controller.cancel();
@@ -580,6 +623,27 @@ class TransformNode {
       if (_state == _State.NEEDS_APPLY) return false;
       if (_state == _State.NEEDS_DECLARE) return false;
       if (controller.loggedError) return true;
+
+      // If the transformer took long enough, log its duration in fine output.
+      // That way it's not always visible, but users running with "pub serve
+      // --verbose" can see it.
+      var ranLong = _timeInTransformer.elapsed > new Duration(seconds: 1);
+      var ranLongLocally =
+          _timeInTransformer.elapsed - _timeAwaitingInputs.elapsed >
+            new Duration(milliseconds: 200);
+
+      // Report the transformer's timing information if it spent more than 0.2s
+      // doing things other than waiting for its secondary inputs or if it spent
+      // more than 1s in total.
+      if (ranLongLocally || ranLong) {
+        _streams.onLogController.add(new LogEntry(
+            info, info.primaryId, LogLevel.FINE,
+            "Took ${niceDuration(_timeInTransformer.elapsed)} "
+              "(${niceDuration(_timeAwaitingInputs.elapsed)} awaiting "
+              "secondary inputs).",
+            null));
+      }
+
       _handleApplyResults(controller);
       return false;
     }).catchError((error, stackTrace) {
@@ -691,6 +755,7 @@ class TransformNode {
   /// outputs, mark [_declareController] as done.
   void _maybeFinishDeclareController() {
     if (_declareController == null) return;
+    if (classifier.isClassifying) return;
     if (phase.previous.status == NodeStatus.RUNNING) return;
     _declareController.done();
   }
@@ -700,6 +765,7 @@ class TransformNode {
   /// transformer, mark [_applyController] as done.
   void _maybeFinishApplyController() {
     if (_applyController == null) return;
+    if (classifier.isClassifying) return;
     if (_primaries.any((input) => !input.state.isAvailable)) return;
     if (phase.previous.status == NodeStatus.RUNNING) return;
     _applyController.done();

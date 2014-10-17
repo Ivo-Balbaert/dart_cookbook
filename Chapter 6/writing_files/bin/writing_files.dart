@@ -19,10 +19,10 @@ void main() {
     }).catchError((e) => handleError(e));
   // 3 - using openWrite:
   var file = new File('out3.txt');
-  var snk = file.openWrite(mode: FileMode.APPEND, encoding: ASCII);
-  snk.write('File was written to at ${new DateTime.now()}\n');
+  var sink = file.openWrite(mode: FileMode.APPEND, encoding: ASCII);
+  sink.write('File was written to at ${new DateTime.now()}\n');
   // close the IOSink to free system resources.
-  snk.close();
+  sink.close();
 }
 
 handleError(e) {

@@ -7,45 +7,36 @@
  * message formatting and replacement, date and number formatting and parsing,
  * and utilities for working with Bidirectional text.
  *
- * ## Installing ##
- *
- * Use [pub][] to install this package. Add the following to your `pubspec.yaml`
- * file.
- *
- *     dependencies:
- *       intl: any
- *
- * Then run `pub install`.
- *
- * For more information, see the
- * [intl package on pub.dartlang.org](http://pub.dartlang.org/packages/intl).
+ * This is part of the [intl package]
+ * (https://pub.dartlang.org/packages/intl).
  *
  * For things that require locale or other data, there are multiple different
  * ways of making that data available, which may require importing different
  * libraries. See the class comments for more details.
  *
  * There is also a simple example application that can be found in the
- * `example/basic` directory.
- *
- * [pub]: http://pub.dartlang.org
+ * [example/basic]
+ * (https://code.google.com/p/dart/source/browse/#svn%2Fbranches%2Fbleeding_edge%2Fdart%2Fpkg%2Fintl%2Fexample%2Fbasic)
+ *  directory.
  */
 library intl;
 
 import 'dart:collection';
 import 'dart:convert';
-import 'src/intl_helpers.dart';
 import 'dart:math';
-import 'date_symbols.dart';
-import 'src/date_format_internal.dart';
-import "number_symbols.dart";
-import "number_symbols_data.dart";
 
-part 'date_format.dart';
-part 'src/date_format_field.dart';
-part 'src/date_format_helpers.dart';
-part 'bidi_formatter.dart';
-part 'bidi_utils.dart';
-part 'number_format.dart';
+import 'date_symbols.dart';
+import 'number_symbols.dart';
+import 'number_symbols_data.dart';
+import 'src/date_format_internal.dart';
+import 'src/intl_helpers.dart';
+
+part 'src/intl/bidi_formatter.dart';
+part 'src/intl/bidi_utils.dart';
+part 'src/intl/date_format.dart';
+part 'src/intl/date_format_field.dart';
+part 'src/intl/date_format_helpers.dart';
+part 'src/intl/number_format.dart';
 
 /**
  * The Intl class provides a common entry point for internationalization
@@ -53,35 +44,32 @@ part 'number_format.dart';
  * and used to create a date format via `anIntl.date()`. Static methods
  * on this class are also used in message formatting.
  *
- * Message example:
- *     '''I see ${Intl.plural(num_people,
- *               {'0': 'no one at all',
- *                '1': 'one other person',
- *                'other': '$num_people other people'})} in $place.''''
- *
- * Usage examples:
+ * Examples:
  *      today(date) => Intl.message(
  *          "Today's date is $date",
  *          name: 'today',
  *          args: [date],
  *          desc: 'Indicate the current date',
  *          examples: {'date' : 'June 8, 2012'});
- *      print(today(new DateTime.now());
+ *      print(today(new DateTime.now().toString());
  *
- *      msg(num_people, place) => Intl.message(
- *           '''I see ${Intl.plural(num_people,
- *             {'0': 'no one at all',
- *              '1': 'one other person',
- *              'other': '$num_people other people'})} in $place.''',
+ *      howManyPeople(numberOfPeople, place) => Intl.plural(
+ *            zero: 'I see no one at all',
+ *            one: 'I see one other person',
+ *            other: 'I see $numberOfPeople other people')} in $place.''',
  *          name: 'msg',
- *          args: [num_people, place],
- *          desc: 'Description of how many people are seen as program start.',
- *          examples: {'num_people': 3, 'place': 'London'});
+ *          args: [numberOfPeople, place],
+ *          desc: 'Description of how many people are seen in a place.',
+ *          examples: {'numberOfPeople': 3, 'place': 'London'});
  *
- * Calling `msg(2, 'Athens');` would
+ * Calling `howManyPeople(2, 'Athens');` would
  * produce "I see 2 other people in Athens." as output in the default locale.
+ * If run in a different locale it would produce appropriately translated
+ * output.
  *
- * To use a locale other than the default, use the `withLocale` function.
+ * For more detailed information on messages and localizing them see
+ * the main [package documentation](https://pub.dartlang.org/packages/intl)
+ *
  * You can set the default locale.
  *       Intl.defaultLocale = "pt_BR";
  *
@@ -131,36 +119,48 @@ class Intl {
    * preferences).
    */
   Intl([String aLocale]) {
-    if (aLocale != null) {
-      _locale = aLocale;
-    } else {
-      _locale = getCurrentLocale();
-    }
+    _locale = aLocale != null ? aLocale : getCurrentLocale();
   }
 
   /**
-   * Returns a message that can be internationalized. It takes a
-   * [message_str] that will be translated, which may be interpolated
-   * based on one or more variables, a [desc] providing a description of usage
-   * for the [message_str], and a map of [examples] for each data element to be
-   * substituted into the message. For example, if message="Hello, $name", then
-   * examples = {'name': 'Sparky'}. If not using the user's default locale, or
-   * if the locale is not easily detectable, explicitly pass [locale].
-   * The values of [desc] and [examples] are not used at run-time but are only
-   * made available to the translators, so they MUST be simple Strings available
-   * at compile time: no String interpolation or concatenation.
-   * The expected usage of this is inside a function that takes as parameters
-   * the variables used in the interpolated string, and additionally also a
-   * locale (optional).
-   * Ultimately, the information about the enclosing function and its arguments
-   * will be extracted automatically but for the time being it must be passed
-   * explicitly in the [name] and [args] arguments.
+   * Use this for a message that will be translated for different locales. The
+   * expected usage is that this is inside an enclosing function that only
+   * returns the value of this call and provides a scope for the variables that
+   * will be substituted in the message.
+   *
+   * The parameters are a
+   * [message_str] to be translated, which may be interpolated
+   * based on one or more variables, the [name] of the message, which should
+   * match the enclosing function name, the [args] of the enclosing
+   * function, a [desc] providing a description of usage
+   * and a map of [examples] for each interpolated variable. For example
+   *       hello(yourName) => Intl.message(
+   *         "Hello, $yourName",
+   *         name: "hello",
+   *         args: [name],
+   *         desc: "Say hello",
+   *         examples = {"yourName": "Sparky"}.
+   * The source code will be processed via the analyzer to extract out the
+   * message data, so only a subset of valid Dart code is accepted. In
+   * particular, everything must be literal and cannot refer to variables
+   * outside the scope of the enclosing function. The [examples] map must
+   * be a valid const literal map. Similarly, the [desc] argument must
+   * be a single, simple string. These two arguments will not be used at runtime
+   * but will be extracted from
+   * the source code and used as additional data for translators. For more
+   * information see the "Messages" section of the main [package documentation]
+   * (https://pub.dartlang.org/packages/intl).
+   *
+   * The [name] and [args] arguments are required, and are used at runtime
+   * to look up the localized version and pass the appropriate arguments to it.
+   * We may in the future modify the code during compilation to make manually
+   * passing those arguments unnecessary.
    */
-  static String message(String message_str, {final String desc: '',
-      final Map examples: const {}, String locale, String name,
-      List<String> args}) {
+  static String message(String message_str, {String desc: '',
+      Map<String, String> examples: const {}, String locale, String name,
+      List<String> args, String meaning}) {
     return messageLookup.lookupMessage(
-        message_str, desc, examples, locale, name, args);
+        message_str, desc, examples, locale, name, args, meaning);
   }
 
   /**
@@ -173,9 +173,7 @@ class Intl {
    * Return true if the locale exists, or if it is null. The null case
    * is interpreted to mean that we use the default locale.
    */
-  static bool _localeExists(localeName) {
-    return DateFormat.localeExists(localeName);
-  }
+  static bool _localeExists(localeName) => DateFormat.localeExists(localeName);
 
   /**
    * Given [newLocale] return a locale that we have data for that is similar
@@ -194,7 +192,10 @@ class Intl {
     // difficult. As a result, we call this more often. Consider keeping
     // verified locales for each purpose if it turns out to be a performance
     // issue.
-    if (newLocale == null) return getCurrentLocale();
+    if (newLocale == null) {
+      return verifiedLocale(getCurrentLocale(), localeExists,
+          onFailure: onFailure);
+    }
     if (localeExists(newLocale)) {
       return newLocale;
     }
@@ -229,18 +230,21 @@ class Intl {
    */
   static String canonicalizedLocale(String aLocale) {
     // Locales of length < 5 are presumably two-letter forms, or else malformed.
-    // Locales of length > 6 are likely to be malformed. In either case we
-    // return them unmodified and if correct they will be found.
+    // We return them unmodified and if correct they will be found.
+    // Locales longer than 6 might be malformed, but also do occur. Do as
+    // little as possible to them, but make the '-' be an '_' if it's there.
     // We treat C as a special case, and assume it wants en_ISO for formatting.
     // TODO(alanknight): en_ISO is probably not quite right for the C/Posix
     // locale for formatting. Consider adding C to the formats database.
-    if (aLocale == null) return systemLocale;
+    if (aLocale == null) return getCurrentLocale();
     if (aLocale == "C") return "en_ISO";
-    if ((aLocale.length < 5) || (aLocale.length > 6)) return aLocale;
+    if (aLocale.length < 5) return aLocale;
     if (aLocale[2] != '-' && (aLocale[2] != '_')) return aLocale;
-    var lastRegionLetter = aLocale.length == 5 ? "" : aLocale[5].toUpperCase();
-    return '${aLocale[0]}${aLocale[1]}_${aLocale[3].toUpperCase()}'
-           '${aLocale[4].toUpperCase()}$lastRegionLetter';
+    var region = aLocale.substring(3);
+    // If it's longer than three it's something odd, so don't touch it.
+    if (region.length <= 3) region = region.toUpperCase();
+    return
+        '${aLocale[0]}${aLocale[1]}_$region';
   }
 
   /**
@@ -250,7 +254,8 @@ class Intl {
    * the provided alternatives. The [other] named argument is mandatory.
    */
   static String plural(int howMany, {zero, one, two, few, many, other,
-      desc, examples, locale, name, args}) {
+      String desc, Map<String, String> examples, String locale, String name,
+      List<String> args, String meaning}) {
     // If we are passed a name and arguments, then we are operating as a
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
@@ -260,7 +265,8 @@ class Intl {
             zero: zero, one: one, two: two, few: few, many: many, other: other),
         name: name,
         args: args,
-        locale: locale);
+        locale: locale,
+        meaning: meaning);
     }
     if (other == null) {
       throw new ArgumentError("The 'other' named argument must be provided");
@@ -271,7 +277,7 @@ class Intl {
       case 1 : return (one == null) ? other : one;
       case 2: return (two == null) ? ((few == null) ? other : few) : two;
       default:
-        if (howMany == 3 || howMany == 4 && few != null) return few;
+        if ((howMany == 3 || howMany == 4) && few != null) return few;
         if (howMany > 10 && howMany < 100 && many != null) return many;
         return other;
     }
@@ -284,8 +290,8 @@ class Intl {
    */
   static String gender(String targetGender,
       {String male, String female, String other,
-       String desc, Map examples, String locale, String name,
-       List<String>args}) {
+       String desc, Map<String, String> examples, String locale, String name,
+       List<String>args, String meaning}) {
     // If we are passed a name and arguments, then we are operating as a
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
@@ -294,7 +300,8 @@ class Intl {
         gender(targetGender, male: male, female: female, other: other),
         name: name,
         args: args,
-        locale: locale);
+        locale: locale,
+        meaning: meaning);
     }
 
     if (other == null) {
@@ -314,8 +321,8 @@ class Intl {
    * of an Intl.message message that is to be translated.
    */
   static String select(String choice, Map<String, String> cases,
-       {String desc, Map examples, String locale, String name,
-       List<String>args}) {
+       {String desc, Map<String, String> examples, String locale, String name,
+       List<String>args, String meaning}) {
     // If we are passed a name and arguments, then we are operating as a
     // top-level message, so look up our translation by calling Intl.message
     // with ourselves as an argument.
@@ -351,7 +358,7 @@ class Intl {
     // but must be a static variable in order to be visible to the Intl.message
     // invocation.
     var oldLocale = getCurrentLocale();
-    defaultLocale = locale;
+    defaultLocale = Intl.canonicalizedLocale(locale);
     var result = message_function();
     defaultLocale = oldLocale;
     return result;

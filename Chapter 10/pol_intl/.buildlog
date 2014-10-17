@@ -330,3 +330,8 @@ build.dart --machine --changed=pubspec.yaml
 
 build.dart finished [3073 ms]
 
+---
+build.dart --machine --full
+
+build.dart finished [2017 ms]
+

@@ -7,7 +7,7 @@ class Polevents extends PolymerElement {
   @observable String thing = "";
   @observable String message = "";
 
-  Polevents.created() : super.created() {  }
+  Polevents.created() : super.created();
 
   enter(KeyboardEvent  e, var detail, Node target) {
     if (e.keyCode == KeyCode.ENTER) {
@@ -22,7 +22,7 @@ class Polevents extends PolymerElement {
 
   txtChange(Event e, var detail, Node target) {
     var inp = (target as InputElement).value;
-    assert(inp == thing);
+    // assert(inp == thing);
     which_event = "you entered $inp in the text field";
   }
 

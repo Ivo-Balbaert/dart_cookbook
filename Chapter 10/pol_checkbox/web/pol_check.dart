@@ -4,5 +4,5 @@ import 'package:polymer/polymer.dart';
 class Polcheck extends PolymerElement {
   @observable bool receive = false;
 
-  Polcheck.created() : super.created() {  }
+  Polcheck.created() : super.created();
 }

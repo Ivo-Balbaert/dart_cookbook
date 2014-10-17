@@ -29,7 +29,8 @@ void main() {
   var job2 = new Job("Web Developer", 6500, "Dart Unlimited") ;
   var job3 = new Job("Project Manager", 10500, "Project Consulting Inc.") ;
   jobs = new List<Job>();
-  jobs..add(job1)
+  jobs
+      ..add(job1)
       ..add(job2)
       ..add(job3);
   table = querySelector('#jobdata');

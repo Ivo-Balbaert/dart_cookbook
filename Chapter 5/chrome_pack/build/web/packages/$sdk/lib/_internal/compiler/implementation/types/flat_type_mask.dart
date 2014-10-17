@@ -200,8 +200,7 @@ class FlatTypeMask implements TypeMask {
    */
   bool containsAll(Compiler compiler) {
     if (isEmpty || isExact) return false;
-    return identical(base, compiler.objectClass)
-        || identical(base, compiler.dynamicClass);
+    return identical(base, compiler.objectClass);
   }
 
   TypeMask union(TypeMask other, Compiler compiler) {
@@ -440,23 +439,25 @@ class FlatTypeMask implements TypeMask {
     // TODO(kasperl): Can't we just avoid creating typed selectors
     // based of function types?
     Element self = base;
-    if (self.isTypedef()) {
+    if (self.isTypedef) {
       // A typedef is a function type that doesn't have any
       // user-defined members.
       return false;
     }
 
-    ClassElement other = element.getEnclosingClass();
+    ClassElement other = element.enclosingClass;
     if (compiler.backend.isNullImplementation(other)) {
       return isNullable;
     } else if (isExact) {
       return hasElementIn(self, selector, element, compiler);
     } else if (isSubclass) {
+      assert(compiler.phase > Compiler.PHASE_RESOLVING);
       return hasElementIn(self, selector, element, compiler)
           || other.isSubclassOf(self)
           || compiler.world.hasAnySubclassThatMixes(self, other);
     } else {
       assert(isSubtype);
+      assert(compiler.phase > Compiler.PHASE_RESOLVING);
       bool result = hasElementIn(self, selector, element, compiler)
           || other.implementsInterface(self)
           || compiler.world.hasAnySubclassThatImplements(other, base)
@@ -484,7 +485,7 @@ class FlatTypeMask implements TypeMask {
     if (element == null) return false;
 
     if (element.isAbstract) {
-      ClassElement enclosingClass = element.getEnclosingClass();
+      ClassElement enclosingClass = element.enclosingClass;
       return hasConcreteMatch(enclosingClass.superclass, selector, compiler);
     }
     return selector.appliesUntyped(element, compiler);
@@ -566,7 +567,7 @@ class FlatTypeMask implements TypeMask {
     Iterable<Element> targets = compiler.world.allFunctions.filter(selector);
     if (targets.length != 1) return null;
     Element result = targets.first;
-    ClassElement enclosing = result.getEnclosingClass();
+    ClassElement enclosing = result.enclosingClass;
     // We only return the found element if it is guaranteed to be
     // implemented on the exact receiver type. It could be found in a
     // subclass or in an inheritance-wise unrelated class in case of

@@ -9,23 +9,25 @@ part of angular.core.dom_internal;
  */
 @Injectable()
 class WebPlatform {
-  js.JsObject _platformJs;
   js.JsObject _shadowCss;
 
   bool get cssShimRequired => _shadowCss != null;
   bool get shadowDomShimRequired => _shadowCss != null;
 
   WebPlatform() {
-    var _platformJs = js.context['Platform'];
-    if (_platformJs != null) {
-      _shadowCss = _platformJs['ShadowCSS'];
-
-      if (_shadowCss != null) {
-        _shadowCss['strictStyling'] = true;
-      }
+    var platformJs = js.context['Platform'];
+    if (platformJs != null) {
+      _shadowCss = platformJs['ShadowCSS'];
+      if (_shadowCss != null) _shadowCss['strictStyling'] = true;
     }
   }
 
+  /**
+   * Because this code uses `strictStyling` for the polymer css shim, it is required to add the
+   * custom element’s name as an attribute on all DOM nodes in the shadowRoot (e.g. <span x-foo>).
+   *
+   * See http://www.polymer-project.org/docs/polymer/styling.html#strictstyling
+   */
   String shimCss(String css, { String selector, String cssUrl }) {
     if (!cssShimRequired) return css;
 
@@ -38,11 +40,9 @@ class WebPlatform {
       // This adds an empty attribute with the name of the component tag onto
       // each element in the shadow root.
       //
-      // Remove the try-catch once https://github.com/angular/angular.dart/issues/1189 is
-      // fixed.
+      // TODO Remove the try-catch once https://github.com/angular/angular.dart/issues/1189 is fixed.
       try {
-        root.querySelectorAll("*")
-        .forEach((n) => n.attributes[selector] = "");
+        root.querySelectorAll("*").forEach((n) => n.attributes[selector] = "");
       } catch (e, s) {
         print("WARNING: Failed to set up Shadow DOM shim for $selector.\n$e\n$s");
       }
@@ -66,14 +66,10 @@ class PlatformViewCache implements ViewCache {
   ViewFactory fromHtml(String html, DirectiveMap directives) {
     ViewFactory viewFactory;
 
-    if (selector != null && selector != ""
-        && platform.shadowDomShimRequired) {
-
-      // By adding a comment with the tag name we ensure the template html is
-      // unique per selector name when used as a key in the view factory
-      // cache.
-      viewFactory = viewFactoryCache.get(
-          "<!-- Shimmed template for: <$selector> -->$html");
+    if (selector != null && selector != "" && platform.shadowDomShimRequired) {
+      // By adding a comment with the tag name we ensure the template html is unique per selector
+      // name when used as a key in the view factory cache.
+      viewFactory = viewFactoryCache.get("<!-- Shimmed template for: <$selector> -->$html");
     } else {
       viewFactory = viewFactoryCache.get(html);
     }
@@ -82,11 +78,9 @@ class PlatformViewCache implements ViewCache {
       var div = new dom.DivElement();
       div.setInnerHtml(html, treeSanitizer: treeSanitizer);
 
-      if (selector != null && selector != ""
-          && platform.shadowDomShimRequired) {
-        // This MUST happen before the compiler is called so that every dom
-        // element gets touched before the compiler removes them for
-        // transcluding directives like ng-if.
+      if (selector != null && selector != "" && platform.shadowDomShimRequired) {
+        // This MUST happen before the compiler is called so that every dom element gets touched
+        // before the compiler removes them for transcluding directives like `ng-if`
         platform.shimShadowDom(div, selector);
       }
 
@@ -97,11 +91,12 @@ class PlatformViewCache implements ViewCache {
   }
 
   async.Future<ViewFactory> fromUrl(String url, DirectiveMap directives) {
-    ViewFactory viewFactory = viewFactoryCache.get(url);
+    var key = "[$selector]$url";
+    ViewFactory viewFactory = viewFactoryCache.get(key);
     if (viewFactory == null) {
       return http.get(url, cache: templateCache).then((resp) {
         var viewFactoryFromHttp = fromHtml(resp.responseText, directives);
-        viewFactoryCache.put(url, viewFactoryFromHttp);
+        viewFactoryCache.put(key, viewFactoryFromHttp);
         return viewFactoryFromHttp;
       });
     }

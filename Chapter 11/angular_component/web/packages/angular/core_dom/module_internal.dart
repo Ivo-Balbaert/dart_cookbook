@@ -22,6 +22,7 @@ export 'package:angular/core_dom/directive_injector.dart' show DirectiveInjector
 import 'package:angular/change_detection/watch_group.dart' show Watch, PrototypeMap;
 import 'package:angular/change_detection/ast_parser.dart';
 import 'package:angular/core/registry.dart';
+import 'package:angular/ng_tracing.dart';
 
 import 'package:angular/directive/module.dart' show NgBaseCss;
 import 'dart:collection';
@@ -43,14 +44,11 @@ part 'node_cursor.dart';
 part 'selector.dart';
 part 'shadow_dom_component_factory.dart';
 part 'shadowless_shadow_root.dart';
-part 'tagging_compiler.dart';
-part 'tagging_view_factory.dart';
 part 'template_cache.dart';
 part 'transcluding_component_factory.dart';
 part 'tree_sanitizer.dart';
 part 'view.dart';
 part 'view_factory.dart';
-part 'walking_compiler.dart';
 part 'web_platform.dart';
 
 class CoreDomModule extends Module {
@@ -62,14 +60,13 @@ class CoreDomModule extends Module {
     bind(TemplateCache, toFactory: (CacheRegister register) {
       var templateCache = new TemplateCache();
       register.registerCache("TemplateCache", templateCache);
-      return templateCache;
-    }, inject: [CACHE_REGISTER_KEY]);
+      return templateCache; }, inject: [CACHE_REGISTER_KEY]);
     bind(dom.NodeTreeSanitizer, toImplementation: NullTreeSanitizer);
 
     bind(TextMustache);
     bind(AttrMustache);
 
-    bind(Compiler, toImplementation: TaggingCompiler);
+    bind(Compiler);
     bind(CompilerConfig);
 
     bind(ComponentFactory, toInstanceOf: SHADOW_DOM_COMPONENT_FACTORY_KEY);
@@ -86,7 +83,7 @@ class CoreDomModule extends Module {
     bind(HttpDefaultHeaders);
     bind(HttpDefaults);
     bind(HttpInterceptors);
-    bind(HttpConfig, toValue: new HttpConfig());
+    bind(HttpConfig);
     bind(Animate);
     bind(ViewCache);
     bind(BrowserCookies);
@@ -97,5 +94,8 @@ class CoreDomModule extends Module {
     bind(ElementBinderFactory);
     bind(NgElement);
     bind(EventHandler);
+    // TODO(rkirov): remove this once clients have stopped relying on it.
+    bind(DirectiveInjector, toValue: null);
+
   }
 }

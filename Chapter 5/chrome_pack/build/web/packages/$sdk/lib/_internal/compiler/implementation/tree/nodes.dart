@@ -65,6 +65,9 @@ abstract class Visitor<R> {
   R visitPartOf(PartOf node) => visitNode(node);
   R visitPostfix(Postfix node) => visitNodeList(node);
   R visitPrefix(Prefix node) => visitNodeList(node);
+  R visitRedirectingFactoryBody(RedirectingFactoryBody node) {
+    return visitStatement(node);
+  }
   R visitRethrow(Rethrow node) => visitStatement(node);
   R visitReturn(Return node) => visitStatement(node);
   R visitSend(Send node) => visitExpression(node);
@@ -110,7 +113,7 @@ Token firstBeginToken(Node first, Node second) {
  * token stream. These references are stored in fields ending with
  * "Token".
  */
-abstract class Node extends TreeElementMixin implements Spannable {
+abstract class Node extends NullTreeElementMixin implements Spannable {
   final int hashCode;
   static int _HASH_COUNTER = 0;
 
@@ -185,6 +188,7 @@ abstract class Node extends TreeElementMixin implements Spannable {
   ParenthesizedExpression asParenthesizedExpression() => null;
   Part asPart() => null;
   PartOf asPartOf() => null;
+  RedirectingFactoryBody asRedirectingFactoryBody() => null;
   Rethrow asRethrow() => null;
   Return asReturn() => null;
   Send asSend() => null;
@@ -208,6 +212,8 @@ abstract class Node extends TreeElementMixin implements Spannable {
   bool isValidContinueTarget() => false;
   bool isThis() => false;
   bool isSuper() => false;
+
+  bool get isErroneous => false;
 }
 
 class ClassNode extends Node {
@@ -319,12 +325,14 @@ abstract class Statement extends Node {
   bool isValidBreakTarget() => true;
 }
 
-/// Errorneous expression that behaves as a literal null.
+/// Erroneous expression that behaves as a literal null.
 class ErrorExpression extends LiteralNull {
   ErrorExpression(token)
       : super(token);
 
   ErrorExpression asErrorExpression() => this;
+
+  bool get isErroneous => true;
 }
 
 /**
@@ -334,7 +342,7 @@ class ErrorExpression extends LiteralNull {
  * property access, assignment, operators, and method calls with this
  * one node.
  */
-class Send extends Expression {
+class Send extends Expression with StoredTreeElementMixin {
   final Node receiver;
   final Node selector;
   final NodeList argumentsNode;
@@ -415,10 +423,11 @@ class Send extends Expression {
       return null;
     }
     if (!isPostfix && argumentsNode != null) {
-      return argumentsNode.getEndToken();
+      Token token = argumentsNode.getEndToken();
+      if (token != null) return token;
     }
     if (selector != null) return selector.getEndToken();
-    return receiver.getBeginToken();
+    return getBeginToken();
   }
 
   Send copyWithReceiver(Node newReceiver) {
@@ -495,7 +504,7 @@ class NewExpression extends Expression {
     if (send != null) send.accept(visitor);
   }
 
-  bool isConst() {
+  bool get isConst {
     return newToken == null || identical(newToken.stringValue, 'const');
   }
 
@@ -558,8 +567,11 @@ class NodeList extends Node {
       Link<Node> link = nodes;
       if (link.isEmpty) return beginToken;
       while (!link.tail.isEmpty) link = link.tail;
-      if (link.head.getEndToken() != null) return link.head.getEndToken();
-      if (link.head.getBeginToken() != null) return link.head.getBeginToken();
+      Node lastNode = link.head;
+      if (lastNode != null) {
+        if (lastNode.getEndToken() != null) return lastNode.getEndToken();
+        if (lastNode.getBeginToken() != null) return lastNode.getBeginToken();
+      }
     }
     return beginToken;
   }
@@ -693,7 +705,7 @@ class FunctionDeclaration extends Statement {
   Token getEndToken() => function.getEndToken();
 }
 
-class FunctionExpression extends Expression {
+class FunctionExpression extends Expression with StoredTreeElementMixin {
   final Node name;
 
   /**
@@ -720,8 +732,7 @@ class FunctionExpression extends Expression {
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
   bool get isRedirectingFactory {
-    return body != null && body.asReturn() != null &&
-        body.asReturn().isRedirectingFactoryBody;
+    return body != null && body.asRedirectingFactoryBody() != null;
   }
 
   visitChildren(Visitor visitor) {
@@ -826,71 +837,54 @@ class LiteralBool extends Literal<bool> {
 
 
 class StringQuoting {
-  static const StringQuoting SINGLELINE_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 1);
-  static const StringQuoting RAW_SINGLELINE_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 1);
-  static const StringQuoting MULTILINE_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 3);
-  static const StringQuoting RAW_MULTILINE_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 3);
-  static const StringQuoting MULTILINE_NL_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 4);
-  static const StringQuoting RAW_MULTILINE_NL_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 4);
-  static const StringQuoting MULTILINE_NL2_DQ =
-      const StringQuoting($DQ, raw: false, leftQuoteLength: 5);
-  static const StringQuoting RAW_MULTILINE_NL2_DQ =
-      const StringQuoting($DQ, raw: true, leftQuoteLength: 5);
-  static const StringQuoting SINGLELINE_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 1);
-  static const StringQuoting RAW_SINGLELINE_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 1);
-  static const StringQuoting MULTILINE_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 3);
-  static const StringQuoting RAW_MULTILINE_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 3);
-  static const StringQuoting MULTILINE_NL_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 4);
-  static const StringQuoting RAW_MULTILINE_NL_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 4);
-  static const StringQuoting MULTILINE_NL2_SQ =
-      const StringQuoting($SQ, raw: false, leftQuoteLength: 5);
-  static const StringQuoting RAW_MULTILINE_NL2_SQ =
-      const StringQuoting($SQ, raw: true, leftQuoteLength: 5);
 
-
-  static const List<StringQuoting> mapping = const <StringQuoting>[
-    SINGLELINE_DQ,
-    RAW_SINGLELINE_DQ,
-    MULTILINE_DQ,
-    RAW_MULTILINE_DQ,
-    MULTILINE_NL_DQ,
-    RAW_MULTILINE_NL_DQ,
-    MULTILINE_NL2_DQ,
-    RAW_MULTILINE_NL2_DQ,
-    SINGLELINE_SQ,
-    RAW_SINGLELINE_SQ,
-    MULTILINE_SQ,
-    RAW_MULTILINE_SQ,
-    MULTILINE_NL_SQ,
-    RAW_MULTILINE_NL_SQ,
-    MULTILINE_NL2_SQ,
-    RAW_MULTILINE_NL2_SQ
+  /// Cache of common quotings.
+  static const List<StringQuoting> _mapping = const <StringQuoting>[
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 1),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 1),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 1),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 1),
+    // No string quotes with 2 characters.
+    null,
+    null,
+    null,
+    null,
+    // Multiline quotings.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 3),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 3),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 3),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 3),
+    // Leading single whitespace or espaped newline.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 4),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 4),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 4),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 4),
+    // Other combinations of leading whitespace and/or escaped newline.
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 5),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 5),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 5),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 5),
+    const StringQuoting($SQ, raw: false, leftQuoteLength: 6),
+    const StringQuoting($SQ, raw: true, leftQuoteLength: 6),
+    const StringQuoting($DQ, raw: false, leftQuoteLength: 6),
+    const StringQuoting($DQ, raw: true, leftQuoteLength: 6)
   ];
+
   final bool raw;
   final int leftQuoteCharCount;
   final int quote;
-  const StringQuoting(this.quote, {bool raw, int leftQuoteLength})
-      : this.raw = raw, this.leftQuoteCharCount = leftQuoteLength;
+  const StringQuoting(this.quote, { this.raw, int leftQuoteLength })
+      : this.leftQuoteCharCount = leftQuoteLength;
   String get quoteChar => identical(quote, $DQ) ? '"' : "'";
 
   int get leftQuoteLength => (raw ? 1 : 0) + leftQuoteCharCount;
   int get rightQuoteLength => (leftQuoteCharCount > 2) ? 3 : 1;
-  static StringQuoting getQuoting(int quote, bool raw, int quoteLength) {
-    int index = quoteLength - 1;
-    if (quoteLength > 2) index -= 1;
-    return mapping[(raw ? 1 : 0) + index * 2 + (identical(quote, $SQ) ? 8 : 0)];
+  static StringQuoting getQuoting(int quote, bool raw, int leftQuoteLength) {
+    int quoteKindOffset = (quote == $DQ) ? 2 : 0;
+    int rawOffset = raw ? 1 : 0;
+    int index = (leftQuoteLength - 1) * 4 + rawOffset + quoteKindOffset;
+    if (index < _mapping.length) return _mapping[index];
+    return new StringQuoting(quote, raw: raw, leftQuoteLength: leftQuoteLength);
   }
 }
 
@@ -941,7 +935,7 @@ class LiteralList extends Expression {
 
   LiteralList(this.typeArguments, this.elements, this.constKeyword);
 
-  bool isConst() => constKeyword != null;
+  bool get isConst => constKeyword != null;
 
   LiteralList asLiteralList() => this;
   accept(Visitor visitor) => visitor.visitLiteralList(this);
@@ -977,10 +971,14 @@ class LiteralSymbol extends Expression {
 
   Token getEndToken() => identifiers.getEndToken();
 
-  String get slowNameString => '${identifiers}';
+  String get slowNameString {
+    Unparser unparser = new Unparser();
+    unparser.unparseNodeListOfIdentifiers(identifiers);
+    return unparser.result;
+  }
 }
 
-class Identifier extends Expression {
+class Identifier extends Expression with StoredTreeElementMixin {
   final Token token;
 
   String get source => token.value;
@@ -1003,6 +1001,12 @@ class Identifier extends Expression {
 }
 
 class Operator extends Identifier {
+  static const COMPLEX_OPERATORS =
+      const ["--", "++", '+=', "-=", "*=", "/=", "%=", "&=", "|=", "~/=", "^=",
+             ">>=", "<<="];
+
+  static const INCREMENT_OPERATORS = const <String>["++", "--"];
+
   Operator(Token token) : super(token);
 
   Operator asOperator() => this;
@@ -1021,8 +1025,6 @@ class Return extends Statement {
 
   bool get hasExpression => expression != null;
 
-  bool get isRedirectingFactoryBody => beginToken.stringValue == '=';
-
   accept(Visitor visitor) => visitor.visitReturn(this);
 
   visitChildren(Visitor visitor) {
@@ -1035,6 +1037,27 @@ class Return extends Statement {
     if (endToken == null) return expression.getEndToken();
     return endToken;
   }
+}
+
+class RedirectingFactoryBody extends Statement with StoredTreeElementMixin {
+  final Node constructorReference;
+  final Token beginToken;
+  final Token endToken;
+
+  RedirectingFactoryBody(this.beginToken, this.endToken,
+                         this.constructorReference);
+
+  RedirectingFactoryBody asRedirectingFactoryBody() => this;
+
+  accept(Visitor visitor) => visitor.visitRedirectingFactoryBody(this);
+
+  visitChildren(Visitor visitor) {
+    constructorReference.accept(visitor);
+  }
+
+  Token getBeginToken() => beginToken;
+
+  Token getEndToken() => endToken;
 }
 
 class ExpressionStatement extends Statement {
@@ -1314,13 +1337,13 @@ class Modifiers extends Node {
   accept(Visitor visitor) => visitor.visitModifiers(this);
   visitChildren(Visitor visitor) => nodes.accept(visitor);
 
-  bool isStatic() => (flags & FLAG_STATIC) != 0;
-  bool isAbstract() => (flags & FLAG_ABSTRACT) != 0;
-  bool isFinal() => (flags & FLAG_FINAL) != 0;
-  bool isVar() => (flags & FLAG_VAR) != 0;
-  bool isConst() => (flags & FLAG_CONST) != 0;
-  bool isFactory() => (flags & FLAG_FACTORY) != 0;
-  bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
+  bool get isStatic => (flags & FLAG_STATIC) != 0;
+  bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
+  bool get isFinal => (flags & FLAG_FINAL) != 0;
+  bool get isVar => (flags & FLAG_VAR) != 0;
+  bool get isConst => (flags & FLAG_CONST) != 0;
+  bool get isFactory => (flags & FLAG_FACTORY) != 0;
+  bool get isExternal => (flags & FLAG_EXTERNAL) != 0;
 
   Node getStatic() => findModifier('static');
 
@@ -1328,20 +1351,16 @@ class Modifiers extends Node {
    * Use this to check if the declaration is either explicitly or implicitly
    * final.
    */
-  bool isFinalOrConst() => isFinal() || isConst();
+  bool get isFinalOrConst => isFinal || isConst;
 
   String toString() {
-    LinkBuilder<String> builder = new LinkBuilder<String>();
-    if (isStatic()) builder.addLast('static');
-    if (isAbstract()) builder.addLast('abstract');
-    if (isFinal()) builder.addLast('final');
-    if (isVar()) builder.addLast('var');
-    if (isConst()) builder.addLast('const');
-    if (isFactory()) builder.addLast('factory');
-    if (isExternal()) builder.addLast('external');
-    StringBuffer buffer = new StringBuffer();
-    builder.toLink().printOn(buffer, ', ');
-    return buffer.toString();
+    return modifiersToString(isStatic: isStatic,
+                             isAbstract: isAbstract,
+                             isFinal: isFinal,
+                             isVar: isVar,
+                             isConst: isConst,
+                             isFactory: isFactory,
+                             isExternal: isExternal);
   }
 }
 
@@ -1477,7 +1496,7 @@ class LiteralMap extends Expression {
 
   LiteralMap(this.typeArguments, this.entries, this.constKeyword);
 
-  bool isConst() => constKeyword != null;
+  bool get isConst => constKeyword != null;
 
   LiteralMap asLiteralMap() => this;
 
@@ -1668,7 +1687,7 @@ class ContinueStatement extends GotoStatement {
   accept(Visitor visitor) => visitor.visitContinueStatement(this);
 }
 
-class ForIn extends Loop {
+class ForIn extends Loop with StoredTreeElementMixin {
   final Node declaredIdentifier;
   final Expression expression;
 
@@ -2112,3 +2131,56 @@ class IsInterpolationVisitor extends Visitor<bool> {
       => node.isInterpolation;
 }
 
+/// Erroneous node used to recover from parser errors.  Implements various
+/// interfaces and provides bare minimum of implementation to avoid unnecessary
+/// messages.
+class ErrorNode
+    extends Node
+    implements FunctionExpression, VariableDefinitions, Typedef {
+  final Token token;
+  final String reason;
+  final Identifier name;
+  final NodeList definitions;
+
+  ErrorNode.internal(this.token, this.reason, this.name, this.definitions);
+
+  factory ErrorNode(Token token, String reason) {
+    Identifier name = new Identifier(token);
+    NodeList definitions = new NodeList(
+        null, const Link<Node>().prepend(name), null, null);
+    return new ErrorNode.internal(token, reason, name, definitions);
+  }
+
+  Token get beginToken => token;
+  Token get endToken => token;
+
+  Token getBeginToken() => token;
+
+  Token getEndToken() => token;
+
+  accept(Visitor visitor) {}
+
+  visitChildren(Visitor visitor) {}
+
+  bool get isErroneous => true;
+
+  // FunctionExpression.
+  get parameters => null;
+  get body => null;
+  get returnType => null;
+  get modifiers => Modifiers.EMPTY;
+  get initializers => null;
+  get getOrSet => null;
+  get isRedirectingFactory => false;
+  bool hasBody() => false;
+  bool hasEmptyBody() => false;
+
+  // VariableDefinitions.
+  get metadata => null;
+  get type => null;
+
+  // Typedef.
+  get typeParameters => null;
+  get formals => null;
+  get typedefKeyword => null;
+}

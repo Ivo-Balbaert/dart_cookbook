@@ -5,12 +5,12 @@ import 'dart:convert';
 var header = true;
 
 main() {
-  File inf = new File("../winequality-red.csv");
+  File data = new File("../winequality-red.csv");
   // using readAsLines:
-    inf.readAsLines(encoding: ASCII).then(processLines)
+    data.readAsLines(encoding: ASCII).then(processLines)
                      .catchError((e) => handleError(e));
   // using openRead:
-  Stream<List<int>> input = inf.openRead();
+  Stream<List<int>> input = data.openRead();
   input
     .transform(UTF8.decoder) // Decode to UTF8.
     .transform(const LineSplitter()) // Convert stream to individual lines.

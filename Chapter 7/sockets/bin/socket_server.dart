@@ -9,8 +9,8 @@ void main() {
               .then((ServerSocket srv) {
                 print('serversocket is ready');
                 srv.listen(handleClient);
-              }
-  );
+              })
+              .catchError(print);
 }
 
 void handleClient(Socket client){

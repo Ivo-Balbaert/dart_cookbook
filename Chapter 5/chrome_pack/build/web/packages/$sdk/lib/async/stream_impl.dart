@@ -108,8 +108,15 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
    */
   _PendingEvents _pending;
 
-  _BufferingStreamSubscription(bool cancelOnError)
-      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0);
+  _BufferingStreamSubscription(void onData(T data),
+                               Function onError,
+                               void onDone(),
+                               bool cancelOnError)
+      : _state = (cancelOnError ? _STATE_CANCEL_ON_ERROR : 0) {
+    this.onData(onData);
+    this.onError(onError);
+    this.onDone(onDone);
+  }
 
   /**
    * Sets the subscription's pending events object.
@@ -300,6 +307,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
 
   Future _onCancel() {
     assert(_isCanceled);
+    return null;
   }
 
   // Handle pending events.
@@ -346,10 +354,7 @@ class _BufferingStreamSubscription<T> implements StreamSubscription<T>,
       // future to finish we must not report the error.
       if (_isCanceled && !_waitsForCancel) return;
       _state |= _STATE_IN_CALLBACK;
-      if (!_zone.inSameErrorZone(Zone.current)) {
-        // Errors are not allowed to traverse zone boundaries.
-        Zone.current.handleUncaughtError(error, stackTrace);
-      } else if (_onError is ZoneBinaryCallback) {
+      if (_onError is ZoneBinaryCallback) {
         _zone.runBinaryGuarded(_onError, error, stackTrace);
       } else {
         _zone.runUnaryGuarded(_onError, error);
@@ -465,18 +470,21 @@ abstract class _StreamImpl<T> extends Stream<T> {
                                  void onDone(),
                                  bool cancelOnError }) {
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription subscription = _createSubscription(cancelOnError);
-    subscription.onData(onData);
-    subscription.onError(onError);
-    subscription.onDone(onDone);
+    StreamSubscription subscription =
+        _createSubscription(onData, onError, onDone, cancelOnError);
     _onListen(subscription);
     return subscription;
   }
 
   // -------------------------------------------------------------------
   /** Create a subscription object. Called by [subcribe]. */
-  _BufferingStreamSubscription<T> _createSubscription(bool cancelOnError) {
-    return new _BufferingStreamSubscription<T>(cancelOnError);
+  _BufferingStreamSubscription<T> _createSubscription(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError) {
+    return new _BufferingStreamSubscription<T>(onData, onError, onDone,
+                                               cancelOnError);
   }
 
   /** Hook called when the subscription has been created. */
@@ -497,13 +505,15 @@ class _GeneratedStreamImpl<T> extends _StreamImpl<T> {
    */
   _GeneratedStreamImpl(this._pending);
 
-  StreamSubscription _createSubscription(bool cancelOnError) {
+  StreamSubscription _createSubscription(
+      void onData(T data),
+      Function onError,
+      void onDone(),
+      bool cancelOnError) {
     if (_isUsed) throw new StateError("Stream has already been listened to.");
     _isUsed = true;
-    _BufferingStreamSubscription<T> subscription =
-         new _BufferingStreamSubscription(cancelOnError);
-    subscription._setPendingEvents(_pending());
-    return subscription;
+    return new _BufferingStreamSubscription(
+        onData, onError, onDone, cancelOnError).._setPendingEvents(_pending());
   }
 }
 
@@ -729,26 +739,63 @@ class _BroadcastLinkedList {
 typedef void _broadcastCallback(StreamSubscription subscription);
 
 /**
- * Dummy subscription that will never receive any events.
+ * Done subscription that will send one done event as soon as possible.
  */
-class _DummyStreamSubscription<T> implements StreamSubscription<T> {
-  int _pauseCounter = 0;
+class _DoneStreamSubscription<T> implements StreamSubscription<T> {
+  static const int _DONE_SENT = 1;
+  static const int _SCHEDULED = 2;
+  static const int _PAUSED = 4;
+
+  final Zone _zone;
+  int _state = 0;
+  _DoneHandler _onDone;
+
+  _DoneStreamSubscription(this._onDone) : _zone = Zone.current {
+    _schedule();
+  }
+
+  bool get _isSent => (_state & _DONE_SENT) != 0;
+  bool get _isScheduled => (_state & _SCHEDULED) != 0;
+  bool get isPaused => _state >= _PAUSED;
+
+  void _schedule() {
+    if (_isScheduled) return;
+    _zone.scheduleMicrotask(_sendDone);
+    _state |= _SCHEDULED;
+  }
 
   void onData(void handleData(T data)) {}
   void onError(Function handleError) {}
-  void onDone(void handleDone()) {}
+  void onDone(void handleDone()) { _onDone = handleDone; }
 
   void pause([Future resumeSignal]) {
-    _pauseCounter++;
-    if (resumeSignal != null) resumeSignal.then((_) { resume(); });
+    _state += _PAUSED;
+    if (resumeSignal != null) resumeSignal.whenComplete(resume);
   }
-  void resume() {
-    if (_pauseCounter > 0) _pauseCounter--;
-  }
-  Future cancel() => null;
-  bool get isPaused => _pauseCounter > 0;
 
-  Future asFuture([futureValue]) => new _Future();
+  void resume() {
+    if (isPaused) {
+      _state -= _PAUSED;
+      if (!isPaused && !_isSent) {
+        _schedule();
+      }
+    }
+  }
+
+  Future cancel() => null;
+
+  Future asFuture([futureValue]) {
+    _Future result = new _Future();
+    _onDone = () { result._completeWithValue(null); };
+    return result;
+  }
+
+  void _sendDone() {
+    _state &= ~_SCHEDULED;
+    if (isPaused) return;
+    _state |= _DONE_SENT;
+    if (_onDone != null) _zone.runGuarded(_onDone);
+  }
 }
 
 class _AsBroadcastStream<T> extends Stream<T> {
@@ -775,10 +822,10 @@ class _AsBroadcastStream<T> extends Stream<T> {
                                { Function onError,
                                  void onDone(),
                                  bool cancelOnError}) {
-    if (_controller == null) {
+    if (_controller == null || _controller.isClosed) {
       // Return a dummy subscription backed by nothing, since
-      // it won't ever receive any events.
-      return new _DummyStreamSubscription<T>();
+      // it will only ever send one done event.
+      return new _DoneStreamSubscription<T>(onDone);
     }
     if (_subscription == null) {
       _subscription = _source.listen(_controller.add,
@@ -786,11 +833,7 @@ class _AsBroadcastStream<T> extends Stream<T> {
                                      onDone: _controller.close);
     }
     cancelOnError = identical(true, cancelOnError);
-    StreamSubscription<T> result = _controller._subscribe(cancelOnError);
-    result.onData(onData);
-    result.onError(onError);
-    result.onDone(onDone);
-    return result;
+    return _controller._subscribe(onData, onError, onDone, cancelOnError);
   }
 
   void _onCancel() {

@@ -8,6 +8,7 @@ import 'dart:collection' show Queue;
 import 'dart2jslib.dart';
 import 'dart_types.dart';
 import 'elements/elements.dart';
+import 'elements/modelx.dart' show ClassElementX, FunctionElementX;
 import 'js_backend/js_backend.dart';
 import 'resolution/resolution.dart' show ResolverVisitor;
 import 'scanner/scannerlib.dart';
@@ -89,6 +90,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   final Set<ClassElement> pendingClasses = new Set<ClassElement>();
   final Set<ClassElement> unusedClasses = new Set<ClassElement>();
 
+  final Set<LibraryElement> processedLibraries;
+
   bool hasInstantiatedNativeClasses() => !registeredClasses.isEmpty;
 
   final Set<ClassElement> nativeClassesAndSubclasses = new Set<ClassElement>();
@@ -120,12 +123,22 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   ClassElement _annotationJsNameClass;
 
   /// Subclasses of [NativeEnqueuerBase] are constructed by the backend.
-  NativeEnqueuerBase(this.world, this.compiler, this.enableLiveTypeAnalysis);
+  NativeEnqueuerBase(this.world, Compiler compiler, this.enableLiveTypeAnalysis)
+      : this.compiler = compiler,
+        processedLibraries = compiler.cacheStrategy.newSet();
+
+  JavaScriptBackend get backend => compiler.backend;
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
+    if (compiler.hasIncrementalSupport) {
+      // Since [Set.add] returns bool if an element was added, this restricts
+      // [libraries] to ones that haven't already been processed. This saves
+      // time during incremental compiles.
+      libraries = libraries.where(processedLibraries.add);
+    }
     libraries.forEach(processNativeClassesInLibrary);
-    if (compiler.isolateHelperLibrary != null) {
-      processNativeClassesInLibrary(compiler.isolateHelperLibrary);
+    if (backend.isolateHelperLibrary != null) {
+      processNativeClassesInLibrary(backend.isolateHelperLibrary);
     }
     processSubclassesOfNativeClasses(libraries);
     if (!enableLiveTypeAnalysis) {
@@ -137,7 +150,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void processNativeClassesInLibrary(LibraryElement library) {
     // Use implementation to ensure the inclusion of injected members.
     library.implementation.forEachLocalMember((Element element) {
-      if (element.isClass() && element.isNative()) {
+      if (element.isClass && element.isNative) {
         processNativeClass(element);
       }
     });
@@ -161,7 +174,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
     libraries.forEach((library) {
       library.implementation.forEachLocalMember((element) {
-        if (element.isClass()) {
+        if (element.isClass) {
           String name = element.name;
           String extendsName = findExtendsNameOfClass(element);
           if (extendsName != null) {
@@ -180,7 +193,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     // fact a subclass of a native class.
 
     ClassElement nativeSuperclassOf(ClassElement classElement) {
-      if (classElement.isNative()) return classElement;
+      if (classElement.isNative) return classElement;
       if (classElement.superclass == null) return null;
       return nativeSuperclassOf(classElement.superclass);
     }
@@ -191,7 +204,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       ClassElement nativeSuperclass = nativeSuperclassOf(element);
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
-        if (!element.isNative()) {
+        if (!element.isNative) {
           nonNativeSubclasses.putIfAbsent(nativeSuperclass,
               () => new Set<ClassElement>())
             .add(element);
@@ -264,7 +277,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
 
     return compiler.withCurrentElement(classElement, () {
-      return scanForExtendsName(classElement.position());
+      return scanForExtendsName(classElement.position);
     });
   }
 
@@ -286,7 +299,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   void findAnnotationClasses() {
     if (_annotationCreatesClass != null) return;
     ClassElement find(name) {
-      Element e = compiler.findHelper(name);
+      Element e = backend.findHelper(name);
       if (e == null || e is! ClassElement) {
         compiler.internalError(NO_LOCATION_SPANNABLE,
             "Could not find implementation class '${name}'.");
@@ -347,7 +360,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     flushing = false;
   }
 
-  processClass(ClassElement classElement, cause) {
+  processClass(ClassElementX classElement, cause) {
     assert(!registeredClasses.contains(classElement));
 
     bool firstTime = registeredClasses.isEmpty;
@@ -368,14 +381,14 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   registerElement(Element element) {
     compiler.withCurrentElement(element, () {
-      if (element.isFunction() || element.isGetter() || element.isSetter()) {
+      if (element.isFunction || element.isGetter || element.isSetter) {
         handleMethodAnnotations(element);
-        if (element.isNative()) {
+        if (element.isNative) {
           registerMethodUsed(element);
         }
-      } else if (element.isField()) {
+      } else if (element.isField) {
         handleFieldAnnotations(element);
-        if (element.isNative()) {
+        if (element.isNative) {
           registerFieldLoad(element);
           registerFieldStore(element);
         }
@@ -384,12 +397,12 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   }
 
   handleFieldAnnotations(Element element) {
-    if (element.enclosingElement.isNative()) {
+    if (element.enclosingElement.isNative) {
       // Exclude non-instance (static) fields - they not really native and are
       // compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
       // using a JS-call.
-      if (element.isInstanceMember()) {
+      if (element.isInstanceMember) {
         setNativeName(element);
       }
     }
@@ -409,8 +422,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     element.setNative(name);
   }
 
-  bool isNativeMethod(Element element) {
-    if (!element.getLibrary().canUseNative) return false;
+  bool isNativeMethod(FunctionElementX element) {
+    if (!element.library.canUseNative) return false;
     // Native method?
     return compiler.withCurrentElement(element, () {
       Node node = element.parseNode(compiler);
@@ -455,34 +468,34 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   processNativeBehavior(NativeBehavior behavior, cause) {
     // TODO(ahe): Is this really a global dependency?
-    TreeElements elements = compiler.globalDependencies;
+    Registry registry = compiler.globalDependencies;
     bool allUsedBefore = unusedClasses.isEmpty;
     for (var type in behavior.typesInstantiated) {
       if (matchedTypeConstraints.contains(type)) continue;
       matchedTypeConstraints.add(type);
       if (type is SpecialType) {
         if (type == SpecialType.JsObject) {
-          world.registerInstantiatedClass(compiler.objectClass, elements);
+          world.registerInstantiatedClass(compiler.objectClass, registry);
         }
         continue;
       }
       if (type is InterfaceType) {
         if (type.element == compiler.intClass) {
-          world.registerInstantiatedClass(compiler.intClass, elements);
+          world.registerInstantiatedClass(compiler.intClass, registry);
         } else if (type.element == compiler.doubleClass) {
-          world.registerInstantiatedClass(compiler.doubleClass, elements);
+          world.registerInstantiatedClass(compiler.doubleClass, registry);
         } else if (type.element == compiler.numClass) {
-          world.registerInstantiatedClass(compiler.doubleClass, elements);
-          world.registerInstantiatedClass(compiler.intClass, elements);
+          world.registerInstantiatedClass(compiler.doubleClass, registry);
+          world.registerInstantiatedClass(compiler.intClass, registry);
         } else if (type.element == compiler.stringClass) {
-          world.registerInstantiatedClass(compiler.stringClass, elements);
+          world.registerInstantiatedClass(compiler.stringClass, registry);
         } else if (type.element == compiler.nullClass) {
-          world.registerInstantiatedClass(compiler.nullClass, elements);
+          world.registerInstantiatedClass(compiler.nullClass, registry);
         } else if (type.element == compiler.boolClass) {
-          world.registerInstantiatedClass(compiler.boolClass, elements);
+          world.registerInstantiatedClass(compiler.boolClass, registry);
         } else if (compiler.types.isSubtype(
-                      type, compiler.backend.listImplementation.rawType)) {
-          world.registerInstantiatedClass(type.element, elements);
+                      type, backend.listImplementation.rawType)) {
+          world.registerInstantiatedClass(type.element, registry);
         }
       }
       assert(type is DartType);
@@ -508,13 +521,10 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   onFirstNativeClass() {
     staticUse(name) {
-      JavaScriptBackend backend = compiler.backend;
       backend.enqueue(
-          world, compiler.findHelper(name), compiler.globalDependencies);
+          world, backend.findHelper(name), compiler.globalDependencies);
     }
 
-    staticUse('dynamicFunction');
-    staticUse('dynamicSetMetadata');
     staticUse('defineProperty');
     staticUse('toStringForNativeObject');
     staticUse('hashCodeForNativeObject');
@@ -550,9 +560,10 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     for (String tag in nativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
-        compiler.reportError(classElement,
-            MessageKind.GENERIC,
-            {'text': "Tag '$tag' already in use by '${owner.name}'"});
+        if (owner != classElement) {
+          compiler.internalError(
+              classElement, "Tag '$tag' already in use by '${owner.name}'");
+        }
       } else {
         tagOwner[tag] = classElement;
       }
@@ -596,7 +607,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   }
 
   void addSubtypes(ClassElement cls, NativeEmitter emitter) {
-    if (!cls.isNative()) return;
+    if (!cls.isNative) return;
     if (doneAddSubtypes.contains(cls)) return;
     doneAddSubtypes.add(cls);
 
@@ -616,7 +627,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     // natives classes.
     ClassElement superclass = cls.superclass;
     while (superclass != null && superclass.isMixinApplication) {
-      assert(!superclass.isNative());
+      assert(!superclass.isNative);
       superclass = superclass.superclass;
     }
 
@@ -775,6 +786,110 @@ class NativeBehavior {
 
   static NativeBehavior NONE = new NativeBehavior();
 
+  /// Processes the type specification string of a call to JS and stores the
+  /// result in the [typesReturned] and [typesInstantiated].
+  ///
+  /// Two forms of the string is supported:
+  /// 1) A single type string of the form 'void', '', 'var' or 'T1|...|Tn'
+  ///    which defines the types returned and for the later form also created by
+  ///    the call to JS.
+  /// 2) A sequence of the form '<tag>:<type-string>;' where <tag> is either
+  ///    'returns' or 'creates' and where <type-string> is a type string like in
+  ///    1). The type string marked by 'returns' defines the types returned and
+  ///    'creates' defines the types created by the call to JS. Each tag kind
+  ///    can only occur once in the sequence.
+  ///
+  /// [specString] is the specification string, [resolveType] resolves named
+  /// types into type values, [typesReturned] and [typesInstantiated] collects
+  /// the types defined by the specification string, and [objectType] and
+  /// [nullType] define the types for `Object` and `Null`, respectively. The
+  /// latter is used for the type strings of the form '' and 'var'.
+  // TODO(johnniwinther): Use ';' as a separator instead of a terminator.
+  static void processSpecString(
+      DiagnosticListener listener,
+      Spannable spannable,
+      String specString,
+      {dynamic resolveType(String typeString),
+       List typesReturned, List typesInstantiated,
+       objectType, nullType}) {
+
+    /// Resolve a type string of one of the three forms:
+    /// *  'void' - in which case [onVoid] is called,
+    /// *  '' or 'var' - in which case [onVar] is called,
+    /// *  'T1|...|Tn' - in which case [onType] is called for each Ti.
+    void resolveTypesString(String typesString,
+                            {onVoid(), onVar(), onType(type)}) {
+      // Various things that are not in fact types.
+      if (typesString == 'void') {
+        if (onVoid != null) {
+          onVoid();
+        }
+        return;
+      }
+      if (typesString == '' || typesString == 'var') {
+        if (onVar != null) {
+          onVar();
+        }
+        return;
+      }
+      for (final typeString in typesString.split('|')) {
+        onType(resolveType(typeString));
+      }
+    }
+
+    if (specString.contains(':')) {
+      /// Find and remove a substring of the form 'tag:<type-string>;' from
+      /// [specString].
+      String getTypesString(String tag) {
+        String marker = '$tag:';
+        int startPos = specString.indexOf(marker);
+        if (startPos == -1) return null;
+        int endPos = specString.indexOf(';', startPos);
+        if (endPos == -1) return null;
+        String typeString =
+            specString.substring(startPos + marker.length, endPos);
+        specString = '${specString.substring(0, startPos)}'
+                     '${specString.substring(endPos + 1)}'.trim();
+        return typeString;
+      }
+
+      String returns = getTypesString('returns');
+      if (returns != null) {
+        resolveTypesString(returns, onVar: () {
+          typesReturned.add(objectType);
+          typesReturned.add(nullType);
+        }, onType: (type) {
+          typesReturned.add(type);
+        });
+      }
+
+      String creates = getTypesString('creates');
+      if (creates != null) {
+        resolveTypesString(creates, onVoid: () {
+          listener.internalError(spannable,
+              "Invalid type string 'creates:$creates'");
+        }, onVar: () {
+          listener.internalError(spannable,
+              "Invalid type string 'creates:$creates'");
+        }, onType: (type) {
+          typesInstantiated.add(type);
+        });
+      }
+
+      if (!specString.isEmpty) {
+        listener.internalError(spannable, "Invalid JS type string.");
+      }
+    } else {
+      resolveTypesString(specString, onVar: () {
+        typesReturned.add(objectType);
+        typesReturned.add(nullType);
+      }, onType: (type) {
+        typesInstantiated.add(type);
+        typesReturned.add(type);
+      });
+    }
+  }
+
   static NativeBehavior ofJsCall(Send jsCall, Compiler compiler, resolver) {
     // The first argument of a JS-call is a string encoding various attributes
     // of the code.
@@ -799,25 +914,29 @@ class NativeBehavior {
       compiler.internalError(argNodes.head, "Unexpected JS first argument.");
     }
 
-    var behavior = new NativeBehavior();
-    behavior.codeTemplate = js.js.parseForeignJS(code.dartString.slowToString());
-    new SideEffectsVisitor(behavior.sideEffects).visit(behavior.codeTemplate.ast);
+    NativeBehavior behavior = new NativeBehavior();
+    behavior.codeTemplate =
+        js.js.parseForeignJS(code.dartString.slowToString());
+    new SideEffectsVisitor(behavior.sideEffects)
+        .visit(behavior.codeTemplate.ast);
 
     String specString = specLiteral.dartString.slowToString();
-    // Various things that are not in fact types.
-    if (specString == 'void') return behavior;
-    if (specString == '' || specString == 'var') {
-      behavior.typesReturned.add(compiler.objectClass.computeType(compiler));
-      behavior.typesReturned.add(compiler.nullClass.computeType(compiler));
-      return behavior;
-    }
-    for (final typeString in specString.split('|')) {
-      var type = _parseType(typeString, compiler,
+
+    resolveType(String typeString) {
+      return _parseType(
+          typeString,
+          compiler,
           (name) => resolver.resolveTypeFromString(specLiteral, name),
           jsCall);
-      behavior.typesInstantiated.add(type);
-      behavior.typesReturned.add(type);
     }
+
+    processSpecString(compiler, jsCall,
+                      specString,
+                      resolveType: resolveType,
+                      typesReturned: behavior.typesReturned,
+                      typesInstantiated: behavior.typesInstantiated,
+                      objectType: compiler.objectClass.computeType(compiler),
+                      nullType: compiler.nullClass.computeType(compiler));
 
     return behavior;
   }
@@ -933,10 +1052,8 @@ class NativeBehavior {
       // A function might be called from native code, passing us novel
       // parameters.
       _escape(functionType.returnType, compiler);
-      for (Link<DartType> parameters = functionType.parameterTypes;
-           !parameters.isEmpty;
-           parameters = parameters.tail) {
-        _capture(parameters.head, compiler);
+      for (DartType parameter in functionType.parameterTypes) {
+        _capture(parameter, compiler);
       }
     }
   }
@@ -949,10 +1066,8 @@ class NativeBehavior {
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, compiler);
-      for (Link<DartType> parameters = functionType.parameterTypes;
-           !parameters.isEmpty;
-           parameters = parameters.tail) {
-        _escape(parameters.head, compiler);
+      for (DartType parameter in functionType.parameterTypes) {
+        _escape(parameter, compiler);
       }
     } else {
       typesInstantiated.add(type);
@@ -963,7 +1078,7 @@ class NativeBehavior {
       lookup(name), locationNodeOrElement) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return  compiler.types.dynamicType;
+      return const DynamicType();
     }
     DartType type = lookup(typeString);
     if (type != null) return type;
@@ -991,7 +1106,7 @@ class NativeBehavior {
 }
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
-  LibraryElement currentLibrary = listener.compilationUnitElement.getLibrary();
+  LibraryElement currentLibrary = listener.compilationUnitElement.library;
   if (!currentLibrary.canUseNative) {
     listener.recoverableError(token, "Unexpected token");
   }
@@ -1006,33 +1121,6 @@ Token handleNativeBlockToSkip(Listener listener, Token token) {
   if (identical(token.stringValue, '{')) {
     BeginGroupToken beginGroupToken = token;
     token = beginGroupToken.endGroup;
-  }
-  return token;
-}
-
-Token handleNativeClassBodyToSkip(Listener listener, Token token) {
-  checkAllowedLibrary(listener, token);
-  listener.handleIdentifier(token);
-  token = token.next;
-  if (!identical(token.kind, STRING_TOKEN)) {
-    return listener.unexpected(token);
-  }
-  token = token.next;
-  if (!identical(token.stringValue, '{')) {
-    return listener.unexpected(token);
-  }
-  BeginGroupToken beginGroupToken = token;
-  token = beginGroupToken.endGroup;
-  return token;
-}
-
-Token handleNativeClassBody(Listener listener, Token token) {
-  checkAllowedLibrary(listener, token);
-  token = token.next;
-  if (!identical(token.kind, STRING_TOKEN)) {
-    listener.unexpected(token);
-  } else {
-    token = token.next;
   }
   return token;
 }
@@ -1053,18 +1141,6 @@ Token handleNativeFunctionBody(ElementListener listener, Token token) {
   // TODO(ngeoffray): expect a ';'.
   // Currently there are method with both native marker and Dart body.
   return token.next;
-}
-
-String checkForNativeClass(ElementListener listener) {
-  String nativeTagInfo;
-  Node node = listener.nodes.head;
-  if (node != null
-      && node.asIdentifier() != null
-      && node.asIdentifier().source == 'native') {
-    nativeTagInfo = node.asIdentifier().token.next.value;
-    listener.popNode();
-  }
-  return nativeTagInfo;
 }
 
 // The tags string contains comma-separated 'words' which are either dispatch
@@ -1091,7 +1167,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   NativeEmitter nativeEmitter = builder.nativeEmitter;
   JavaScriptBackend backend = builder.backend;
 
-  HInstruction convertDartClosure(Element parameter, FunctionType type) {
+  HInstruction convertDartClosure(ParameterElement  parameter,
+                                  FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
     Constant arityConstant =
         builder.constantSystem.createInt(type.computeArity());
@@ -1112,8 +1189,8 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   // 3) foo() native "return 42";
   //      hasBody = true
   bool hasBody = false;
-  assert(element.isNative());
-  String nativeMethodName = element.fixedBackendName();
+  assert(element.isNative);
+  String nativeMethodName = element.fixedBackendName;
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
@@ -1133,7 +1210,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
     List<String> arguments = <String>[];
     List<HInstruction> inputs = <HInstruction>[];
     String receiver = '';
-    if (element.isInstanceMember()) {
+    if (element.isInstanceMember) {
       receiver = '#.';
       inputs.add(builder.localsHandler.readThis());
     }

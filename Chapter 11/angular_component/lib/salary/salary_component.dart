@@ -3,7 +3,7 @@ library salary;
 import 'package:angular/angular.dart';
 
 @Component(
-    selector: 'salary',
+    selector: 'x-salary',
     templateUrl: 'packages/angular_component/salary/salary_component.html',
     cssUrl: 'packages/angular_component/salary/salary_component.css',
     publishAs: 'cmp')
@@ -22,7 +22,7 @@ class SalaryComponent {
 
   @NgAttr('max-sal')
   void set maxSal(String value) {
-    var count = value == null
+    var count = (value == null)
         ? DEFAULT_MAX
         : int.parse(value, onError: (_) => DEFAULT_MAX);
     stars = new List.generate(count, (i) => i + 1);

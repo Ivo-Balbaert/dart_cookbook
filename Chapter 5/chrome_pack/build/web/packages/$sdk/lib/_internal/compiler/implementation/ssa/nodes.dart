@@ -162,8 +162,8 @@ class HGraph {
     return result;
   }
 
-  HBasicBlock addNewLoopHeaderBlock(TargetElement target,
-                                    List<LabelElement> labels) {
+  HBasicBlock addNewLoopHeaderBlock(JumpTarget target,
+                                    List<LabelDefinition> labels) {
     HBasicBlock result = addNewBlock();
     result.loopInformation =
         new HLoopInformation(result, target, labels);
@@ -182,6 +182,13 @@ class HGraph {
       entry.addAtExit(result);
     }
     return result;
+  }
+
+  HConstant addDeferredConstant(Constant constant, PrefixElement prefix,
+                                Compiler compiler) {
+    Constant wrapper = new DeferredConstant(constant, prefix);
+    compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
+    return addConstant(wrapper, compiler);
   }
 
   HConstant addConstantInt(int i, Compiler compiler) {
@@ -310,8 +317,9 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitLess(HLess node) => visitRelational(node);
   visitLessEqual(HLessEqual node) => visitRelational(node);
   visitLiteralList(HLiteralList node) => visitInstruction(node);
-  visitLocalGet(HLocalGet node) => visitFieldAccess(node);
-  visitLocalSet(HLocalSet node) => visitFieldAccess(node);
+  visitLocalAccess(HLocalAccess node) => visitInstruction(node);
+  visitLocalGet(HLocalGet node) => visitLocalAccess(node);
+  visitLocalSet(HLocalSet node) => visitLocalAccess(node);
   visitLocalValue(HLocalValue node) => visitInstruction(node);
   visitLoopBranch(HLoopBranch node) => visitConditionalBranch(node);
   visitNegate(HNegate node) => visitInvokeUnary(node);
@@ -750,7 +758,7 @@ class HBasicBlock extends HInstructionList {
 }
 
 abstract class HInstruction implements Spannable {
-  Element sourceElement;
+  Entity sourceElement;
   SourceFileLocation sourcePosition;
 
   final int id;
@@ -830,14 +838,14 @@ abstract class HInstruction implements Spannable {
         && !canThrow();
   }
 
-  // Overridden by [HCheck] to return the actual non-[HCheck]
-  // instruction it checks against.
+  /// Overridden by [HCheck] to return the actual non-[HCheck]
+  /// instruction it checks against.
   HInstruction nonCheck() => this;
 
-  // Can this node throw an exception?
+  /// Can this node throw an exception?
   bool canThrow() => false;
 
-  // Does this node potentially affect control flow.
+  /// Does this node potentially affect control flow.
   bool isControlFlow() => false;
 
   bool isExact() => instructionType.isExact || isNull();
@@ -1220,7 +1228,7 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type.kind != TypeKind.TYPE_VARIABLE);
-    assert(type.treatAsRaw || type.kind == TypeKind.FUNCTION);
+    assert(type.treatAsRaw || type.isFunctionType);
     if (type.isDynamic) return this;
     // The type element is either a class or the void element.
     Element element = type.element;
@@ -1392,7 +1400,7 @@ abstract class HInvokeDynamic extends HInvoke {
 class HInvokeClosure extends HInvokeDynamic {
   HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type)
     : super(selector, null, inputs, type) {
-    assert(selector.isClosureCall());
+    assert(selector.isClosureCall);
   }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
 }
@@ -1505,7 +1513,7 @@ class HFieldGet extends HFieldAccess {
             {bool isAssignable})
       : this.isAssignable = (isAssignable != null)
             ? isAssignable
-            : element.isAssignable(),
+            : element.isAssignable,
         super(element, <HInstruction>[receiver], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -1521,9 +1529,11 @@ class HFieldGet extends HFieldAccess {
     // stored in the generated closure class, and accessed through a
     // [HFieldGet].
     JavaScriptBackend backend = compiler.backend;
-    bool interceptor =
-        backend.isInterceptorClass(sourceElement.getEnclosingClass());
-    return interceptor && sourceElement is ThisElement;
+    if (sourceElement is ThisLocal) {
+      ThisLocal thisLocal = sourceElement;
+      return backend.isInterceptorClass(thisLocal.enclosingClass);
+    }
+    return false;
   }
 
   bool canThrow() => receiver.canBeNull();
@@ -1615,20 +1625,29 @@ class HReadModifyWrite extends HLateInstruction {
   String toString() => "ReadModifyWrite $jsOp $opKind $element";
 }
 
-class HLocalGet extends HFieldAccess {
+abstract class HLocalAccess extends HInstruction {
+  final Local variable;
+
+  HLocalAccess(this.variable, List<HInstruction> inputs, TypeMask type)
+      : super(inputs, type);
+
+  HInstruction get receiver => inputs[0];
+}
+
+class HLocalGet extends HLocalAccess {
   // No need to use GVN for a [HLocalGet], it is just a local
   // access.
-  HLocalGet(Element element, HLocalValue local, TypeMask type)
-      : super(element, <HInstruction>[local], type);
+  HLocalGet(Local variable, HLocalValue local, TypeMask type)
+      : super(variable, <HInstruction>[local], type);
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
   HLocalValue get local => inputs[0];
 }
 
-class HLocalSet extends HFieldAccess {
-  HLocalSet(Element element, HLocalValue local, HInstruction value)
-      : super(element, <HInstruction>[local, value],
+class HLocalSet extends HLocalAccess {
+  HLocalSet(Local variable, HLocalValue local, HInstruction value)
+      : super(variable, <HInstruction>[local, value],
               const TypeMask.nonNullEmpty());
 
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
@@ -1902,10 +1921,10 @@ class HGoto extends HControlFlow {
 }
 
 abstract class HJump extends HControlFlow {
-  final TargetElement target;
-  final LabelElement label;
+  final JumpTarget target;
+  final LabelDefinition label;
   HJump(this.target) : label = null, super(const <HInstruction>[]);
-  HJump.toLabel(LabelElement label)
+  HJump.toLabel(LabelDefinition label)
       : label = label, target = label.target, super(const <HInstruction>[]);
 }
 
@@ -1916,17 +1935,17 @@ class HBreak extends HJump {
    * [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
    */
   final bool breakSwitchContinueLoop;
-  HBreak(TargetElement target, {bool this.breakSwitchContinueLoop: false})
+  HBreak(JumpTarget target, {bool this.breakSwitchContinueLoop: false})
       : super(target);
-  HBreak.toLabel(LabelElement label)
+  HBreak.toLabel(LabelDefinition label)
       : breakSwitchContinueLoop = false, super.toLabel(label);
   toString() => (label != null) ? 'break ${label.labelName}' : 'break';
   accept(HVisitor visitor) => visitor.visitBreak(this);
 }
 
 class HContinue extends HJump {
-  HContinue(TargetElement target) : super(target);
-  HContinue.toLabel(LabelElement label) : super.toLabel(label);
+  HContinue(JumpTarget target) : super(target);
+  HContinue.toLabel(LabelDefinition label) : super.toLabel(label);
   toString() => (label != null) ? 'continue ${label.labelName}' : 'continue';
   accept(HVisitor visitor) => visitor.visitContinue(this);
 }
@@ -2033,8 +2052,9 @@ class HNot extends HInstruction {
   * value from the start, whereas [HLocalValue]s need to be initialized first.
   */
 class HLocalValue extends HInstruction {
-  HLocalValue(Element element, TypeMask type) : super(<HInstruction>[], type) {
-    sourceElement = element;
+  HLocalValue(Entity variable, TypeMask type)
+      : super(<HInstruction>[], type) {
+    sourceElement = variable;
   }
 
   toString() => 'local ${sourceElement.name}';
@@ -2042,21 +2062,27 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(Element element, type) : super(element, type);
+  HParameterValue(Entity variable, type) : super(variable, type);
 
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 
 class HThis extends HParameterValue {
-  HThis(Element element, TypeMask type) : super(element, type);
-  toString() => 'this';
+  HThis(ThisLocal element, TypeMask type) : super(element, type);
+
+  ThisLocal get sourceElement => super.sourceElement;
+
   accept(HVisitor visitor) => visitor.visitThis(this);
+
   bool isCodeMotionInvariant() => true;
+
   bool isInterceptor(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    return backend.isInterceptorClass(sourceElement.getEnclosingClass());
+    return backend.isInterceptorClass(sourceElement.enclosingClass);
   }
+
+  String toString() => 'this';
 }
 
 class HPhi extends HInstruction {
@@ -2069,16 +2095,18 @@ class HPhi extends HInstruction {
   // The order of the [inputs] must correspond to the order of the
   // predecessor-edges. That is if an input comes from the first predecessor
   // of the surrounding block, then the input must be the first in the [HPhi].
-  HPhi(Element element, List<HInstruction> inputs, TypeMask type)
+  HPhi(Local variable, List<HInstruction> inputs, TypeMask type)
       : super(inputs, type) {
-    sourceElement = element;
+    sourceElement = variable;
   }
-  HPhi.noInputs(Element element, TypeMask type)
-      : this(element, <HInstruction>[], type);
-  HPhi.singleInput(Element element, HInstruction input, TypeMask type)
-      : this(element, <HInstruction>[input], type);
-  HPhi.manyInputs(Element element, List<HInstruction> inputs, TypeMask type)
-      : this(element, inputs, type);
+  HPhi.noInputs(Local variable, TypeMask type)
+      : this(variable, <HInstruction>[], type);
+  HPhi.singleInput(Local variable, HInstruction input, TypeMask type)
+      : this(variable, <HInstruction>[input], type);
+  HPhi.manyInputs(Local variable,
+                  List<HInstruction> inputs,
+                  TypeMask type)
+      : this(variable, inputs, type);
 
   void addInput(HInstruction input) {
     assert(isInBasicBlock());
@@ -2183,7 +2211,7 @@ class HStatic extends HInstruction {
     assert(invariant(this, element.isDeclaration));
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
-    if (element.isAssignable()) {
+    if (element.isAssignable) {
       sideEffects.setDependsOnStaticPropertyStore();
     }
     setUseGvn();
@@ -2195,7 +2223,7 @@ class HStatic extends HInstruction {
   int typeCode() => HInstruction.STATIC_TYPECODE;
   bool typeEquals(other) => other is HStatic;
   bool dataEquals(HStatic other) => element == other.element;
-  bool isCodeMotionInvariant() => !element.isAssignable();
+  bool isCodeMotionInvariant() => !element.isAssignable;
 }
 
 class HInterceptor extends HInstruction {
@@ -2489,12 +2517,12 @@ class HTypeConversion extends HCheck {
   }
 
   bool get hasTypeRepresentation {
-    return typeExpression.kind == TypeKind.INTERFACE && inputs.length > 1;
+    return typeExpression.isInterfaceType && inputs.length > 1;
   }
   HInstruction get typeRepresentation => inputs[1];
 
   bool get hasContext {
-    return typeExpression.kind == TypeKind.FUNCTION && inputs.length > 1;
+    return typeExpression.isFunctionType && inputs.length > 1;
   }
   HInstruction get context => inputs[1];
 
@@ -2614,8 +2642,8 @@ class HLoopInformation {
   final HBasicBlock header;
   final List<HBasicBlock> blocks;
   final List<HBasicBlock> backEdges;
-  final List<LabelElement> labels;
-  final TargetElement target;
+  final List<LabelDefinition> labels;
+  final JumpTarget target;
 
   /** Corresponding block information for the loop. */
   HLoopBlockInformation loopBlockInformation;
@@ -2761,19 +2789,19 @@ class HStatementSequenceInformation implements HStatementInformation {
 
 class HLabeledBlockInformation implements HStatementInformation {
   final HStatementInformation body;
-  final List<LabelElement> labels;
-  final TargetElement target;
+  final List<LabelDefinition> labels;
+  final JumpTarget target;
   final bool isContinue;
 
   HLabeledBlockInformation(this.body,
-                           List<LabelElement> labels,
+                           List<LabelDefinition> labels,
                            {this.isContinue: false}) :
       this.labels = labels, this.target = labels[0].target;
 
   HLabeledBlockInformation.implicit(this.body,
                                     this.target,
                                     {this.isContinue: false})
-      : this.labels = const<LabelElement>[];
+      : this.labels = const<LabelDefinition>[];
 
   HBasicBlock get start => body.start;
   HBasicBlock get end => body.end;
@@ -2806,8 +2834,8 @@ class HLoopBlockInformation implements HStatementInformation {
   final HExpressionInformation condition;
   final HStatementInformation body;
   final HExpressionInformation updates;
-  final TargetElement target;
-  final List<LabelElement> labels;
+  final JumpTarget target;
+  final List<LabelDefinition> labels;
   final SourceFileLocation sourcePosition;
   final SourceFileLocation endSourcePosition;
 
@@ -2907,8 +2935,8 @@ class HTryBlockInformation implements HStatementInformation {
 class HSwitchBlockInformation implements HStatementInformation {
   final HExpressionInformation expression;
   final List<HStatementInformation> statements;
-  final TargetElement target;
-  final List<LabelElement> labels;
+  final JumpTarget target;
+  final List<LabelDefinition> labels;
 
   HSwitchBlockInformation(this.expression,
                           this.statements,

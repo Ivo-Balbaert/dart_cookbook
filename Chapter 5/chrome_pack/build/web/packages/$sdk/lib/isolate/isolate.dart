@@ -7,10 +7,6 @@
  * independent workers that are similar to threads
  * but don't share memory,
  * communicating only via messages.
- *
- * See also:
- * [dart:isolate - Concurrency with Isolates](https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartisolate---concurrency-with-isolates)
- * in the library tour.
  */
 library dart.isolate;
 
@@ -47,6 +43,7 @@ class Isolate {
    * Capability granting the ability to pause the isolate.
    */
   final Capability pauseCapability;
+
   /**
    * Capability granting the ability to terminate the isolate.
    */
@@ -142,13 +139,12 @@ class Isolate {
    */
   Capability pause([Capability resumeCapability]) {
     if (resumeCapability == null) resumeCapability = new Capability();
-    var message = new List(3)
-        ..[0] = "pause"
-        ..[1] = pauseCapability
-        ..[2] = resumeCapability;
-    controlPort.send(message);
+    _pause(resumeCapability);
     return resumeCapability;
   }
+
+  /** Internal implementation of [pause]. */
+  external void _pause(Capability resumeCapability);
 
   /**
    * Resumes a paused isolate.
@@ -164,12 +160,7 @@ class Isolate {
    * The capability must be one returned by a call to [pause] on this
    * isolate, otherwise the resume call does nothing.
    */
-  void resume(Capability resumeCapability) {
-    var message = new List(2)
-        ..[0] = "resume"
-        ..[1] = resumeCapability;
-    controlPort.send(message);
-  }
+  external void resume(Capability resumeCapability);
 
   /**
    * Asks the isolate to send a message on [responsePort] when it terminates.
@@ -181,17 +172,11 @@ class Isolate {
    * has been sent.
    *
    * If the isolate is already dead, no message will be sent.
-   * TODO(lrn): Can we do better? Can the system recognize this message and
+   */
+  /* TODO(lrn): Can we do better? Can the system recognize this message and
    * send a reply if the receiving isolate is dead?
    */
-  void addOnExitListener(SendPort responsePort) {
-    // TODO(lrn): Can we have an internal method that checks if the receiving
-    // isolate of a SendPort is still alive?
-    var message = new List(2)
-        ..[0] = "add-ondone"
-        ..[1] = responsePort;
-    controlPort.send(message);
-  }
+  external void addOnExitListener(SendPort responsePort);
 
   /**
    * Stop listening on exit messages from the isolate.
@@ -204,12 +189,7 @@ class Isolate {
    * A response may still be sent until this operation is fully processed by
    * the isolate.
    */
-  void removeOnExitListener(SendPort responsePort) {
-    var message = new List(2)
-        ..[0] = "remove-ondone"
-        ..[1] = responsePort;
-    controlPort.send(message);
-  }
+  external void removeOnExitListener(SendPort responsePort);
 
   /**
    * Set whether uncaught errors will terminate the isolate.
@@ -222,13 +202,7 @@ class Isolate {
    * This call requires the [terminateCapability] for the isolate.
    * If the capability is not correct, no change is made.
    */
-  void setErrorsFatal(bool errorsAreFatal) {
-    var message = new List(3)
-        ..[0] = "set-errors-fatal"
-        ..[1] = terminateCapability
-        ..[2] = errorsAreFatal;
-    controlPort.send(message);
-  }
+  external void setErrorsFatal(bool errorsAreFatal);
 
   /**
    * Requests the isolate to shut down.
@@ -261,9 +235,7 @@ class Isolate {
    *     messages that affect normal events, including `pause`.
    *     This can be used to wait for a another event to be processed.
    */
-  void kill([int priority = BEFORE_NEXT_EVENT]) {
-    controlPort.send(["kill", terminateCapability, priority]);
-  }
+  external void kill([int priority = BEFORE_NEXT_EVENT]);
 
   /**
    * Request that the isolate send a response on the [responsePort].
@@ -291,12 +263,74 @@ class Isolate {
    *     messages that affect normal events, including `pause`.
    *     This can be used to wait for a another event to be processed.
    */
-  void ping(SendPort responsePort, [int pingType = IMMEDIATE]) {
-    var message = new List(3)
-        ..[0] = "ping"
-        ..[1] = responsePort
-        ..[2] = pingType;
-    controlPort.send(message);
+  external void ping(SendPort responsePort, [int pingType = IMMEDIATE]);
+
+  /**
+   * Requests that uncaught errors of the isolate are sent back to [port].
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * The errors are sent back as two elements lists.
+   * The first element is a `String` representation of the error, usually
+   * created by calling `toString` on the error.
+   * The second element is a `String` representation of an accompanying
+   * stack trace, or `null` if no stack trace was provided.
+   *
+   * Listening using the same port more than once does nothing. It will only
+   * get each error once.
+   */
+  external void addErrorListener(SendPort port);
+
+  /**
+   * Stop listening for uncaught errors through [port].
+   *
+   * WARNING: This method is experimental and not handled on every platform yet.
+   *
+   * The `port` should be a port that is listening for errors through
+   * [addErrorListener]. This call requests that the isolate stops sending
+   * errors on the port.
+   *
+   * If the same port has been passed via `addErrorListener` more than once,
+   * only one call to `removeErrorListener` is needed to stop it from receiving
+   * errors.
+   *
+   * Closing the receive port at the end of the send port will not stop the
+   * isolate from sending errors, they are just going to be lost.
+   */
+  external void removeErrorListener(SendPort port);
+
+  /**
+   * Returns a broadcast stream of uncaught errors from the isolate.
+   *
+   * Each error is provided as an error event on the stream.
+   *
+   * The actual error object and stackTraces will not necessarily
+   * be the same object types as in the actual isolate, but they will
+   * always have the same [Object.toString] result.
+   *
+   * This stream is based on [addErrorListener] and [removeErrorListener].
+   */
+  Stream get errors {
+    StreamController controller;
+    RawReceivePort port;
+    void handleError(message) {
+      String errorDescription = message[0];
+      String stackDescription = message[1];
+      var error = new RemoteError(errorDescription, stackDescription);
+      controller.addError(error, error.stackTrace);
+    }
+    controller = new StreamController.broadcast(
+        sync: true,
+        onListen: () {
+          port = new RawReceivePort(handleError);
+          this.addErrorListener(port.sendPort);
+        },
+        onCancel: () {
+          this.removeErrorListener(port.sendPort);
+          port.close();
+          port = null;
+        });
+    return controller.stream;
   }
 }
 
@@ -463,4 +497,25 @@ class _IsolateUnhandledException implements Exception {
         'original stack trace:\n  '
         '${stackTrace.toString().replaceAll("\n","\n  ")}';
   }
+}
+
+/**
+ * Description of an error from another isolate.
+ *
+ * This error has the same `toString()` and `stackTrace.toString()` behavior
+ * as the original error, but has no other features of the original error.
+ */
+class RemoteError implements Error {
+  final String _description;
+  final StackTrace stackTrace;
+  RemoteError(String description, String stackDescription)
+      : _description = description,
+        stackTrace = new _RemoteStackTrace(stackDescription);
+  String toString() => _description;
+}
+
+class _RemoteStackTrace implements StackTrace {
+  String _trace;
+  _RemoteStackTrace(this._trace);
+  String toString() => _trace;
 }

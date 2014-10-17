@@ -6,15 +6,15 @@ library barback.barback;
 
 import 'dart:async';
 
-import 'asset.dart';
-import 'asset_id.dart';
-import 'asset_set.dart';
+import 'asset/asset.dart';
+import 'asset/asset_id.dart';
+import 'asset/asset_set.dart';
 import 'log.dart';
 import 'build_result.dart';
 import 'errors.dart';
-import 'package_graph.dart';
+import 'graph/package_graph.dart';
 import 'package_provider.dart';
-import 'transformer.dart';
+import 'transformer/transformer.dart';
 
 /// A general-purpose asynchronous build dependency graph manager.
 ///
@@ -110,9 +110,8 @@ class Barback {
   /// To the extent that [transformers] is similar to the previous transformer
   /// phases for [package], the existing asset graph will be preserved.
   ///
-  /// Elements of the inner iterable of [transformers] must be either
-  /// [Transformer]s or [TransformerGroup]s.
-  void updateTransformers(String package,
-          Iterable<Iterable> transformers) =>
+  /// Elements of the inner iterable of [transformers] must be [Transformer]s,
+  /// [TransformerGroup]s, or [AggregateTransformer]s.
+  void updateTransformers(String package, Iterable<Iterable> transformers) =>
       _graph.updateTransformers(package, transformers);
 }

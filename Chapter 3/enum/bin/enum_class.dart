@@ -1,7 +1,6 @@
 class Enum {
   final _value;
   const Enum(this._value);
-  const Enum._internal(this._value);
   toString() => 'Enum.$_value';
 
   static const VAL1 = const Enum('VAL1');

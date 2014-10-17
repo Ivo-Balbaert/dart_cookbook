@@ -4,10 +4,13 @@
   <head>
     <meta charset="utf-8">
     <title>Bank Terminal</title>
-    <link rel="stylesheet" href="bank_app.css">
+    <script src="packages/web_components/platform.js"></script>
+    <script src="packages/web_components/dart_support.js"></script>
+    <!-- import the bank-app custom element -->
     <link rel="import" href="bank_app.html">
-    <script src="packages/browser/dart.js"></script>
     <script type="application/dart">export 'package:polymer/init.dart';</script>
+    <script src="packages/browser/dart.js"></script>
+    <link rel="stylesheet" href="bank_app.css">
   </head>
   <body>
     <form>

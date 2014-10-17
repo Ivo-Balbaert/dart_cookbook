@@ -1,9 +1,9 @@
 import 'enum_abstract_class.dart';
 
-const IssueDegree TRIVIAL = const IssueDegree('triv');
-const IssueDegree REGULAR = const IssueDegree('reg');
-const IssueDegree IMPORTANT = const IssueDegree('imp');
-const IssueDegree CRITICAL = const IssueDegree('crit');
+const IssueDegree TRIVIAL = const IssueDegree('TRIV');
+const IssueDegree REGULAR = const IssueDegree('REG');
+const IssueDegree IMPORTANT = const IssueDegree('IMP');
+const IssueDegree CRITICAL = const IssueDegree('CRIT');
 
 class IssueDegree<String> extends Enum<String> {
    const IssueDegree(String val) : super (val);

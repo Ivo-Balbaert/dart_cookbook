@@ -17,7 +17,7 @@ class FunctionSet {
       => new FunctionSetNode(name);
 
   void add(Element element) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes.putIfAbsent(name, () => newNode(name));
@@ -25,7 +25,7 @@ class FunctionSet {
   }
 
   void remove(Element element) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
@@ -35,7 +35,7 @@ class FunctionSet {
   }
 
   bool contains(Element element) {
-    assert(element.isInstanceMember());
+    assert(element.isInstanceMember);
     assert(!element.isAbstract);
     String name = element.name;
     FunctionSetNode node = nodes[name];
@@ -68,7 +68,8 @@ class FunctionSet {
     if (noSuchMethods == null) return const FunctionSetQuery(const <Element>[]);
     selector = (selector.mask == null)
         ? compiler.noSuchMethodSelector
-        : new TypedSelector(selector.mask, compiler.noSuchMethodSelector);
+        : new TypedSelector(selector.mask, compiler.noSuchMethodSelector,
+            compiler);
 
     return noSuchMethods.query(selector, compiler, null);
   }
@@ -175,7 +176,7 @@ class FunctionSetNode {
     if (noSuchMethods != null
         && mask.needsNoSuchMethodHandling(selector, compiler)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          new TypedSelector(mask, compiler.noSuchMethodSelector),
+          new TypedSelector(mask, compiler.noSuchMethodSelector, compiler),
           compiler,
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {
@@ -215,7 +216,7 @@ class FullFunctionSetQuery extends FunctionSetQuery {
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(functions
         .expand((element) {
-          ClassElement cls = element.getEnclosingClass();
+          ClassElement cls = element.enclosingClass;
           return compiler.world.isUsedAsMixin(cls)
               ? ([cls]..addAll(compiler.world.mixinUses[cls]))
               : [cls];

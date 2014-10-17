@@ -2,16 +2,16 @@ import 'dart:html';
 import 'dart:web_gl';
 
 // Vertex shader program
-var VSHADER_SOURCE = 'attribute vec4 a_Position;\n' +
-                     'void main() {\n' +
-                     'gl_Position = a_Position;\n' +
-                     'gl_PointSize = 10.0;\n' + // Set the point size
-                     '}\n';
+var VSHADER_SOURCE = '''attribute vec4 a_Position;\n
+                     void main() {\n 
+                     gl_Position = a_Position;\n
+                     gl_PointSize = 10.0;\n 
+                     }\n''';
 
 // Fragment shader program
-var FSHADER_SOURCE = 'void main() {\n' +
-                     'gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n' + // Set the point color
-                     '}\n';
+var FSHADER_SOURCE = '''void main() {\n
+                     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n // Set the point color
+                     }\n''';
 
 // The array for the position of a mouse press
 List<num> g_points = new List<num>();

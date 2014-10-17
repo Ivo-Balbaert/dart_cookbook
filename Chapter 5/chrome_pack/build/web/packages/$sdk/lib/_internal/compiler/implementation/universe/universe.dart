@@ -65,6 +65,12 @@ class Universe {
   final Set<Element> genericClosures = new Set<Element>();
 
   /**
+   * Set of all closures in the program. Used by the mirror tracking system
+   * to find all live closure instances.
+   */
+  final Set<LocalFunctionElement> allClosures = new Set<LocalFunctionElement>();
+
+  /**
    * Set of methods in instantiated classes that are potentially
    * closurized.
    */
@@ -144,11 +150,11 @@ class Selector {
            || (name != INDEX_NAME && name != INDEX_SET_NAME));
     assert(kind == SelectorKind.OPERATOR
            || kind == SelectorKind.INDEX
-           || Elements.operatorNameToIdentifier(name) == name);
+           || !Elements.isOperatorName(name));
     assert(kind == SelectorKind.CALL
            || kind == SelectorKind.GETTER
            || kind == SelectorKind.SETTER
-           || Elements.operatorNameToIdentifier(name) != name);
+           || Elements.isOperatorName(name));
     assert(!isPrivateName(name) || library != null);
   }
 
@@ -187,7 +193,7 @@ class Selector {
 
   factory Selector.fromElement(Element element, Compiler compiler) {
     String name = element.name;
-    if (element.isFunction()) {
+    if (element.isFunction) {
       if (name == '[]') {
         return new Selector.index();
       } else if (name == '[]=') {
@@ -201,21 +207,21 @@ class Selector {
         namedArguments =
             signature.orderedOptionalParameters.map((e) => e.name).toList();
       }
-      if (Elements.operatorNameToIdentifier(name) != name) {
+      if (element.isOperator) {
         // Operators cannot have named arguments, however, that doesn't prevent
         // a user from declaring such an operator.
         return new Selector(
             SelectorKind.OPERATOR, name, null, arity, namedArguments);
       } else {
         return new Selector.call(
-            name, element.getLibrary(), arity, namedArguments);
+            name, element.library, arity, namedArguments);
       }
-    } else if (element.isSetter()) {
-      return new Selector.setter(name, element.getLibrary());
-    } else if (element.isGetter()) {
-      return new Selector.getter(name, element.getLibrary());
-    } else if (element.isField()) {
-      return new Selector.getter(name, element.getLibrary());
+    } else if (element.isSetter) {
+      return new Selector.setter(name, element.library);
+    } else if (element.isGetter) {
+      return new Selector.getter(name, element.library);
+    } else if (element.isField) {
+      return new Selector.getter(name, element.library);
     } else {
       throw new SpannableAssertionFailure(
           element, "Can't get selector from $element");
@@ -274,22 +280,22 @@ class Selector {
   factory Selector.callDefaultConstructor(LibraryElement library)
       => new Selector(SelectorKind.CALL, "", library, 0);
 
-  bool isGetter() => identical(kind, SelectorKind.GETTER);
-  bool isSetter() => identical(kind, SelectorKind.SETTER);
-  bool isCall() => identical(kind, SelectorKind.CALL);
-  bool isClosureCall() {
+  bool get isGetter => identical(kind, SelectorKind.GETTER);
+  bool get isSetter => identical(kind, SelectorKind.SETTER);
+  bool get isCall => identical(kind, SelectorKind.CALL);
+  bool get isClosureCall {
     String callName = Compiler.CALL_OPERATOR_NAME;
-    return isCall() && name == callName;
+    return isCall && name == callName;
   }
 
-  bool isIndex() => identical(kind, SelectorKind.INDEX) && argumentCount == 1;
-  bool isIndexSet() => identical(kind, SelectorKind.INDEX) && argumentCount == 2;
+  bool get isIndex => identical(kind, SelectorKind.INDEX) && argumentCount == 1;
+  bool get isIndexSet => identical(kind, SelectorKind.INDEX) && argumentCount == 2;
 
-  bool isOperator() => identical(kind, SelectorKind.OPERATOR);
-  bool isUnaryOperator() => isOperator() && argumentCount == 0;
+  bool get isOperator => identical(kind, SelectorKind.OPERATOR);
+  bool get isUnaryOperator => isOperator && argumentCount == 0;
 
   /** Check whether this is a call to 'assert'. */
-  bool isAssert() => isCall() && identical(name, "assert");
+  bool get isAssert => isCall && identical(name, "assert");
 
   int get namedArgumentCount => namedArguments.length;
   int get positionalArgumentCount => argumentCount - namedArgumentCount;
@@ -302,16 +308,16 @@ class Selector {
    * The member name for invocation mirrors created from this selector.
    */
   String get invocationMirrorMemberName =>
-      isSetter() ? '$name=' : name;
+      isSetter ? '$name=' : name;
 
   int get invocationMirrorKind {
     const int METHOD = 0;
     const int GETTER = 1;
     const int SETTER = 2;
     int kind = METHOD;
-    if (isGetter()) {
+    if (isGetter) {
       kind = GETTER;
-    } else if (isSetter()) {
+    } else if (isSetter) {
       kind = SETTER;
     }
     return kind;
@@ -325,17 +331,17 @@ class Selector {
   bool appliesUntyped(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
     if (Elements.isUnresolved(element)) return false;
-    if (isPrivateName(name) && library != element.getLibrary()) return false;
+    if (isPrivateName(name) && library != element.library) return false;
     if (element.isForeign(compiler)) return true;
-    if (element.isSetter()) return isSetter();
-    if (element.isGetter()) return isGetter() || isCall();
-    if (element.isField()) {
-      return isSetter()
-          ? !element.modifiers.isFinalOrConst()
-          : isGetter() || isCall();
+    if (element.isSetter) return isSetter;
+    if (element.isGetter) return isGetter || isCall;
+    if (element.isField) {
+      return isSetter
+          ? !element.isFinal && !element.isConst
+          : isGetter || isCall;
     }
-    if (isGetter()) return true;
-    if (isSetter()) return false;
+    if (isGetter) return true;
+    if (isSetter) return false;
     return signatureApplies(element, compiler);
   }
 
@@ -374,9 +380,9 @@ class Selector {
 
   bool sameNameHack(Element element, Compiler compiler) {
     // TODO(ngeoffray): Remove workaround checks.
-    return element == compiler.assertMethod
-        || element.isConstructor()
-        || name == element.name;
+    return element.isConstructor ||
+           name == element.name ||
+           name == 'assert' && compiler.backend.isAssertMethod(element);
   }
 
   bool applies(Element element, Compiler compiler) {
@@ -472,8 +478,8 @@ class Selector {
     // that we can call [addArgumentsToList].
     Link computeCallNodesFromParameters() {
       LinkBuilder builder = new LinkBuilder();
-      signature.forEachRequiredParameter((Element element) {
-        Node node = element.parseNode(compiler);
+      signature.forEachRequiredParameter((ParameterElement element) {
+        Node node = element.node;
         mapping[node] = element;
         builder.addLast(node);
       });
@@ -483,8 +489,8 @@ class Selector {
           builder.addLast(new NamedArgument(null, null, element.initializer));
         });
       } else {
-        signature.forEachOptionalParameter((Element element) {
-          Node node = element.parseNode(compiler);
+        signature.forEachOptionalParameter((ParameterElement element) {
+          Node node = element.node;
           mapping[node] = element;
           builder.addLast(node);
         });
@@ -503,10 +509,10 @@ class Selector {
     List<String> namedParameters;
     if (signature.optionalParametersAreNamed) {
       namedParameters =
-          signature.optionalParameters.toList().map((e) => e.name).toList();
+          signature.optionalParameters.mapToList((e) => e.name);
     }
     Selector selector = new Selector.call(callee.name,
-                                          caller.getLibrary(),
+                                          caller.library,
                                           signature.parameterCount,
                                           namedParameters);
 
@@ -608,7 +614,7 @@ class Selector {
   }
 
   Selector extendIfReachesAll(Compiler compiler) {
-    return new TypedSelector(compiler.typesTask.dynamicType, this);
+    return new TypedSelector(compiler.typesTask.dynamicType, this, compiler);
   }
 
   Selector toCallSelector() => new Selector.callClosureFrom(this);
@@ -634,7 +640,9 @@ class TypedSelector extends Selector {
   static Map<Selector, Map<TypeMask, TypedSelector>> canonicalizedValues =
       new Map<Selector, Map<TypeMask, TypedSelector>>();
 
-  factory TypedSelector(TypeMask mask, Selector selector) {
+  factory TypedSelector(TypeMask mask, Selector selector, Compiler compiler) {
+    // TODO(johnniwinther): Allow more TypeSelector kinds during resoluton.
+    assert(compiler.phase > Compiler.PHASE_RESOLVING || mask.isExact);
     if (selector.mask == mask) return selector;
     Selector untyped = selector.asUntyped;
     Map<TypeMask, TypedSelector> map = canonicalizedValues.putIfAbsent(untyped,
@@ -647,27 +655,29 @@ class TypedSelector extends Selector {
     return result;
   }
 
-  factory TypedSelector.exact(ClassElement base, Selector selector)
-      => new TypedSelector(new TypeMask.exact(base), selector);
+  factory TypedSelector.exact(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.exact(base), selector, compiler);
 
-  factory TypedSelector.subclass(ClassElement base, Selector selector)
-      => new TypedSelector(new TypeMask.subclass(base), selector);
+  factory TypedSelector.subclass(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.subclass(base), selector, compiler);
 
-  factory TypedSelector.subtype(ClassElement base, Selector selector)
-      => new TypedSelector(new TypeMask.subtype(base), selector);
+  factory TypedSelector.subtype(ClassElement base, Selector selector,
+      Compiler compiler)
+      => new TypedSelector(new TypeMask.subtype(base), selector, compiler);
 
   bool appliesUnnamed(Element element, Compiler compiler) {
     assert(sameNameHack(element, compiler));
     // [TypedSelector] are only used after resolution.
-    assert(compiler.phase > Compiler.PHASE_RESOLVING);
-    if (!element.isMember()) return false;
+    if (!element.isClassMember) return false;
 
     // A closure can be called through any typed selector:
     // class A {
     //   get foo => () => 42;
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
-    if (element.getEnclosingClass().isClosure()) {
+    if (element.enclosingClass.isClosure) {
       return appliesUntyped(element, compiler);
     }
 
@@ -679,7 +689,7 @@ class TypedSelector extends Selector {
     bool canReachAll = compiler.enabledInvokeOn
         && mask.needsNoSuchMethodHandling(this, compiler);
     return canReachAll
-        ? new TypedSelector(compiler.typesTask.dynamicType, this)
+        ? new TypedSelector(compiler.typesTask.dynamicType, this, compiler)
         : this;
   }
 }

@@ -12,8 +12,8 @@ void main() {
             .catchError(handleError);
 }
 
-void acceptRequests(_server) {
-    _server.listen((HttpRequest req) {
+void acceptRequests(server) {
+    server.listen((HttpRequest req) {
       switch (req.method) {
         case 'POST':
           handlePost(req);

@@ -741,14 +741,17 @@ class _WebSocketConsumer implements StreamConsumer {
 }
 
 
-class _WebSocketImpl extends Stream implements WebSocket {
+class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
+  // Use default Map so we keep order.
+  static Map<int, _WebSocketImpl> _webSockets = new Map<int, _WebSocketImpl>();
+
   final String protocol;
 
   StreamController _controller;
   StreamSubscription _subscription;
   StreamSink _sink;
 
-  final Socket _socket;
+  final _socket;
   final bool _serverSide;
   int _readyState = WebSocket.CONNECTING;
   bool _writeClosed = false;
@@ -865,6 +868,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
           } else {
             _close(WebSocketStatus.PROTOCOL_ERROR);
           }
+          // An error happened, set the close code set above.
+          _closeCode = _outCloseCode;
+          _closeReason = _outCloseReason;
           _controller.close();
         },
         onDone: () {
@@ -878,6 +884,7 @@ class _WebSocketImpl extends Stream implements WebSocket {
             }
             _readyState = WebSocket.CLOSED;
           }
+          // Protocol close, use close code from transformer.
           _closeCode = transformer.closeCode;
           _closeReason = transformer.closeReason;
           _controller.close();
@@ -888,6 +895,9 @@ class _WebSocketImpl extends Stream implements WebSocket {
                                        onListen: _subscription.resume,
                                        onPause: _subscription.pause,
                                        onResume: _subscription.resume);
+
+    _webSockets[_serviceId] = this;
+    try { _socket._owner = this; } catch (_) {}
   }
 
   StreamSubscription listen(void onData(message),
@@ -942,8 +952,12 @@ class _WebSocketImpl extends Stream implements WebSocket {
     if (_closeTimer == null && !_controller.isClosed) {
       // When closing the web-socket, we no longer accept data.
       _closeTimer = new Timer(const Duration(seconds: 5), () {
+        // Reuse code and reason from the local close.
+        _closeCode = _outCloseCode;
+        _closeReason = _outCloseReason;
         _subscription.cancel();
         _controller.close();
+        _webSockets.remove(_serviceId);
       });
     }
     return _sink.close();
@@ -957,6 +971,34 @@ class _WebSocketImpl extends Stream implements WebSocket {
     }
     _writeClosed = true;
     _consumer.closeSocket();
+    _webSockets.remove(_serviceId);
+  }
+
+  String get _serviceTypePath => 'io/websockets';
+  String get _serviceTypeName => 'WebSocket';
+
+  Map _toJSON(bool ref) {
+    var name = '${_socket.address.host}:${_socket.port}';
+    var r = {
+      'id': _servicePath,
+      'type': _serviceType(ref),
+      'name': name,
+      'user_name': name,
+    };
+    if (ref) {
+      return r;
+    }
+    try {
+      r['socket'] = _socket._toJSON(true);
+    } catch (_) {
+      r['socket'] = {
+        'id': _servicePath,
+        'type': '@Socket',
+        'name': 'UserSocket',
+        'user_name': 'UserSocket',
+      };
+    }
+    return r;
   }
 
   static bool _isReservedStatusCode(int code) {

@@ -518,11 +518,6 @@ abstract class ClosureMirror implements InstanceMirror {
    */
   InstanceMirror apply(List positionalArguments,
                        [Map<Symbol, dynamic> namedArguments]);
-
-  /**
-   * Not yet supported. Calling this method throws an [UnsupportedError].
-   */
-  InstanceMirror findInContext(Symbol name, {ifAbsent: null});
 }
 
 /**
@@ -905,10 +900,10 @@ abstract class MethodMirror implements DeclarationMirror {
   List<ParameterMirror> get parameters;
 
   /**
-   * Is the reflectee static?
+   * A function is considered non-static iff it is permited to refer to 'this'.
    *
-   * For the purposes of the mirrors library, a top-level function is
-   * considered static.
+   * Note that generative constructors are considered non-static, whereas
+   * factory constructors are considered static.
    */
   bool get isStatic;
 

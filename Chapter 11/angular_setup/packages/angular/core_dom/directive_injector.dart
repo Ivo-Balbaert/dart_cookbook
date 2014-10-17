@@ -24,13 +24,11 @@ final CONTENT_PORT_KEY = new Key(ContentPort);
 final TEMPLATE_LOADER_KEY = new Key(TemplateLoader);
 final SHADOW_ROOT_KEY = new Key(ShadowRoot);
 
+final num MAX_DEPTH = 1 << 30;
+
 const int VISIBILITY_LOCAL                    = -1;
 const int VISIBILITY_DIRECT_CHILD             = -2;
 const int VISIBILITY_CHILDREN                 = -3;
-const int VISIBILITY_COMPONENT_OFFSET         = VISIBILITY_CHILDREN;
-const int VISIBILITY_COMPONENT_LOCAL          = VISIBILITY_LOCAL        + VISIBILITY_COMPONENT_OFFSET;
-const int VISIBILITY_COMPONENT_DIRECT_CHILD   = VISIBILITY_DIRECT_CHILD + VISIBILITY_COMPONENT_OFFSET;
-const int VISIBILITY_COMPONENT_CHILDREN       = VISIBILITY_CHILDREN     + VISIBILITY_COMPONENT_OFFSET;
 
 const int UNDEFINED_ID              = 0;
 const int INJECTOR_KEY_ID           = 1;
@@ -51,6 +49,8 @@ const int SHADOW_ROOT_KEY_ID        = 15;
 const int CONTENT_PORT_KEY_ID       = 16;
 const int EVENT_HANDLER_KEY_ID      = 17;
 const int KEEP_ME_LAST              = 18;
+
+EventHandler eventHandler(DirectiveInjector di) => di._eventHandler;
 
 class DirectiveInjector implements DirectiveBinder {
   static bool _isInit = false;
@@ -100,8 +100,8 @@ class DirectiveInjector implements DirectiveBinder {
       , KEEP_ME_LAST
       ];
   
-  final DirectiveInjector parent;
-  final Injector appInjector;
+  final DirectiveInjector _parent;
+  final Injector _appInjector;
   final Node _node;
   final NodeAttrs _nodeAttrs;
   final Animate _animate;
@@ -122,6 +122,9 @@ class DirectiveInjector implements DirectiveBinder {
   Key _key8 = null; dynamic _obj8; List<Key> _pKeys8; Function _factory8;
   Key _key9 = null; dynamic _obj9; List<Key> _pKeys9; Function _factory9;
 
+  @Deprecated("Deprecated. Use getFromParent instead.")
+  Object get parent => this._parent;
+
   static _toVisId(Visibility v) => identical(v, Visibility.LOCAL)
       ? VISIBILITY_LOCAL
       : (identical(v, Visibility.CHILDREN) ? VISIBILITY_CHILDREN : VISIBILITY_DIRECT_CHILD);
@@ -131,42 +134,40 @@ class DirectiveInjector implements DirectiveBinder {
       case VISIBILITY_LOCAL:                  return Visibility.LOCAL;
       case VISIBILITY_DIRECT_CHILD:           return Visibility.DIRECT_CHILD;
       case VISIBILITY_CHILDREN:               return Visibility.CHILDREN;
-      case VISIBILITY_COMPONENT_LOCAL:        return Visibility.LOCAL;
-      case VISIBILITY_COMPONENT_DIRECT_CHILD: return Visibility.DIRECT_CHILD;
-      case VISIBILITY_COMPONENT_CHILDREN:     return Visibility.CHILDREN;
       default:                                return null;
     }
   }
 
-  static Binding _temp_binding = new Binding();
+  static Binding _tempBinding = new Binding();
 
-  DirectiveInjector(parent, appInjector, this._node, this._nodeAttrs, this._eventHandler,
-                    this.scope, this._animate)
-      : appInjector = appInjector,
-        parent = parent == null ? new DefaultDirectiveInjector(appInjector) : parent;
+  DirectiveInjector(this._parent, appInjector, this._node, this._nodeAttrs,
+      this._eventHandler, this.scope, this._animate)
+      : _appInjector = appInjector;
 
-  DirectiveInjector._default(this.parent, this.appInjector)
+  DirectiveInjector._default(this._parent, this._appInjector)
       : _node = null,
         _nodeAttrs = null,
         _eventHandler = null,
         scope = null,
         _animate = null;
 
-  bind(key, {dynamic toValue: DEFAULT_VALUE,
+  void bind(key, {dynamic toValue: DEFAULT_VALUE,
             Function toFactory: DEFAULT_VALUE,
-            Type toImplementation, inject: const[],
+            Type toImplementation,
+            toInstanceOf,
+            inject: const[],
             Visibility visibility: Visibility.LOCAL}) {
     if (key == null) throw 'Key is required';
     if (key is! Key) key = new Key(key);
     if (inject is! List) inject = [inject];
 
-    _temp_binding.bind(key, Module.DEFAULT_REFLECTOR, toValue: toValue, toFactory: toFactory,
-              toImplementation: toImplementation, inject: inject);
+    _tempBinding.bind(key, Module.DEFAULT_REFLECTOR, toValue: toValue, toFactory: toFactory,
+        toImplementation: toImplementation, inject: inject, toInstanceOf: toInstanceOf);
 
-    bindByKey(key, _temp_binding.factory, _temp_binding.parameterKeys, visibility);
+    bindByKey(key, _tempBinding.factory, _tempBinding.parameterKeys, visibility);
   }
 
-  bindByKey(Key key, Function factory, List<Key> parameterKeys, [Visibility visibility]) {
+  void bindByKey(Key key, Function factory, List<Key> parameterKeys, [Visibility visibility]) {
     if (visibility == null) visibility = Visibility.CHILDREN;
     int visibilityId = _toVisId(visibility);
     int keyVisId = key.uid;
@@ -190,12 +191,15 @@ class DirectiveInjector implements DirectiveBinder {
     else { throw 'Maximum number of directives per element reached.'; }
   }
 
+  // Get a key from the directive injector chain. When it is exhausted, get from
+  // the current application injector chain.
   Object get(Type type) => getByKey(new Key(type));
+  Object getFromParent(Type type) => getFromParentByKey(new Key(type));
 
   Object getByKey(Key key) {
     var oldTag = _TAG_GET.makeCurrent();
     try {
-      return _getByKey(key);
+      return _getByKey(key, _appInjector);
     } on ResolvingError catch (e, s) {
       e.appendKey(key);
       rethrow;
@@ -204,36 +208,53 @@ class DirectiveInjector implements DirectiveBinder {
     }
   }
 
-  Object _getByKey(Key key) {
+  Object getFromParentByKey(Key key) {
+    if (_parent == null) {
+      return _appInjector.getByKey(key);
+    } else {
+      return _parent._getByKey(key, _appInjector);
+    }
+  }
+
+  Object _getByKey(Key key, Injector appInjector) {
     int uid = key.uid;
     if (uid == null || uid == UNDEFINED_ID) return appInjector.getByKey(key);
     bool isDirective = uid < 0;
     return isDirective ? _getDirectiveByKey(key, uid, appInjector) : _getById(uid);
   }
 
-  _getDirectiveByKey(Key k, int visType, Injector i) {
-    do {
-      if (_key0 == null) break; if (identical(_key0, k)) return _obj0 == null ?  _obj0 = _new(_pKeys0, _factory0) : _obj0;
-      if (_key1 == null) break; if (identical(_key1, k)) return _obj1 == null ?  _obj1 = _new(_pKeys1, _factory1) : _obj1;
-      if (_key2 == null) break; if (identical(_key2, k)) return _obj2 == null ?  _obj2 = _new(_pKeys2, _factory2) : _obj2;
-      if (_key3 == null) break; if (identical(_key3, k)) return _obj3 == null ?  _obj3 = _new(_pKeys3, _factory3) : _obj3;
-      if (_key4 == null) break; if (identical(_key4, k)) return _obj4 == null ?  _obj4 = _new(_pKeys4, _factory4) : _obj4;
-      if (_key5 == null) break; if (identical(_key5, k)) return _obj5 == null ?  _obj5 = _new(_pKeys5, _factory5) : _obj5;
-      if (_key6 == null) break; if (identical(_key6, k)) return _obj6 == null ?  _obj6 = _new(_pKeys6, _factory6) : _obj6;
-      if (_key7 == null) break; if (identical(_key7, k)) return _obj7 == null ?  _obj7 = _new(_pKeys7, _factory7) : _obj7;
-      if (_key8 == null) break; if (identical(_key8, k)) return _obj8 == null ?  _obj8 = _new(_pKeys8, _factory8) : _obj8;
-      if (_key9 == null) break; if (identical(_key9, k)) return _obj9 == null ?  _obj9 = _new(_pKeys9, _factory9) : _obj9;
-    } while (false);
-    switch (visType) {
-      case VISIBILITY_LOCAL:                  return appInjector.getByKey(k);
-      case VISIBILITY_DIRECT_CHILD:           return parent._getDirectiveByKey(k, VISIBILITY_LOCAL, i);
-      case VISIBILITY_CHILDREN:               return parent._getDirectiveByKey(k, VISIBILITY_CHILDREN, i);
-      // SHADOW
-      case VISIBILITY_COMPONENT_LOCAL:        return parent._getDirectiveByKey(k, VISIBILITY_LOCAL, i);
-      case VISIBILITY_COMPONENT_DIRECT_CHILD: return parent._getDirectiveByKey(k, VISIBILITY_DIRECT_CHILD, i);
-      case VISIBILITY_COMPONENT_CHILDREN:     return parent._getDirectiveByKey(k, VISIBILITY_CHILDREN, i);
+  num _getDepth(int visType) {
+    switch(visType) {
+      case VISIBILITY_LOCAL:        return 0;
+      case VISIBILITY_DIRECT_CHILD: return 1;
+      case VISIBILITY_CHILDREN:     return MAX_DEPTH;
       default: throw null;
     }
+  }
+
+  _getDirectiveByKey(Key k, int visType, Injector appInjector) {
+    num depth = _getDepth(visType);
+    // ci stands for currentInjector, abbreviated for readability.
+    var ci = this;
+    while (ci != null && depth >= 0) {
+      do {
+        if (ci._key0 == null) break; if (identical(ci._key0, k)) return ci._obj0 == null ?  ci._obj0 = ci._new(ci._pKeys0, ci._factory0) : ci._obj0;
+        if (ci._key1 == null) break; if (identical(ci._key1, k)) return ci._obj1 == null ?  ci._obj1 = ci._new(ci._pKeys1, ci._factory1) : ci._obj1;
+        if (ci._key2 == null) break; if (identical(ci._key2, k)) return ci._obj2 == null ?  ci._obj2 = ci._new(ci._pKeys2, ci._factory2) : ci._obj2;
+        if (ci._key3 == null) break; if (identical(ci._key3, k)) return ci._obj3 == null ?  ci._obj3 = ci._new(ci._pKeys3, ci._factory3) : ci._obj3;
+        if (ci._key4 == null) break; if (identical(ci._key4, k)) return ci._obj4 == null ?  ci._obj4 = ci._new(ci._pKeys4, ci._factory4) : ci._obj4;
+        if (ci._key5 == null) break; if (identical(ci._key5, k)) return ci._obj5 == null ?  ci._obj5 = ci._new(ci._pKeys5, ci._factory5) : ci._obj5;
+        if (ci._key6 == null) break; if (identical(ci._key6, k)) return ci._obj6 == null ?  ci._obj6 = ci._new(ci._pKeys6, ci._factory6) : ci._obj6;
+        if (ci._key7 == null) break; if (identical(ci._key7, k)) return ci._obj7 == null ?  ci._obj7 = ci._new(ci._pKeys7, ci._factory7) : ci._obj7;
+        if (ci._key8 == null) break; if (identical(ci._key8, k)) return ci._obj8 == null ?  ci._obj8 = ci._new(ci._pKeys8, ci._factory8) : ci._obj8;
+        if (ci._key9 == null) break; if (identical(ci._key9, k)) return ci._obj9 == null ?  ci._obj9 = ci._new(ci._pKeys9, ci._factory9) : ci._obj9;
+      } while (false);
+      // Future feature: Component Injectors fall-through only if directly called.
+      // if ((ci is ComponentDirectiveInjector) && !identical(ci, this)) break;
+      ci = ci._parent;
+      depth--;
+    }
+    return appInjector.getByKey(k);
   }
 
   List get directives {
@@ -253,7 +274,7 @@ class DirectiveInjector implements DirectiveBinder {
 
   Object _getById(int keyId) {
     switch(keyId) {
-      case INJECTOR_KEY_ID:           return appInjector;
+      case INJECTOR_KEY_ID:           return _appInjector;
       case DIRECTIVE_INJECTOR_KEY_ID: return this;
       case NODE_KEY_ID:               return _node;
       case ELEMENT_KEY_ID:            return _node;
@@ -263,7 +284,13 @@ class DirectiveInjector implements DirectiveBinder {
       case ELEMENT_PROBE_KEY_ID:      return elementProbe;
       case NG_ELEMENT_KEY_ID:         return ngElement;
       case EVENT_HANDLER_KEY_ID:      return _eventHandler;
-      case CONTENT_PORT_KEY_ID:       return parent._getById(keyId);
+      case CONTENT_PORT_KEY_ID:
+        var currentInjector = _parent;
+        while (currentInjector != null) {
+          if (currentInjector is ComponentDirectiveInjector) return currentInjector._contentPort;
+          currentInjector = currentInjector._parent;
+        }
+        return null;
       default: new NoProviderError(_KEYS[keyId]);
     }
   }
@@ -272,29 +299,30 @@ class DirectiveInjector implements DirectiveBinder {
     var oldTag = _TAG_GET.makeCurrent();
     int size = paramKeys.length;
     var obj;
+    var appInjector = this._appInjector;
     if (size > 15) {
       var params = new List(paramKeys.length);
       for(var i = 0; i < paramKeys.length; i++) {
-        params[i] = _getByKey(paramKeys[i]);
+        params[i] = _getByKey(paramKeys[i], appInjector);
       }
       _TAG_INSTANTIATE.makeCurrent();
       obj = Function.apply(fn, params);
     } else {
-      var a01 = size >= 01 ? _getByKey(paramKeys[00]) : null;
-      var a02 = size >= 02 ? _getByKey(paramKeys[01]) : null;
-      var a03 = size >= 03 ? _getByKey(paramKeys[02]) : null;
-      var a04 = size >= 04 ? _getByKey(paramKeys[03]) : null;
-      var a05 = size >= 05 ? _getByKey(paramKeys[04]) : null;
-      var a06 = size >= 06 ? _getByKey(paramKeys[05]) : null;
-      var a07 = size >= 07 ? _getByKey(paramKeys[06]) : null;
-      var a08 = size >= 08 ? _getByKey(paramKeys[07]) : null;
-      var a09 = size >= 09 ? _getByKey(paramKeys[08]) : null;
-      var a10 = size >= 10 ? _getByKey(paramKeys[09]) : null;
-      var a11 = size >= 11 ? _getByKey(paramKeys[10]) : null;
-      var a12 = size >= 12 ? _getByKey(paramKeys[11]) : null;
-      var a13 = size >= 13 ? _getByKey(paramKeys[12]) : null;
-      var a14 = size >= 14 ? _getByKey(paramKeys[13]) : null;
-      var a15 = size >= 15 ? _getByKey(paramKeys[14]) : null;
+      var a01 = size >= 01 ? _getByKey(paramKeys[00], appInjector) : null;
+      var a02 = size >= 02 ? _getByKey(paramKeys[01], appInjector) : null;
+      var a03 = size >= 03 ? _getByKey(paramKeys[02], appInjector) : null;
+      var a04 = size >= 04 ? _getByKey(paramKeys[03], appInjector) : null;
+      var a05 = size >= 05 ? _getByKey(paramKeys[04], appInjector) : null;
+      var a06 = size >= 06 ? _getByKey(paramKeys[05], appInjector) : null;
+      var a07 = size >= 07 ? _getByKey(paramKeys[06], appInjector) : null;
+      var a08 = size >= 08 ? _getByKey(paramKeys[07], appInjector) : null;
+      var a09 = size >= 09 ? _getByKey(paramKeys[08], appInjector) : null;
+      var a10 = size >= 10 ? _getByKey(paramKeys[09], appInjector) : null;
+      var a11 = size >= 11 ? _getByKey(paramKeys[10], appInjector) : null;
+      var a12 = size >= 12 ? _getByKey(paramKeys[11], appInjector) : null;
+      var a13 = size >= 13 ? _getByKey(paramKeys[12], appInjector) : null;
+      var a14 = size >= 14 ? _getByKey(paramKeys[13], appInjector) : null;
+      var a15 = size >= 15 ? _getByKey(paramKeys[14], appInjector) : null;
       _TAG_INSTANTIATE.makeCurrent();
       switch(size) {
         case 00: obj = fn(); break;
@@ -322,7 +350,7 @@ class DirectiveInjector implements DirectiveBinder {
 
   ElementProbe get elementProbe {
     if (_elementProbe == null) {
-      ElementProbe parentProbe = parent is DirectiveInjector ? parent.elementProbe : null;
+      ElementProbe parentProbe = _parent == null ? null : _parent.elementProbe;
       _elementProbe = new ElementProbe(parentProbe, _node, this, scope);
     }
     return _elementProbe;
@@ -340,7 +368,7 @@ class TemplateDirectiveInjector extends DirectiveInjector {
   final ViewFactory _viewFactory;
   ViewPort _viewPort;
   BoundViewFactory _boundViewFactory;
-  
+
   TemplateDirectiveInjector(DirectiveInjector parent, Injector appInjector,
                        Node node, NodeAttrs nodeAttrs, EventHandler eventHandler,
                        Scope scope, Animate animate, this._viewFactory)
@@ -353,21 +381,22 @@ class TemplateDirectiveInjector extends DirectiveInjector {
       case VIEW_PORT_KEY_ID: return ((_viewPort) == null) ?
             _viewPort = new ViewPort(this, scope, _node, _animate) : _viewPort;
       case BOUND_VIEW_FACTORY_KEY_ID: return (_boundViewFactory == null) ?
-            _boundViewFactory = _viewFactory.bind(this.parent) : _boundViewFactory;
+            _boundViewFactory = _viewFactory.bind(_parent) : _boundViewFactory;
       default: return super._getById(keyId);
     }
   }
-  
+
 }
 
-abstract class ComponentDirectiveInjector extends DirectiveInjector {
+class ComponentDirectiveInjector extends DirectiveInjector {
 
   final TemplateLoader _templateLoader;
   final ShadowRoot _shadowRoot;
+  final ContentPort _contentPort;
 
   ComponentDirectiveInjector(DirectiveInjector parent, Injector appInjector,
                         EventHandler eventHandler, Scope scope,
-                        this._templateLoader, this._shadowRoot)
+                        this._templateLoader, this._shadowRoot, this._contentPort)
       : super(parent, appInjector, parent._node, parent._nodeAttrs, eventHandler, scope,
               parent._animate);
 
@@ -379,57 +408,16 @@ abstract class ComponentDirectiveInjector extends DirectiveInjector {
     }
   }
 
-  _getDirectiveByKey(Key k, int visType, Injector i) =>
-      super._getDirectiveByKey(k, visType + VISIBILITY_COMPONENT_OFFSET, i);
-}
-
-class ShadowlessComponentDirectiveInjector extends ComponentDirectiveInjector {
-  final ContentPort _contentPort;
-
-  ShadowlessComponentDirectiveInjector(DirectiveInjector parent, Injector appInjector,
-                                  EventHandler eventHandler, Scope scope,
-                                  templateLoader, shadowRoot, this._contentPort)
-      : super(parent, appInjector, eventHandler, scope, templateLoader, shadowRoot);
-
-  Object _getById(int keyId) {
-    switch(keyId) {
-      case CONTENT_PORT_KEY_ID: return _contentPort;
-      default: return super._getById(keyId);
-    }
-  }
-}
-
-class ShadowDomComponentDirectiveInjector extends ComponentDirectiveInjector {
-  ShadowDomComponentDirectiveInjector(DirectiveInjector parent, Injector appInjector,
-                                 Scope scope, templateLoader, shadowRoot)
-      : super(parent, appInjector, new ShadowRootEventHandler(shadowRoot,
-                                               parent.getByKey(EXPANDO_KEY),
-                                               parent.getByKey(EXCEPTION_HANDLER_KEY)),
-            scope, templateLoader, shadowRoot);
-
   ElementProbe get elementProbe {
     if (_elementProbe == null) {
-      ElementProbe parentProbe =
-        parent is DirectiveInjector ? parent.elementProbe : parent.getByKey(ELEMENT_PROBE_KEY);
+      ElementProbe parentProbe = _parent == null ? null : _parent.elementProbe;
       _elementProbe = new ElementProbe(parentProbe, _shadowRoot, this, scope);
     }
     return _elementProbe;
   }
+
+  // Add 1 to visibility to allow to skip over current component injector.
+  // For example, a local directive is visible from its component injector children.
+  num _getDepth(int visType) => super._getDepth(visType) + 1;
 }
 
-@Injectable()
-class DefaultDirectiveInjector extends DirectiveInjector {
-  DefaultDirectiveInjector(Injector appInjector): super._default(null, appInjector);
-  DefaultDirectiveInjector.newAppInjector(DirectiveInjector parent, Injector appInjector)
-    : super._default(parent, appInjector);
-
-  Object getByKey(Key key) => appInjector.getByKey(key);
-  _getDirectiveByKey(Key key, int visType, Injector i) =>
-    parent == null ? i.getByKey(key) : parent._getDirectiveByKey(key, visType, i);
-  _getById(int keyId) {
-    switch (keyId) {
-      case CONTENT_PORT_KEY_ID: return null;
-      default: throw new NoProviderError(DirectiveInjector._KEYS[keyId]);
-    }
-  }
-}

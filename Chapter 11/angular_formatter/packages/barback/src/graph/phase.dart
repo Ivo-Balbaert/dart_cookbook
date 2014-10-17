@@ -11,6 +11,7 @@ import '../asset/asset_node.dart';
 import '../asset/asset_node_set.dart';
 import '../errors.dart';
 import '../log.dart';
+import '../transformer/aggregate_transformer.dart';
 import '../transformer/transformer.dart';
 import '../transformer/transformer_group.dart';
 import '../utils.dart';
@@ -55,7 +56,9 @@ class Phase {
   final _inputs = new AssetNodeSet();
 
   /// The transformer classifiers for this phase.
-  final _classifiers = new Map<Transformer, TransformerClassifier>();
+  ///
+  /// The keys can be either [Transformer]s or [AggregateTransformer]s.
+  final _classifiers = new Map<dynamic, TransformerClassifier>();
 
   /// The forwarders for this phase.
   final _forwarders = new Map<AssetId, PhaseForwarder>();
@@ -109,6 +112,8 @@ class Phase {
 
   /// The subscription to [previous]'s [onAsset] stream.
   StreamSubscription<AssetNode> _previousOnAssetSubscription;
+
+  final _inputSubscriptions = new Set<StreamSubscription>();
 
   /// A map of asset ids to completers for [getInput] requests.
   ///
@@ -174,13 +179,13 @@ class Phase {
 
     _inputOrigins.add(node.origin);
     _inputs.add(node);
-    node.onStateChange.listen((state) {
+    _inputSubscriptions.add(node.onStateChange.listen((state) {
       if (state.isRemoved) {
         _inputOrigins.remove(node.origin);
         _forwarders.remove(node.id).remove();
       }
       _streams.changeStatus(status);
-    });
+    }));
 
     for (var classifier in _classifiers.values) {
       classifier.addInput(node);
@@ -233,7 +238,8 @@ class Phase {
 
   /// Set this phase's transformers to [transformers].
   void updateTransformers(Iterable transformers) {
-    var newTransformers = transformers.where((op) => op is Transformer)
+    var newTransformers = transformers
+        .where((op) => op is Transformer || op is AggregateTransformer)
         .toSet();
     var oldTransformers = _classifiers.keys.toSet();
     for (var removed in oldTransformers.difference(newTransformers)) {
@@ -320,6 +326,9 @@ class Phase {
       group.remove();
     }
     _streams.close();
+    for (var subscription in _inputSubscriptions) {
+      subscription.cancel();
+    }
     if (_previousStatusSubscription != null) {
       _previousStatusSubscription.cancel();
     }

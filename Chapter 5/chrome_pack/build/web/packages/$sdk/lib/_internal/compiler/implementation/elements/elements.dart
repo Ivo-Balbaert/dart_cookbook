@@ -81,8 +81,8 @@ class ElementKind {
       const ElementKind('parameter', ElementCategory.VARIABLE);
   // Parameters in constructors that directly initialize fields. For example:
   // [:A(this.field):].
-  static const ElementKind FIELD_PARAMETER =
-      const ElementKind('field_parameter', ElementCategory.VARIABLE);
+  static const ElementKind INITIALIZING_FORMAL =
+      const ElementKind('initializing_formal', ElementCategory.VARIABLE);
   static const ElementKind FUNCTION =
       const ElementKind('function', ElementCategory.FUNCTION);
   static const ElementKind CLASS =
@@ -91,8 +91,6 @@ class ElementKind {
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
       const ElementKind('field', ElementCategory.VARIABLE);
-  static const ElementKind VARIABLE_LIST =
-      const ElementKind('variable_list', ElementCategory.NONE);
   static const ElementKind FIELD_LIST =
       const ElementKind('field_list', ElementCategory.NONE);
   static const ElementKind GENERATIVE_CONSTRUCTOR_BODY =
@@ -114,13 +112,6 @@ class ElementKind {
   static const ElementKind TYPEDEF =
       const ElementKind('typedef', ElementCategory.ALIAS);
 
-  static const ElementKind STATEMENT =
-      const ElementKind('statement', ElementCategory.NONE);
-  static const ElementKind LABEL =
-      const ElementKind('label', ElementCategory.NONE);
-  static const ElementKind VOID =
-      const ElementKind('void', ElementCategory.NONE);
-
   static const ElementKind AMBIGUOUS =
       const ElementKind('ambiguous', ElementCategory.NONE);
   static const ElementKind WARN_ON_USE =
@@ -129,6 +120,19 @@ class ElementKind {
       const ElementKind('error', ElementCategory.NONE);
 
   toString() => id;
+}
+
+/// Abstract interface for entities.
+///
+/// Implement this directly if the entity is not a Dart language entity.
+/// Entities defined within the Dart language should implement [Element].
+///
+/// For instance, the JavaScript backend need to create synthetic variables for
+/// calling intercepted classes and such variables do not correspond to an
+/// entity in the Dart source code nor in the terminology of the Dart language
+/// and should therefore implement [Entity] directly.
+abstract class Entity implements Spannable {
+  String get name;
 }
 
 /**
@@ -175,14 +179,11 @@ class ElementKind {
  * is best if the backends avoid setting state directly in elements.
  * It is better to keep such state in a table on the side.
  */
-abstract class Element implements Spannable {
+abstract class Element implements Entity {
   String get name;
   ElementKind get kind;
-  Modifiers get modifiers;
   Element get enclosingElement;
   Link<MetadataAnnotation> get metadata;
-
-  Node parseNode(DiagnosticListener listener);
 
   /// Do not use [computeType] outside of the resolver; instead retrieve the
   /// type from the corresponding field:
@@ -194,33 +195,114 @@ abstract class Element implements Spannable {
   /// This method will go away!
   @deprecated DartType computeType(Compiler compiler);
 
-  bool isFunction();
-  bool isConstructor();
-  bool isClosure();
-  bool isMember();
-  bool isInstanceMember();
+  /// `true` if this element is a library.
+  bool get isLibrary => kind == ElementKind.LIBRARY;
 
-  bool isFactoryConstructor();
-  bool isGenerativeConstructor();
-  bool isGenerativeConstructorBody();
-  bool isCompilationUnit();
-  bool isClass();
-  bool isPrefix();
-  bool isVariable();
-  bool isParameter();
-  bool isStatement();
-  bool isTypedef();
-  bool isTypeVariable();
-  bool isField();
-  bool isFieldParameter();
-  bool isAbstractField();
-  bool isGetter();
-  bool isSetter();
-  bool isAccessor();
-  bool isLibrary();
-  bool isErroneous();
-  bool isAmbiguous();
-  bool isWarnOnUse();
+  /// `true` if this element is a compilation unit.
+  bool get isCompilationUnit => kind == ElementKind.COMPILATION_UNIT;
+
+  /// `true` if this element is defines the scope of prefix used by one or
+  /// more import declarations.
+  bool get isPrefix => kind == ElementKind.PREFIX;
+
+  /// `true` if this element is a class declaration or a mixin application.
+  bool get isClass => kind == ElementKind.CLASS;
+
+  /// `true` if this element is a type variable declaration.
+  bool get isTypeVariable => kind == ElementKind.TYPE_VARIABLE;
+
+  /// `true` if this element is a typedef declaration.
+  bool get isTypedef => kind == ElementKind.TYPEDEF;
+
+  /// `true` if this element is a top level function, static or instance
+  /// method, local function or closure defined by a function expression.
+  ///
+  /// This property is `true` for operator methods and factory constructors but
+  /// `false` for getter and setter methods, and generative constructors.
+  ///
+  /// See also [isConstructor], [isGenerativeConstructor], and
+  /// [isFactoryConstructor] for constructor properties, and [isAccessor],
+  /// [isGetter] and [isSetter] for getter/setter properties.
+  bool get isFunction => kind == ElementKind.FUNCTION;
+
+  /// `true` if this element is an operator method.
+  bool get isOperator;
+
+  /// `true` if this element is an accessor, that is either an explicit
+  /// getter or an explicit setter.
+  bool get isAccessor => isGetter || isSetter;
+
+  /// `true` if this element is an explicit getter method.
+  bool get isGetter => kind == ElementKind.GETTER;
+
+  /// `true` if this element is an explicit setter method.
+  bool get isSetter => kind == ElementKind.SETTER;
+
+  /// `true` if this element is a generative or factory constructor.
+  bool get isConstructor => isGenerativeConstructor ||  isFactoryConstructor;
+
+  /// `true` if this element is a generative constructor, potentially
+  /// redirecting.
+  bool get isGenerativeConstructor =>
+      kind == ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  /// `true` if this element is the body of a generative constructor.
+  ///
+  /// This is a synthetic element kind used only be the JavaScript backend.
+  bool get isGenerativeConstructorBody =>
+      kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
+
+  /// `true` if this element is a factory constructor,
+  /// potentially redirecting.
+  bool get isFactoryConstructor;
+
+  /// `true` if this element is a local variable.
+  bool get isVariable => kind == ElementKind.VARIABLE;
+
+  /// `true` if this element is a top level variable, static or instance field.
+  bool get isField => kind == ElementKind.FIELD;
+
+  /// `true` if this element is the abstract field implicitly defined by an
+  /// explicit getter and/or setter.
+  bool get isAbstractField => kind == ElementKind.ABSTRACT_FIELD;
+
+  /// `true` if this element is formal parameter either from a constructor,
+  /// method, or typedef declaration or from an inlined function typed
+  /// parameter.
+  ///
+  /// This property is `false` if this element is an initializing formal.
+  /// See [isInitializingFormal].
+  bool get isParameter => kind == ElementKind.PARAMETER;
+
+  /// `true` if this element is an initializing formal of constructor, that
+  /// is a formal of the form `this.foo`.
+  bool get isInitializingFormal => kind == ElementKind.INITIALIZING_FORMAL;
+
+  /// `true` if this element represents a resolution error.
+  bool get isErroneous => kind == ElementKind.ERROR;
+
+  /// `true` if this element represents an ambiguous name.
+  ///
+  /// Ambiguous names occur when two imports/exports contain different entities
+  /// by the same name. If an ambiguous name is resolved an warning or error
+  /// is produced.
+  bool get isAmbiguous => kind == ElementKind.AMBIGUOUS;
+
+  /// `true` if this element represents an entity whose access causes one or
+  /// more warnings.
+  bool get isWarnOnUse => kind == ElementKind.WARN_ON_USE;
+
+  bool get isClosure;
+
+  /// `true` if the element is a (static or instance) member of a class.
+  ///
+  /// Members are constructors, methods and fields.
+  bool get isClassMember;
+
+  /// `true` if the element is a nonstatic member of a class.
+  ///
+  /// Instance members are methods and fields but not constructors.
+  bool get isInstanceMember;
 
   /// Returns true if this [Element] is a top level element.
   /// That is, if it is not defined within the scope of a class.
@@ -228,22 +310,40 @@ abstract class Element implements Spannable {
   /// This means whether the enclosing element is a compilation unit.
   /// With the exception of [ClosureClassElement] that is considered top level
   /// as all other classes.
-  bool isTopLevel();
-  bool isAssignable();
-  bool isNative();
-  bool isDeferredLoaderGetter();
+  bool get isTopLevel;
+  bool get isAssignable;
+  bool get isNative;
+  bool get isDeferredLoaderGetter;
 
-  bool impliesType();
+  /// True if the element is declared in a patch library but has no
+  /// corresponding declaration in the origin library.
+  bool get isInjected;
 
-  Token position();
+  /// `true` if this element is a constructor, top level or local variable,
+  /// or static field that is declared `const`.
+  bool get isConst;
 
-  CompilationUnitElement getCompilationUnit();
-  LibraryElement getLibrary();
-  LibraryElement getImplementationLibrary();
-  ClassElement getEnclosingClass();
-  Element getEnclosingClassOrCompilationUnit();
-  Element getEnclosingMember();
-  Element getOutermostEnclosingMemberOrTopLevel();
+  /// `true` if this element is a top level or local variable, static or
+  /// instance field, or parameter that is declared `final`.
+  bool get isFinal;
+
+  /// `true` if this element is a method, getter, setter or field that
+  /// is declared `static`.
+  bool get isStatic;
+
+  bool get impliesType;
+
+  Token get position;
+
+  CompilationUnitElement get compilationUnit;
+  LibraryElement get library;
+  LibraryElement get implementationLibrary;
+  ClassElement get enclosingClass;
+  Element get enclosingClassOrCompilationUnit;
+  Element get outermostEnclosingMemberOrTopLevel;
+
+  /// The enclosing class that defines the type environment for this element.
+  ClassElement get contextClass;
 
   FunctionElement asFunctionElement();
 
@@ -297,8 +397,8 @@ abstract class Element implements Spannable {
   bool get isForwardingConstructor;
   bool get isMixinApplication;
 
-  bool hasFixedBackendName();
-  String fixedBackendName();
+  bool get hasFixedBackendName;
+  String get fixedBackendName;
 
   bool get isAbstract;
   bool isForeign(Compiler compiler);
@@ -309,29 +409,26 @@ abstract class Element implements Spannable {
 
   Scope buildScope();
 
-  /// If the element is a forwarding constructor, [targetConstructor] holds
-  /// the generative constructor that the forwarding constructor points to
-  /// (possibly via other forwarding constructors).
-  FunctionElement get targetConstructor;
-
   void diagnose(Element context, DiagnosticListener listener);
 
-  TreeElements get treeElements;
+  // TODO(johnniwinther): Move this to [AstElement].
+  /// Returns the [Element] that holds the [TreeElements] for this element.
+  AnalyzableElement get analyzableElement;
 
   accept(ElementVisitor visitor);
 }
 
 class Elements {
   static bool isUnresolved(Element e) {
-    return e == null || e.isErroneous();
+    return e == null || e.isErroneous;
   }
-  static bool isErroneousElement(Element e) => e != null && e.isErroneous();
+  static bool isErroneousElement(Element e) => e != null && e.isErroneous;
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,
                         DiagnosticListener listener,
                         Spannable spannable) {
-    if (element != null && element.isWarnOnUse()) {
+    if (element != null && element.isWarnOnUse) {
       WarnOnUseElement wrappedElement = element;
       element = wrappedElement.unwrap(listener, spannable);
     }
@@ -345,7 +442,7 @@ class Elements {
 
   static bool isLocal(Element element) {
     return !Elements.isUnresolved(element)
-            && !element.isInstanceMember()
+            && !element.isInstanceMember
             && !isStaticOrTopLevelField(element)
             && !isStaticOrTopLevelFunction(element)
             && (identical(element.kind, ElementKind.VARIABLE) ||
@@ -355,7 +452,7 @@ class Elements {
 
   static bool isInstanceField(Element element) {
     return !Elements.isUnresolved(element)
-           && element.isInstanceMember()
+           && element.isInstanceMember
            && (identical(element.kind, ElementKind.FIELD)
                || identical(element.kind, ElementKind.GETTER)
                || identical(element.kind, ElementKind.SETTER));
@@ -365,13 +462,13 @@ class Elements {
     // TODO(ager): This should not be necessary when patch support has
     // been reworked.
     if (!Elements.isUnresolved(element)
-        && element.modifiers.isStatic()) {
+        && element.isStatic) {
       return true;
     }
     return !Elements.isUnresolved(element)
-           && !element.isAmbiguous()
-           && !element.isInstanceMember()
-           && !element.isPrefix()
+           && !element.isAmbiguous
+           && !element.isInstanceMember
+           && !element.isPrefix
            && element.enclosingElement != null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||
@@ -381,15 +478,15 @@ class Elements {
 
   static bool isInStaticContext(Element element) {
     if (isUnresolved(element)) return true;
-    if (element.enclosingElement.isClosure()) {
+    if (element.enclosingElement.isClosure) {
       var closureClass = element.enclosingElement;
       element = closureClass.methodElement;
     }
-    Element outer = element.getOutermostEnclosingMemberOrTopLevel();
+    Element outer = element.outermostEnclosingMemberOrTopLevel;
     if (isUnresolved(outer)) return true;
-    if (outer.isTopLevel()) return true;
-    if (outer.isGenerativeConstructor()) return false;
-    if (outer.isInstanceMember()) return false;
+    if (outer.isTopLevel) return true;
+    if (outer.isGenerativeConstructor) return false;
+    if (outer.isInstanceMember) return false;
     return true;
   }
 
@@ -407,13 +504,13 @@ class Elements {
 
   static bool isInstanceMethod(Element element) {
     return !Elements.isUnresolved(element)
-           && element.isInstanceMember()
+           && element.isInstanceMember
            && (identical(element.kind, ElementKind.FUNCTION));
   }
 
   static bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
-    if (element.isNative()) return true;
+    if (element.isNative) return true;
     assert(element.resolutionState == STATE_DONE);
     return isNativeOrExtendsNative(element.superclass);
   }
@@ -439,7 +536,7 @@ class Elements {
 
   static String reconstructConstructorNameSourceString(Element element) {
     if (element.name == '') {
-      return element.getEnclosingClass().name;
+      return element.enclosingClass.name;
     } else {
       return reconstructConstructorName(element);
     }
@@ -447,7 +544,7 @@ class Elements {
 
   // TODO(johnniwinther): Remove this method.
   static String reconstructConstructorName(Element element) {
-    String className = element.getEnclosingClass().name;
+    String className = element.enclosingClass.name;
     if (element.name == '') {
       return className;
     } else {
@@ -455,10 +552,24 @@ class Elements {
     }
   }
 
+  static String constructorNameForDiagnostics(String className,
+                                              String constructorName) {
+    String classNameString = className;
+    String constructorNameString = constructorName;
+    return (constructorName == '')
+        ? classNameString
+        : "$classNameString.$constructorNameString";
+  }
+
+  /// Returns `true` if [name] is the name of an operator method.
+  static bool isOperatorName(String name) {
+    return name == 'unary-' || isUserDefinableOperator(name);
+  }
+
   /**
-   * Map an operator-name to a valid Dart identifier.
+   * Map an operator-name to a valid JavaScript identifier.
    *
-   * For non-operator names, this metod just returns its input.
+   * For non-operator names, this method just returns its input.
    *
    * The results returned from this method are guaranteed to be valid
    * JavaScript identifers, except it may include reserved words for
@@ -570,12 +681,12 @@ class Elements {
   /// on the source code order.
   static int compareByPosition(Element a, Element b) {
     if (identical(a, b)) return 0;
-    int r = a.getLibrary().compareTo(b.getLibrary());
+    int r = a.library.compareTo(b.library);
     if (r != 0) return r;
-    r = a.getCompilationUnit().compareTo(b.getCompilationUnit());
+    r = a.compilationUnit.compareTo(b.compilationUnit);
     if (r != 0) return r;
-    Token positionA = a.position();
-    Token positionB = b.position();
+    Token positionA = a.position;
+    Token positionB = b.position;
     int offsetA = positionA == null ? -1 : positionA.charOffset;
     int offsetB = positionB == null ? -1 : positionB.charOffset;
     r = offsetA.compareTo(offsetB);
@@ -621,12 +732,12 @@ class Elements {
   static bool isConstructorOfTypedArraySubclass(Element element,
                                                 Compiler compiler) {
     if (compiler.typedDataLibrary == null) return false;
-    if (!element.isConstructor()) return false;
-    FunctionElement constructor = element;
-    constructor = constructor.redirectionTarget;
-    ClassElement cls = constructor.getEnclosingClass();
-    return cls.getLibrary() == compiler.typedDataLibrary
-        && cls.isNative()
+    if (!element.isConstructor) return false;
+    ConstructorElement constructor = element.implementation;
+    constructor = constructor.effectiveTarget;
+    ClassElement cls = constructor.enclosingClass;
+    return cls.library == compiler.typedDataLibrary
+        && cls.isNative
         && compiler.world.isSubtype(compiler.typedDataClass, cls)
         && compiler.world.isSubtype(compiler.listClass, cls)
         && constructor.name == '';
@@ -638,7 +749,7 @@ class Elements {
       for (Node labelOrCase in switchCase.labelsAndCases) {
         Node label = labelOrCase.asLabel();
         if (label != null) {
-          LabelElement labelElement = elements[label];
+          LabelDefinition labelElement = elements.getLabelDefinition(label);
           if (labelElement != null && labelElement.isContinueTarget) {
             return true;
           }
@@ -650,7 +761,7 @@ class Elements {
 
   static bool isUnusedLabel(LabeledStatement node, TreeElements elements) {
     Node body = node.statement;
-    TargetElement element = elements[body];
+    JumpTarget element = elements.getTargetDefinition(body);
     // Labeled statements with no element on the body have no breaks.
     // A different target statement only happens if the body is itself
     // a break or continue for a different target. In that case, this
@@ -659,13 +770,27 @@ class Elements {
   }
 }
 
-abstract class ErroneousElement extends Element implements FunctionElement {
+/// An element representing an erroneous resolution.
+///
+/// An [ErroneousElement] is used instead of `null` to provide additional
+/// information about the error that caused the element to be unresolvable
+/// or otherwise invalid.
+///
+/// Accessing any field or calling any method defined on [ErroneousElement]
+/// except [isErroneous] will currently throw an exception. (This might
+/// change when we actually want more information on the erroneous element,
+/// e.g., the name of the element we were trying to resolve.)
+///
+/// Code that cannot not handle an [ErroneousElement] should use
+/// `Element.isUnresolved(element)` to check for unresolvable elements instead
+/// of `element == null`.
+abstract class ErroneousElement extends Element implements ConstructorElement {
   MessageKind get messageKind;
   Map get messageArguments;
   String get message;
 }
 
-/// An [Element] whose usage should cause a warning.
+/// An [Element] whose usage should cause one or more warnings.
 abstract class WarnOnUseElement extends Element {
   /// The element whose usage cause a warning.
   Element get wrappedElement;
@@ -676,6 +801,12 @@ abstract class WarnOnUseElement extends Element {
   Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
 }
 
+/// An ambiguous element represents multiple elements accessible by the same
+/// name.
+///
+/// Ambiguous elements are created during handling of import/export scopes. If
+/// an ambiguous element is encountered during resolution a warning/error is
+/// reported.
 abstract class AmbiguousElement extends Element {
   MessageKind get messageKind;
   Map get messageArguments;
@@ -691,10 +822,6 @@ abstract class ScopeContainerElement implements Element {
   void forEachLocalMember(f(Element element));
 }
 
-abstract class ClosureContainer implements Element {
-  List<FunctionElement> get nestedClosures;
-}
-
 abstract class CompilationUnitElement extends Element {
   Script get script;
   PartOf get partTag;
@@ -707,7 +834,8 @@ abstract class CompilationUnitElement extends Element {
   int compareTo(CompilationUnitElement other);
 }
 
-abstract class LibraryElement extends Element implements ScopeContainerElement {
+abstract class LibraryElement extends Element
+    implements ScopeContainerElement, AnalyzableElement {
   /**
    * The canonical uri for this library.
    *
@@ -717,7 +845,7 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   Uri get canonicalUri;
   CompilationUnitElement get entryCompilationUnit;
   Link<CompilationUnitElement> get compilationUnits;
-  Link<LibraryTag> get tags;
+  Iterable<LibraryTag> get tags;
   LibraryName get libraryTag;
   Link<Element> get exports;
 
@@ -781,6 +909,7 @@ abstract class LibraryElement extends Element implements ScopeContainerElement {
   int compareTo(LibraryElement other);
 }
 
+/// The implicit scope defined by a import declaration with a prefix clause.
 abstract class PrefixElement extends Element {
   void addImport(Element element, Import import, DiagnosticListener listener);
   Element lookupLocalMember(String memberName);
@@ -790,35 +919,140 @@ abstract class PrefixElement extends Element {
   Import get deferredImport;
 }
 
+/// A type alias definition.
 abstract class TypedefElement extends Element
-    implements TypeDeclarationElement {
-  TypedefType get thisType;
-  TypedefType get rawType;
-  DartType get alias;
-  FunctionSignature get functionSignature;
-  Link<DartType> get typeVariables;
+    implements AstElement, TypeDeclarationElement, FunctionTypedElement {
 
-  // TODO(kasperl): Try to get rid of these setters.
-  void set alias(DartType value);
-  void set functionSignature(FunctionSignature value);
+  /// The type defined by this typedef with the type variables as its type
+  /// arguments.
+  ///
+  /// For instance `F<T>` for `typedef void F<T>(T t)`.
+  TypedefType get thisType;
+
+  /// The type defined by this typedef with `dynamic` as its type arguments.
+  ///
+  /// For instance `F<dynamic>` for `typedef void F<T>(T t)`.
+  TypedefType get rawType;
+
+  /// The type, function type if well-defined, for which this typedef is an
+  /// alias.
+  ///
+  /// For instance `(int)->void` for `typedef void F(int)`.
+  DartType get alias;
 
   void checkCyclicReference(Compiler compiler);
 }
 
-abstract class VariableElement extends Element implements TypedElement {
+/// An executable element is an element that can hold code.
+///
+/// These elements variables (fields, parameters and locals), which can hold
+/// code in their initializer, and functions (including methods and
+/// constructors), which can hold code in their body.
+abstract class ExecutableElement extends Element
+    implements TypedElement, AstElement {
+  /// The outermost member that contains this element.
+  ///
+  /// For top level, static or instance members, the member context is the
+  /// element itself. For parameters, local variables and nested closures, the
+  /// member context is the top level, static or instance member in which it is
+  /// defined.
+  MemberElement get memberContext;
+}
+
+/// A top-level or static field or method, or a constructor.
+///
+/// A [MemberElement] is the outermost executable element for any executable
+/// context.
+abstract class MemberElement extends Element implements ExecutableElement {
+  /// The local functions defined within this member.
+  List<FunctionElement> get nestedClosures;
+}
+
+/// A function, variable or parameter defined in an executable context.
+abstract class LocalElement extends Element implements TypedElement, Local {
+}
+
+/// A top level, static or instance field, a formal parameter or local variable.
+abstract class VariableElement extends ExecutableElement {
   Expression get initializer;
 }
 
-abstract class FieldElement extends VariableElement
-    implements ClosureContainer {}
-
-abstract class ParameterElement extends VariableElement {
-  VariableDefinitions get node;
-  FunctionSignature get functionSignature;
+/// An entity that defines a local entity (memory slot) in generated code.
+///
+/// Parameters, local variables and local functions (can) define local entity
+/// and thus implement [Local] through [LocalElement]. For non-element locals,
+/// like `this` and boxes, specialized [Local] classes are created.
+///
+/// Type variables can introduce locals in factories and constructors
+/// but since one type variable can introduce different locals in different
+/// factories and constructors it is not itself a [Local] but instead
+/// a non-element [Local] is created through a specialized class.
+// TODO(johnniwinther): Should [Local] have `isAssignable` or `type`?
+abstract class Local extends Entity {
+  /// The context in which this local is defined.
+  ExecutableElement get executableContext;
 }
 
-abstract class FieldParameterElement extends ParameterElement {
-  VariableElement get fieldElement;
+/// A variable or parameter that is local to an executable context.
+///
+/// The executable context is the [ExecutableElement] in which this variable
+/// is defined.
+abstract class LocalVariableElement extends VariableElement
+    implements LocalElement {
+}
+
+/// A top-level, static or instance field.
+abstract class FieldElement extends VariableElement implements MemberElement {
+}
+
+/// A parameter-like element of a function signature.
+///
+/// If the function signature comes from a typedef or an inline function-typed
+/// parameter (e.g. the parameter 'f' in `method(void f())`), then its
+/// parameters are not real parameters in that they can take no argument and
+/// hold no value. Such parameter-like elements are modeled by [FormalElement].
+///
+/// If the function signature comes from a function or constructor, its
+/// parameters are real parameters and are modeled by [ParameterElement].
+abstract class FormalElement extends Element
+    implements FunctionTypedElement, TypedElement, AstElement {
+  /// Use [functionDeclaration] instead.
+  @deprecated
+  get enclosingElement;
+
+  /// The function, typedef or inline function-typed parameter on which
+  /// this parameter is declared.
+  FunctionTypedElement get functionDeclaration;
+
+  VariableDefinitions get node;
+}
+
+/// A formal parameter of a function or constructor.
+///
+/// Normal parameter that introduce a local variable are modeled by
+/// [LocalParameterElement] whereas initializing formals, that is parameter of
+/// the form `this.x`, are modeled by [InitializingFormalParameter].
+abstract class ParameterElement extends Element
+    implements VariableElement, FormalElement, LocalElement {
+  /// The function on which this parameter is declared.
+  FunctionElement get functionDeclaration;
+}
+
+/// A formal parameter on a function or constructor that introduces a local
+/// variable in the scope of the function or constructor.
+abstract class LocalParameterElement extends ParameterElement
+    implements LocalVariableElement {
+}
+
+/// A formal parameter in a constructor that directly initializes a field.
+///
+/// For example: `A(this.field)`.
+abstract class InitializingFormalElement extends ParameterElement {
+  /// The field initialized by this initializing formal.
+  FieldElement get fieldElement;
+
+  /// The function on which this parameter is declared.
+  ConstructorElement get functionDeclaration;
 }
 
 /**
@@ -835,51 +1069,41 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
-  Link<Element> get requiredParameters;
-  Link<Element> get optionalParameters;
+  Link<FormalElement> get requiredParameters;
+  Link<FormalElement> get optionalParameters;
 
   int get requiredParameterCount;
   int get optionalParameterCount;
   bool get optionalParametersAreNamed;
-  Element get firstOptionalParameter;
+  FormalElement get firstOptionalParameter;
 
   int get parameterCount;
-  List<Element> get orderedOptionalParameters;
+  List<FormalElement> get orderedOptionalParameters;
 
-  void forEachParameter(void function(Element parameter));
-  void forEachRequiredParameter(void function(Element parameter));
-  void forEachOptionalParameter(void function(Element parameter));
+  void forEachParameter(void function(FormalElement parameter));
+  void forEachRequiredParameter(void function(FormalElement parameter));
+  void forEachOptionalParameter(void function(FormalElement parameter));
 
-  void orderedForEachParameter(void function(Element parameter));
+  void orderedForEachParameter(void function(FormalElement parameter));
 
   bool isCompatibleWith(FunctionSignature constructorSignature);
 }
 
+/// A top level, static or instance method, constructor, local function, or
+/// closure (anonymous local function).
 abstract class FunctionElement extends Element
-    implements TypedElement, ClosureContainer {
+    implements AstElement,
+               TypedElement,
+               FunctionTypedElement,
+               ExecutableElement {
   FunctionExpression get node;
-  DartType get type;
-  FunctionSignature get functionSignature;
-  FunctionElement get redirectionTarget;
-  FunctionElement get defaultImplementation;
 
   FunctionElement get patch;
   FunctionElement get origin;
 
-  bool get isRedirectingFactory;
-
   /// Used to retrieve a link to the abstract field element representing this
   /// element.
   AbstractFieldElement get abstractField;
-
-  /**
-   * Compute the type of the target of a constructor for an instantiation site
-   * with type [:newType:].
-   */
-  InterfaceType computeTargetType(InterfaceType newType);
-
-  // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set defaultImplementation(FunctionElement value);
 
   /// Do not use [computeSignature] outside of the resolver; instead retrieve
   /// the signature through the [functionSignature] field.
@@ -887,20 +1111,110 @@ abstract class FunctionElement extends Element
   /// resolution is an error and calling [computeSignature] covers that error.
   /// This method will go away!
   @deprecated FunctionSignature computeSignature(Compiler compiler);
-
-  FunctionExpression parseNode(DiagnosticListener listener);
 }
 
+/// A top level, static or instance function.
+abstract class MethodElement extends FunctionElement
+    implements MemberElement {
+}
+
+/// A local function or closure (anonymous local function).
+abstract class LocalFunctionElement extends FunctionElement
+    implements LocalElement {
+}
+
+/// A constructor.
+abstract class ConstructorElement extends FunctionElement
+    implements MemberElement {
+  /// The effective target of this constructor, that is the non-redirecting
+  /// constructor that is called on invocation of this constructor.
+  ///
+  /// Consider for instance this hierachy:
+  ///
+  ///     class C { factory C.c() = D.d; }
+  ///     class D { factory D.d() = E.e2; }
+  ///     class E { E.e1();
+  ///               E.e2() : this.e1(); }
+  ///
+  /// The effective target of both `C.c`, `D.d`, and `E.e2` is `E.e2`, and the
+  /// effective target of `E.e1` is `E.e1` itself.
+  ConstructorElement get effectiveTarget;
+
+  /// The immediate redirection target of a redirecting factory constructor.
+  ///
+  /// Consider for instance this hierachy:
+  ///
+  ///     class C { factory C() = D; }
+  ///     class D { factory D() = E; }
+  ///     class E { E(); }
+  ///
+  /// The immediate redirection target of `C` is `D` and the immediate
+  /// redirection target of `D` is `E`. `E` is not a redirecting factory
+  /// constructor so its immediate redirection target is `null`.
+  ConstructorElement get immediateRedirectionTarget;
+
+  /// Is `true` if this constructor is a redirecting factory constructor.
+  bool get isRedirectingFactory;
+
+  /// Compute the type of the effective target of this constructor for an
+  /// instantiation site with type [:newType:].
+  InterfaceType computeEffectiveTargetType(InterfaceType newType);
+
+  /// If this is a synthesized constructor [definingConstructor] points to
+  /// the generative constructor from which this constructor was created.
+  /// Otherwise [definingConstructor] is `null`.
+  ///
+  /// Consider for instance this hierarchy:
+  ///
+  ///     class C { C.c(a, {b});
+  ///     class D {}
+  ///     class E = C with D;
+  ///
+  /// Class `E` has a synthesized constructor, `E.c`, whose defining constructor
+  /// is `C.c`.
+  ConstructorElement get definingConstructor;
+
+  /// Use [enclosingClass] instead.
+  @deprecated
+  get enclosingElement;
+}
+
+/// JavaScript backend specific element for the body of constructor.
+// TODO(johnniwinther): Remove this class for the element model.
 abstract class ConstructorBodyElement extends FunctionElement {
   FunctionElement get constructor;
 }
 
-/**
- * [TypeDeclarationElement] defines the common interface for class/interface
- * declarations and typedefs.
- */
-abstract class TypeDeclarationElement extends Element {
+/// [TypeDeclarationElement] defines the common interface for class/interface
+/// declarations and typedefs.
+abstract class TypeDeclarationElement extends Element implements AstElement {
+  /**
+   * The `this type` for this type declaration.
+   *
+   * The type of [:this:] is the generic type based on this element in which
+   * the type arguments are the declared type variables. For instance,
+   * [:List<E>:] for [:List:] and [:Map<K,V>:] for [:Map:].
+   *
+   * For a class declaration this is the type of [:this:].
+   */
   GenericType get thisType;
+
+  /**
+   * The raw type for this type declaration.
+   *
+   * The raw type is the generic type base on this element in which the type
+   * arguments are all [dynamic]. For instance [:List<dynamic>:] for [:List:]
+   * and [:Map<dynamic,dynamic>:] for [:Map:]. For non-generic classes [rawType]
+   * is the same as [thisType].
+   *
+   * The [rawType] field is a canonicalization of the raw type and should be
+   * used to distinguish explicit and implicit uses of the [dynamic]
+   * type arguments. For instance should [:List:] be the [rawType] of the
+   * [:List:] class element whereas [:List<dynamic>:] should be its own
+   * instantiation of [InterfaceType] with [:dynamic:] as type argument. Using
+   * this distinction, we can print the raw type with type arguments only when
+   * the input source has used explicit type arguments.
+   */
   GenericType get rawType;
 
   /**
@@ -908,9 +1222,13 @@ abstract class TypeDeclarationElement extends Element {
    * available until the type of the element has been computed through
    * [computeType].
    */
-  Link<DartType> get typeVariables;
+  List<DartType> get typeVariables;
 
   bool get isResolved;
+
+  int get resolutionState;
+
+  void ensureResolved(Compiler compiler);
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -922,12 +1240,21 @@ abstract class ClassElement extends TypeDeclarationElement
 
   InterfaceType get rawType;
   InterfaceType get thisType;
-
   ClassElement get superclass;
 
+  /// The direct supertype of this class.
   DartType get supertype;
+
+  /// Ordered set of all supertypes of this class including the class itself.
   OrderedTypeSet get allSupertypesAndSelf;
+
+  /// A list of all supertypes of this class excluding the class itself.
   Link<DartType> get allSupertypes;
+
+  /// Returns the this type of this class as an instance of [cls].
+  InterfaceType asInstanceOf(ClassElement cls);
+
+  /// A list of all direct superinterfaces of this class.
   Link<DartType> get interfaces;
 
   bool get hasConstructor;
@@ -939,20 +1266,12 @@ abstract class ClassElement extends TypeDeclarationElement
   ClassElement get implementation;
 
   int get supertypeLoadState;
-  int get resolutionState;
   String get nativeTagInfo;
 
   bool get isMixinApplication;
   bool get isUnnamedMixinApplication;
   bool get hasBackendMembers;
   bool get hasLocalScopeMembers;
-
-  // TODO(kasperl): These are bit fishy. Do we really need them?
-  void set supertype(DartType value);
-  void set interfaces(Link<DartType> value);
-  void set supertypeLoadState(int value);
-  void set resolutionState(int value);
-  void set nativeTagInfo(String value);
 
   bool isObject(Compiler compiler);
   bool isSubclassOf(ClassElement cls);
@@ -969,8 +1288,6 @@ abstract class ClassElement extends TypeDeclarationElement
 
   /// Returns `true` if the class hierarchy for this class contains errors.
   bool get hasIncompleteHierarchy;
-
-  void ensureResolved(Compiler compiler);
 
   void addMember(Element element, DiagnosticListener listener);
   void addToScope(Element element, DiagnosticListener listener);
@@ -1010,7 +1327,7 @@ abstract class ClassElement extends TypeDeclarationElement
 
   void forEachBackendMember(void f(Element member));
 
-  Link<DartType> computeTypeParameters(Compiler compiler);
+  List<DartType> computeTypeParameters(Compiler compiler);
 
   /// Looks up the member [name] in this class.
   Member lookupClassMember(Name name);
@@ -1036,10 +1353,11 @@ abstract class MixinApplicationElement extends ClassElement {
   void addConstructor(FunctionElement constructor);
 }
 
-abstract class LabelElement extends Element {
+/// The label entity defined by a labeled statement.
+abstract class LabelDefinition extends Entity {
   Label get label;
   String get labelName;
-  TargetElement get target;
+  JumpTarget get target;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1049,10 +1367,12 @@ abstract class LabelElement extends Element {
   void setContinueTarget();
 }
 
-abstract class TargetElement extends Element {
+/// A jump target is the reference point of a statement or switch-case,
+/// either by label or as the default target of a break or continue.
+abstract class JumpTarget extends Local {
   Node get statement;
   int get nestingLevel;
-  Link<LabelElement> get labels;
+  Link<LabelDefinition> get labels;
 
   bool get isTarget;
   bool get isBreakTarget;
@@ -1063,11 +1383,20 @@ abstract class TargetElement extends Element {
   void set isBreakTarget(bool value);
   void set isContinueTarget(bool value);
 
-  LabelElement addLabel(Label label, String labelName);
+  LabelDefinition addLabel(Label label, String labelName);
 }
 
 /// The [Element] for a type variable declaration on a generic class or typedef.
-abstract class TypeVariableElement extends Element implements TypedElement {
+abstract class TypeVariableElement extends Element
+    implements AstElement, TypedElement {
+
+  /// Use [typeDeclaration] instead.
+  @deprecated
+  get enclosingElement;
+
+  /// The class or typedef on which this type variable is defined.
+  TypeDeclarationElement get typeDeclaration;
+
   /// The [type] defined by the type variable.
   TypeVariableType get type;
 
@@ -1084,18 +1413,56 @@ abstract class MetadataAnnotation implements Spannable {
   Token get beginToken;
   Token get endToken;
 
-  // TODO(kasperl): Try to get rid of these.
-  void set annotatedElement(Element value);
-
   MetadataAnnotation ensureResolved(Compiler compiler);
 }
-
-// TODO(johnniwinther): Remove this element.
-abstract class VoidElement extends Element {}
 
 /// An [Element] that has a type.
 abstract class TypedElement extends Element {
   DartType get type;
+}
+
+/// An [Element] that can define a function type.
+abstract class FunctionTypedElement extends Element {
+  /// The function signature for the function type defined by this element,
+  /// if any.
+  FunctionSignature get functionSignature;
+}
+
+/// An [Element] that holds a [TreeElements] mapping.
+abstract class AnalyzableElement extends Element {
+  /// Return `true` if [treeElements] have been (partially) computed for this
+  /// element.
+  bool get hasTreeElements;
+
+  /// Returns the [TreeElements] that hold the resolution information for the
+  /// AST nodes of this element.
+  TreeElements get treeElements;
+}
+
+/// An [Element] that (potentially) has a node.
+///
+/// Synthesized elements may return `null` from [node].
+abstract class AstElement extends AnalyzableElement {
+  /// `true` if [node] is available and non-null.
+  bool get hasNode;
+
+  /// The AST node of this element.
+  Node get node;
+
+  /// `true` if [resolvedAst] is available.
+  bool get hasResolvedAst;
+
+  /// The defining AST node of this element with is corresponding
+  /// [TreeElements]. This is not available if [hasResolvedAst] is `false`.
+  ResolvedAst get resolvedAst;
+}
+
+class ResolvedAst {
+  final Element element;
+  final Node node;
+  final TreeElements elements;
+
+  ResolvedAst(this.element, this.node, this.elements);
 }
 
 /// A [MemberSignature] is a member of an interface.

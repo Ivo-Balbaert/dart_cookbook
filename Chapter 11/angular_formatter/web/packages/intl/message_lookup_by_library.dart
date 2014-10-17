@@ -34,7 +34,7 @@ class CompositeMessageLookup {
    */
   String lookupMessage(String message_str, [final String desc='',
       final Map examples=const {}, String locale,
-      String name, List<String> args]) {
+      String name, List<String> args, String meaning]) {
     var actualLocale = (locale == null) ? Intl.getCurrentLocale() : locale;
       // For this usage, if the locale doesn't exist for messages, just return
       // it and we'll fall back to the original version.
@@ -46,7 +46,7 @@ class CompositeMessageLookup {
     var messages = availableMessages[verifiedLocale];
     if (messages == null) return message_str;
     return messages.
-        lookupMessage(message_str, desc, examples, locale, name, args);
+        lookupMessage(message_str, desc, examples, locale, name, args, meaning);
   }
 
   /**
@@ -56,9 +56,11 @@ class CompositeMessageLookup {
    */
   addLocale(String localeName, Function findLocale) {
     if (localeExists(localeName)) return;
-    var newLocale = findLocale(localeName);
+    var canonical = Intl.canonicalizedLocale(localeName);
+    var newLocale = findLocale(canonical);
     if (newLocale != null) {
       availableMessages[localeName] = newLocale;
+      availableMessages[canonical] = newLocale;
     }
   }
 }
@@ -96,7 +98,7 @@ abstract class MessageLookupByLibrary {
    */
   String lookupMessage(String message_str, [final String desc='',
       final Map examples=const {}, String locale,
-      String name, List<String> args]) {
+      String name, List<String> args, String meaning]) {
     if (name == null) return message_str;
     var function = this[name];
     return function == null ? message_str :  Function.apply(function, args);

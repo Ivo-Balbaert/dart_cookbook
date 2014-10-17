@@ -6,5 +6,5 @@ class Polselect extends PolymerElement {
    @observable int selected = 2; // Make sure this is not null; set it to the default selection index.
    @observable String value = 'Mozilla';
 
-  Polselect.created() : super.created() {  }
+  Polselect.created() : super.created();
 }

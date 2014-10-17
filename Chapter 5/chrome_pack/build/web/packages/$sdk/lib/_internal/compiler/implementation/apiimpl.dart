@@ -43,8 +43,10 @@ class Compiler extends leg.Compiler {
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),
             emitJavaScript: !hasOption(options, '--output-type=dart'),
+            generateSourceMap: !hasOption(options, '--no-source-maps'),
             analyzeAllFlag: hasOption(options, '--analyze-all'),
             analyzeOnly: hasOption(options, '--analyze-only'),
+            analyzeMain: hasOption(options, '--analyze-main'),
             analyzeSignaturesOnly:
                 hasOption(options, '--analyze-signatures-only'),
             strips: extractCsvOption(options, '--force-strip='),
@@ -64,6 +66,7 @@ class Compiler extends leg.Compiler {
             showPackageWarnings:
                 hasOption(options, '--show-package-warnings'),
             useContentSecurityPolicy: hasOption(options, '--csp'),
+            hasIncrementalSupport: hasOption(options, '--incremental-support'),
             suppressWarnings: hasOption(options, '--suppress-warnings')) {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("libraryRoot must end with a /");
@@ -136,12 +139,6 @@ class Compiler extends leg.Compiler {
     return "lib/$path";
   }
 
-  Future<elements.LibraryElement> scanBuiltinLibrary(String path) {
-    Uri uri = libraryRoot.resolve(lookupLibraryPath(path));
-    Uri canonicalUri = new Uri(scheme: "dart", path: path);
-    return libraryLoader.loadLibrary(uri, null, canonicalUri);
-  }
-
   void log(message) {
     handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
@@ -160,6 +157,7 @@ class Compiler extends leg.Compiler {
    */
   Future<leg.Script> readScript(leg.Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
+      if (node == null) node = leg.NO_LOCATION_SPANNABLE;
       internalError(node,
           'Relative uri $readableUri provided to readScript(Uri).');
     }

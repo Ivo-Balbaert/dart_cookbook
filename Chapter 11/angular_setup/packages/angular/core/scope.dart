@@ -65,7 +65,7 @@ class ScopeEvent {
 @Injectable()
 class ScopeDigestTTL {
   final int ttl;
-  ScopeDigestTTL(): ttl = 5;
+  ScopeDigestTTL(): ttl = 10;
   ScopeDigestTTL.value(this.ttl);
 }
 
@@ -107,6 +107,36 @@ class ScopeLocals implements Map {
     _scope.addAll(map);
   }
   dynamic putIfAbsent(key, fn) => _scope.putIfAbsent(key, fn);
+}
+
+/**
+ * When a [Component] or the root context class implements [ScopeAware] the scope setter will be
+ * called to set the [Scope] on this component.
+ *
+ * Typically classes implementing [ScopeAware] will declare a `Scope scope` property which will get
+ * initialized after the [Scope] is available. For this reason the `scope` property will not be
+ * initialized during the execution of the constructor - it will be immediately after.
+ *
+ * However, if you need to execute some code as soon as the scope is available you should implement
+ * a `scope` setter:
+ *
+ *     @Component(...)
+ *     class MyComponent implements ScopeAware {
+ *       Watch watch;
+ *
+ *       MyComponent(Dependency myDep) {
+ *         // It is an error to add a Scope / RootScope argument to the ctor and will result in a DI
+ *         // circular dependency error - the scope is never accessible in the class constructor
+ *       }
+ *
+ *       void set scope(Scope scope) {
+ *          // This setter gets called to initialize the scope
+ *          watch = scope.rootScope.watch("expression", (v, p) => ...);
+ *       }
+ *     }
+ */
+abstract class ScopeAware {
+  void set scope(Scope scope);
 }
 
 /**
@@ -217,7 +247,7 @@ class Scope {
       } else if (expression.startsWith(':')) {
         expression = expression.substring(1);
         fn = (value, last) {
-          if (value != null)  reactionFn(value, last);
+          if (value != null) reactionFn(value, last);
         };
       }
     }
@@ -330,6 +360,7 @@ class Scope {
 
   /// Creates a child [Scope] with the given [childContext]
   Scope createChild(Object childContext) {
+    var s = traceEnter(Scope_createChild);
     assert(isAttached);
     var child = new Scope(childContext, rootScope, this,
                           _readWriteGroup.newGroup(childContext),
@@ -341,6 +372,7 @@ class Scope {
     child._prev = prev;
     if (prev == null) _childHead = child; else prev._next = child;
     _childTail = child;
+    traceLeave(s);
     return child;
   }
 
@@ -593,6 +625,7 @@ class RootScope extends Scope {
   final ScopeStats _scopeStats;
 
   String _state;
+  var _state_wtf_scope;
 
   /**
    * While processing data bindings, Angular passes through multiple states. When testing or
@@ -658,7 +691,7 @@ class RootScope extends Scope {
     _zone.onTurnDone = apply;
     _zone.onError = (e, s, ls) => _exceptionHandler(e, s);
     _zone.onScheduleMicrotask = runAsync;
-  cacheRegister.registerCache("ScopeWatchASTs", astCache);
+    cacheRegister.registerCache("ScopeWatchASTs", astCache);
   }
 
   RootScope get rootScope => this;
@@ -678,7 +711,7 @@ class RootScope extends Scope {
   * [digest] calls the associated [ReactionFn]. Since a [ReactionFn] may further change the model,
   * [digest] processes changes multiple times until no more changes are detected.
   *
-  * If the model does not stabilize within 5 iterations, an exception is thrown. See
+  * If the model does not stabilize within 10 iterations, an exception is thrown. See
   * [ScopeDigestTTL].
   */
   void digest() {
@@ -735,6 +768,7 @@ class RootScope extends Scope {
     try {
       do {
         if (_domWriteHead != null) _stats.domWriteStart();
+        var s = traceEnter(Scope_domWrite);
         while (_domWriteHead != null) {
           try {
             _domWriteHead.fn();
@@ -744,6 +778,7 @@ class RootScope extends Scope {
           _domWriteHead = _domWriteHead._next;
           if (_domWriteHead == null) _stats.domWriteEnd();
         }
+        traceLeave(s);
         _domWriteTail = null;
         if (runObservers) {
           runObservers = false;
@@ -753,6 +788,7 @@ class RootScope extends Scope {
               processStopwatch: _scopeStats.processStopwatch);
         }
         if (_domReadHead != null) _stats.domReadStart();
+        s = traceEnter(Scope_domRead);
         while (_domReadHead != null) {
           try {
             _domReadHead.fn();
@@ -763,6 +799,7 @@ class RootScope extends Scope {
           if (_domReadHead == null) _stats.domReadEnd();
         }
         _domReadTail = null;
+        traceLeave(s);
         _runAsyncFns();
       } while (_domWriteHead != null || _domReadHead != null || _runAsyncHead != null);
       _stats.flushEnd();
@@ -808,6 +845,7 @@ class RootScope extends Scope {
   }
 
   _runAsyncFns() {
+    var s = traceEnter(Scope_execAsync);
     var count = 0;
     while (_runAsyncHead != null) {
       try {
@@ -819,6 +857,7 @@ class RootScope extends Scope {
       _runAsyncHead = _runAsyncHead._next;
     }
     _runAsyncTail = null;
+    traceLeave(s);
     return count;
   }
 
@@ -846,6 +885,13 @@ class RootScope extends Scope {
     assert(isAttached);
     if (_state != from) throw "$_state already in progress can not enter $to.";
     _state = to;
+    if (_state_wtf_scope != null) traceLeave(_state_wtf_scope);
+    var wtfScope = null;
+    if (to == STATE_APPLY) wtfScope = Scope_apply;
+    else if (to == STATE_DIGEST) wtfScope = Scope_digest;
+    else if (to == STATE_FLUSH) wtfScope = Scope_flush;
+    else if (to == STATE_FLUSH_ASSERT) wtfScope = Scope_assert;
+    _state_wtf_scope = wtfScope == null ? null : traceEnter(wtfScope);
   }
 }
 

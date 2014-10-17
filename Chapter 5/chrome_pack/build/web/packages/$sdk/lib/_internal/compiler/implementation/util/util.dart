@@ -8,7 +8,9 @@ import 'util_implementation.dart';
 import 'characters.dart';
 
 export 'setlet.dart';
+export 'maplet.dart';
 
+part 'indentation.dart';
 part 'link.dart';
 
 /**
@@ -45,6 +47,16 @@ class SpannableAssertionFailure {
 
   String toString() => 'Assertion failure'
                        '${message != null ? ': $message' : ''}';
+}
+
+bool equalElements(List a, List b) {
+  if (a.length != b.length) return false;
+  for (int index = 0; index < a.length; index++) {
+    if (a[index] != b[index]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
@@ -132,4 +144,24 @@ int computeHashCode(part1, [part2, part3, part4, part5]) {
           ^ part3.hashCode
           ^ part4.hashCode
           ^ part5.hashCode) & 0x3fffffff;
+}
+
+String modifiersToString({bool isStatic: false,
+                          bool isAbstract: false,
+                          bool isFinal: false,
+                          bool isVar: false,
+                          bool isConst: false,
+                          bool isFactory: false,
+                          bool isExternal: false}) {
+  LinkBuilder<String> builder = new LinkBuilder<String>();
+  if (isStatic) builder.addLast('static');
+  if (isAbstract) builder.addLast('abstract');
+  if (isFinal) builder.addLast('final');
+  if (isVar) builder.addLast('var');
+  if (isConst) builder.addLast('const');
+  if (isFactory) builder.addLast('factory');
+  if (isExternal) builder.addLast('external');
+  StringBuffer buffer = new StringBuffer();
+  builder.toLink().printOn(buffer, ', ');
+  return buffer.toString();
 }

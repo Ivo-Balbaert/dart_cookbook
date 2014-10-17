@@ -25,16 +25,18 @@ class _Platform {
   static int get numberOfProcessors => _numberOfProcessors();
   static String get pathSeparator => _pathSeparator();
   static String get operatingSystem => _operatingSystem();
-  static Uri script = _script();
-  static Uri _script() {
-    // The embedder (Dart executable) creates the Platform._nativeScript field.
-    var s = Platform._nativeScript;
-    if (s.startsWith('http:') ||
-        s.startsWith('https:') ||
-        s.startsWith('file:')) {
-      return Uri.parse(s);
+  static Uri script;
+
+  // This script singleton is written to by the embedder if applicable.
+  static void set _nativeScript(String path) {
+    if (path.startsWith('http:') ||
+        path.startsWith('https:') ||
+        path.startsWith('package:') ||
+        path.startsWith('dart:') ||
+        path.startsWith('file:')) {
+      script = Uri.parse(path);
     } else {
-      return Uri.base.resolveUri(new Uri.file(s));
+      script = Uri.base.resolveUri(new Uri.file(path));
     }
   }
 
@@ -71,7 +73,7 @@ class _Platform {
           result[str.substring(0, equalsIndex)] =
               str.substring(equalsIndex + 1);
         }
-        _environmentCache = new UnmodifiableMapView(result);
+        _environmentCache = new UnmodifiableMapView<String, String>(result);
       } else {
         _environmentCache = env;
       }
@@ -90,16 +92,7 @@ class _Platform {
 // Environment variables are case-insensitive on Windows. In order
 // to reflect that we use a case-insensitive string map on Windows.
 class _CaseInsensitiveStringMap<V> implements Map<String, V> {
-  Map<String, V> _map;
-
-  _CaseInsensitiveStringMap() : _map = new Map<String, V>();
-
-  _CaseInsensitiveStringMap.from(Map<String, V> other)
-      : _map = new Map<String, V>() {
-    other.forEach((String key, V value) {
-      _map[key.toUpperCase()] = value;
-    });
-  }
+  final Map<String, V> _map = new Map<String, V>();
 
   bool containsKey(String key) => _map.containsKey(key.toUpperCase());
   bool containsValue(Object value) => _map.containsValue(value);
@@ -121,4 +114,5 @@ class _CaseInsensitiveStringMap<V> implements Map<String, V> {
   int get length => _map.length;
   bool get isEmpty => _map.isEmpty;
   bool get isNotEmpty => _map.isNotEmpty;
+  String toString() => _map.toString();
 }

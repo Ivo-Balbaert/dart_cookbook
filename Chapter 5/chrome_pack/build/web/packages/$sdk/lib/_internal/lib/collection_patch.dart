@@ -4,12 +4,14 @@
 
 // Patch file for dart:collection classes.
 import 'dart:_foreign_helper' show JS;
-import 'dart:_js_helper' show fillLiteralMap, NoInline;
+import 'dart:_js_helper' show fillLiteralMap, NoInline, patch;
 
-patch class HashMap<K, V> {
-  patch factory HashMap({ bool equals(K key1, K key2),
-                          int hashCode(K key),
-                          bool isValidKey(potentialKey) }) {
+@patch
+class HashMap<K, V> {
+  @patch
+  factory HashMap({ bool equals(K key1, K key2),
+                    int hashCode(K key),
+                    bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -36,7 +38,8 @@ patch class HashMap<K, V> {
     return new _CustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
-  patch factory HashMap.identity() = _IdentityHashMap<K, V>;
+  @patch
+  factory HashMap.identity() = _IdentityHashMap<K, V>;
 }
 
 class _HashMap<K, V> implements HashMap<K, V> {
@@ -478,10 +481,12 @@ class HashMapKeyIterator<E> implements Iterator<E> {
   }
 }
 
-patch class LinkedHashMap<K, V> {
-  patch factory LinkedHashMap({ bool equals(K key1, K key2),
-                                int hashCode(K key),
-                                bool isValidKey(potentialKey) }) {
+@patch
+class LinkedHashMap<K, V> {
+  @patch
+  factory LinkedHashMap({ bool equals(K key1, K key2),
+                          int hashCode(K key),
+                          bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -508,7 +513,8 @@ patch class LinkedHashMap<K, V> {
     return new _LinkedCustomHashMap<K, V>(equals, hashCode, isValidKey);
   }
 
-  patch factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+  @patch
+  factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
 
   // Private factory constructor called by generated code for map literals.
   @NoInline()
@@ -959,10 +965,12 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
   }
 }
 
-patch class HashSet<E> {
-  patch factory HashSet({ bool equals(E e1, E e2),
-                          int hashCode(E e),
-                          bool isValidKey(potentialKey) }) {
+@patch
+class HashSet<E> {
+  @patch
+  factory HashSet({ bool equals(E e1, E e2),
+                    int hashCode(E e),
+                    bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -989,7 +997,8 @@ patch class HashSet<E> {
     return new _CustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  patch factory HashSet.identity() = _IdentityHashSet<E>;
+  @patch
+  factory HashSet.identity() = _IdentityHashSet<E>;
 }
 
 class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
@@ -1124,24 +1133,6 @@ class _HashSet<E> extends _HashSetBase<E> implements HashSet<E> {
     // element to the end and reduce the length of the bucket list.
     JS('void', '#.splice(#, 1)', bucket, index);
     return true;
-  }
-
-  void removeAll(Iterable<Object> objectsToRemove) {
-    for (var each in objectsToRemove) {
-      remove(each);
-    }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, (o) => o is E);
-  }
-
-  void removeWhere(bool test(E element)) {
-    removeAll(_computeElements().where(test));
-  }
-
-  void retainWhere(bool test(E element)) {
-    removeAll(_computeElements().where((E element) => !test(element)));
   }
 
   void clear() {
@@ -1347,25 +1338,6 @@ class _CustomHashSet<E> extends _HashSet<E> {
     if (!_validKey(object)) return false;
     return super._remove(object);
   }
-
-  bool containsAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (!_validKey(element) || !this.contains(element)) return false;
-    }
-    return true;
-  }
-
-  void removeAll(Iterable<Object> elements) {
-    for (Object element in elements) {
-      if (_validKey(element)) {
-        super._remove(element);
-      }
-    }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, _validKey);
-  }
 }
 
 // TODO(kasperl): Share this code with HashMapKeyIterator<E>?
@@ -1398,10 +1370,12 @@ class HashSetIterator<E> implements Iterator<E> {
   }
 }
 
-patch class LinkedHashSet<E> {
-  patch factory LinkedHashSet({ bool equals(E e1, E e2),
-                                int hashCode(E e),
-                                bool isValidKey(potentialKey) }) {
+@patch
+class LinkedHashSet<E> {
+  @patch
+  factory LinkedHashSet({ bool equals(E e1, E e2),
+                          int hashCode(E e),
+                          bool isValidKey(potentialKey) }) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -1428,7 +1402,8 @@ patch class LinkedHashSet<E> {
     return new _LinkedCustomHashSet<E>(equals, hashCode, isValidKey);
   }
 
-  patch factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
+  @patch
+  factory LinkedHashSet.identity() = _LinkedIdentityHashSet<E>;
 }
 
 class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
@@ -1568,12 +1543,6 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     return true;
   }
 
-  void addAll(Iterable<E> objects) {
-    for (E object in objects) {
-      add(object);
-    }
-  }
-
   bool remove(Object object) {
     if (_isStringElement(object)) {
       return _removeHashTableEntry(_strings, object);
@@ -1595,16 +1564,6 @@ class _LinkedHashSet<E> extends _HashSetBase<E> implements LinkedHashSet<E> {
     LinkedHashSetCell cell = JS('var', '#.splice(#, 1)[0]', bucket, index);
     _unlinkCell(cell);
     return true;
-  }
-
-  void removeAll(Iterable objectsToRemove) {
-    for (var each in objectsToRemove) {
-      remove(each);
-    }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, (o) => o is E);
   }
 
   void removeWhere(bool test(E element)) {
@@ -1838,10 +1797,6 @@ class _LinkedCustomHashSet<E> extends _LinkedHashSet<E> {
         super._remove(element);
       }
     }
-  }
-
-  void retainAll(Iterable<Object> elements) {
-    super._retainAll(elements, _validKey);
   }
 }
 

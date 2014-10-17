@@ -11,18 +11,19 @@ submit(Event e) {
 }
 
 _onKeyPress(KeyboardEvent e){
+  e.preventDefault();
   print('The charCode is ${e.charCode}');
   if (e.keyCode == KeyCode.ENTER) submit(e);
   if (e.ctrlKey) return;
 
-  switch((e.keyCode).toString()) {
-    case "KeyCode.DOWN":
+  switch(e.keyCode) {
+    case KeyCode.DOWN:
       // move sprite down
       break;
-    case "KeyCode.UP":
+    case KeyCode.UP:
       // move sprite up
       break;
-    case "KeyCode.F1":
+    case KeyCode.F1:
       // show help
       break;
   }

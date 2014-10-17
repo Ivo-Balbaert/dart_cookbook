@@ -389,3 +389,8 @@ build.dart --machine --changed=pubspec.lock
 
 build.dart finished [2824 ms]
 
+---
+build.dart --machine --full
+
+build.dart finished [2068 ms]
+

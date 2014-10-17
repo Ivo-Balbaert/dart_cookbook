@@ -6,9 +6,11 @@ library scanner;
 
 import 'dart:collection' show IterableBase, HashSet;
 
+import '../dart_types.dart' show DynamicType;
 import '../elements/elements.dart';
 import '../elements/modelx.dart'
     show ElementX,
+         ConstructorElementX,
          FunctionElementX,
          TypedefElementX,
          VariableElementX,

@@ -32,7 +32,7 @@ class Job {
 
   // decoding or deserializing data:
   Job.fromJson(String jsonStr) {
-    Map jsm = JSON.decode(jsonStr);
+    var jsm = JSON.decode(jsonStr);
     this.type = jsm["type"];
     this.salary = jsm["salary"];
     this.company = jsm["company"];

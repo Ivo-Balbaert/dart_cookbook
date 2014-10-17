@@ -58,6 +58,17 @@ part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'js_rti.dart';
 
+class _Patch {
+  const _Patch();
+}
+
+const _Patch patch = const _Patch();
+
+/// No-op method that is called to inform the compiler that preambles might
+/// be needed when executing the resulting JS file in a command-line
+/// JS engine.
+requiresPreamble() {}
+
 bool isJsIndexable(var object, var record) {
   if (record != null) {
     var result = dispatchRecordIndexability(record);
@@ -108,8 +119,17 @@ void throwInvalidReflectionError(String memberName) {
       "because it is not included in a @MirrorsUsed annotation.");
 }
 
-bool hasReflectableProperty(var jsFunction) {
-  return JS('bool', '# in #', JS_GET_NAME("REFLECTABLE"), jsFunction);
+/// Helper to print the given method information to the console the first
+/// time it is called with it.
+@NoInline()
+void traceHelper(String method) {
+  if (JS('bool', '!this.cache')) {
+    JS('', 'this.cache = Object.create(null)');
+  }
+  if (JS('bool', '!this.cache[#]', method)) {
+    JS('', 'console.log(#)', method);
+    JS('', 'this.cache[#] = true', method);
+  }
 }
 
 class JSInvocationMirror implements Invocation {
@@ -139,6 +159,11 @@ class JSInvocationMirror implements Invocation {
     String unmangledName = mangledNames[name];
     if (unmangledName != null) {
       name = unmangledName.split(':')[0];
+    } else {
+      if (mangledNames[_internalName] == null) {
+        print("Warning: '$name' is used reflectively but not in MirrorsUsed. "
+              "This will break minified code.");
+      }
     }
     _memberName = new _symbol_dev.Symbol.unvalidated(name);
     return _memberName;
@@ -217,14 +242,6 @@ class JSInvocationMirror implements Invocation {
       isCatchAll = true;
     }
     if (JS('bool', 'typeof # == "function"', method)) {
-      // TODO(floitsch): bound or tear-off closure does not guarantee that the
-      // function is reflectable.
-      bool isReflectable = hasReflectableProperty(method) ||
-          object is BoundClosure ||
-          object is TearOffClosure;
-      if (!isReflectable) {
-        throwInvalidReflectionError(_symbol_dev.Symbol.getName(memberName));
-      }
       if (isCatchAll) {
         return new CachedCatchAllInvocation(
             name, method, isIntercepted, interceptor);
@@ -545,8 +562,6 @@ class Primitives {
     return JS('int', '#', hash);
   }
 
-  static computeGlobalThis() => JS('', 'function() { return this; }()');
-
   static _throwFormatException(String string) {
     throw new FormatException(string);
   }
@@ -690,16 +705,23 @@ class Primitives {
 
   static num dateNow() => JS('num', r'Date.now()');
 
-  static num numMicroseconds() {
-    if (JS('bool', 'typeof window != "undefined" && window !== null')) {
-      var performance = JS('var', 'window.performance');
-      if (performance != null &&
-          JS('bool', 'typeof #.webkitNow == "function"', performance)) {
-        return (1000 * JS('num', '#.webkitNow()', performance)).floor();
-      }
-    }
-    return 1000 * dateNow();
+  static void initTicker() {
+    if (timerFrequency != null) return;
+    // Start with low-resolution. We overwrite the fields if we find better.
+    timerFrequency = 1000;
+    timerTicks = dateNow;
+    if (JS('bool', 'typeof window == "undefined"')) return;
+    var window = JS('var', 'window');
+    if (window == null) return;
+    var performance = JS('var', '#.performance', window);
+    if (performance == null) return;
+    if (JS('bool', 'typeof #.now != "function"', performance)) return;
+    timerFrequency = 1000000;
+    timerTicks = () => (1000 * JS('num', '#.now()', performance)).floor();
   }
+
+  static int timerFrequency;
+  static Function timerTicks;
 
   static bool get isD8 {
     return JS('bool',
@@ -713,31 +735,13 @@ class Primitives {
   }
 
   static String currentUri() {
+    requiresPreamble();
     // In a browser return self.location.href.
-    if (JS('bool', 'typeof self != "undefined"')) {
+    if (JS('bool', '!!self.location')) {
       return JS('String', 'self.location.href');
     }
 
-    // In JavaScript shells try to determine the current working
-    // directory.
-    var workingDirectory;
-    if (isD8) {
-      // TODO(sgjesse): This does not work on Windows.
-      workingDirectory = JS('String', 'os.system("pwd")');
-      var length = workingDirectory.length;
-      if (workingDirectory[length - 1] == '\n') {
-        workingDirectory = workingDirectory.substring(0, length - 1);
-      }
-    }
-
-    if (isJsshell) {
-      // TODO(sgjesse): This does not work on Windows.
-      workingDirectory = JS('String', 'environment["PWD"]');
-    }
-
-    return workingDirectory != null
-        ? "file://" + workingDirectory + "/"
-        : null;
+    return null;
   }
 
   // This is to avoid stack overflows due to very large argument arrays in
@@ -866,7 +870,7 @@ class Primitives {
     if (value.isNaN ||
         value < -MAX_MILLISECONDS_SINCE_EPOCH ||
         value > MAX_MILLISECONDS_SINCE_EPOCH) {
-      throw new ArgumentError();
+      return null;
     }
     if (years <= 0 || years < 100) return patchUpY2K(value, years, isUtc);
     return value;
@@ -2369,12 +2373,6 @@ jsPropertyAccess(var jsObject, String property) {
 getFallThroughError() => new FallThroughErrorImplementation();
 
 /**
- * Represents the type dynamic. The compiler treats this specially.
- */
-abstract class Dynamic_ {
-}
-
-/**
  * A metadata annotation describing the types instantiated by a native element.
  *
  * The annotation is valid on a native method and a field of a native class.
@@ -2807,7 +2805,7 @@ class RuntimeError extends Error {
   String toString() => "RuntimeError: $message";
 }
 
-class DeferredNotLoadedError extends Error {
+class DeferredNotLoadedError extends Error implements NoSuchMethodError {
   String libraryName;
 
   DeferredNotLoadedError(this.libraryName);
@@ -3336,4 +3334,24 @@ Future<Null> _loadHunk(String hunkName, String uri) {
 
     return completer.future;
   });
+}
+
+class MainError extends Error implements NoSuchMethodError {
+  final String _message;
+
+  MainError(this._message);
+
+  String toString() => 'NoSuchMethodError: $_message';
+}
+
+void missingMain() {
+  throw new MainError("No top-level function named 'main'.");
+}
+
+void badMain() {
+  throw new MainError("'main' is not a function.");
+}
+
+void mainHasTooManyParameters() {
+  throw new MainError("'main' expects too many parameters.");
 }

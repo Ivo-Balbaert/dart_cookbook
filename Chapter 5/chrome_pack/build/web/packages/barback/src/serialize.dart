@@ -9,7 +9,7 @@ import 'dart:isolate';
 
 import 'package:stack_trace/stack_trace.dart';
 
-import 'asset_id.dart';
+import 'asset/asset_id.dart';
 import 'utils.dart';
 
 /// Converts [id] into a serializable map.
@@ -45,10 +45,8 @@ Stream deserializeStream(SendPort sendPort) {
   return callbackStream(() {
     var receivePort = new ReceivePort();
     sendPort.send(receivePort.sendPort);
-    // TODO(nweiz): use a const constructor for StreamTransformer when issue
-    // 14971 is fixed.
     return receivePort.transform(
-        new StreamTransformer(_deserializeTransformer));
+        const StreamTransformer(_deserializeTransformer));
   });
 }
 
@@ -106,21 +104,10 @@ class CrossIsolateException implements Exception {
     if (stack == null && error is Error) stack = error.stackTrace;
     return {
       'type': error.runtimeType.toString(),
-      'message': _getErrorMessage(error),
+      'message': getErrorMessage(error),
       'stack': stack == null ? null : new Chain.forTrace(stack).toString()
     };
   }
 
   String toString() => "$message\n$stackTrace";
 }
-
-/// A regular expression to match the exception prefix that some exceptions'
-/// [Object.toString] values contain.
-final _exceptionPrefix = new RegExp(r'^([A-Z][a-zA-Z]*)?(Exception|Error): ');
-
-/// Get a string description of an exception.
-///
-/// Many exceptions include the exception class name at the beginning of their
-/// [toString], so we remove that if it exists.
-String _getErrorMessage(error) =>
-  error.toString().replaceFirst(_exceptionPrefix, '');

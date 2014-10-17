@@ -9,12 +9,15 @@ class CheckedModeHelper {
 
   const CheckedModeHelper(String this.name);
 
-  Element getElement(Compiler compiler) => compiler.findHelper(name);
+  Element getElement(Compiler compiler) {
+    JavaScriptBackend backend = compiler.backend;
+    return backend.findHelper(name);
+  }
 
   jsAst.Expression generateCall(SsaCodeGenerator codegen,
                                 HTypeConversion node) {
     Element helperElement = getElement(codegen.compiler);
-    codegen.world.registerStaticUse(helperElement);
+    codegen.registry.registerStaticUse(helperElement);
     List<jsAst.Expression> arguments = <jsAst.Expression>[];
     codegen.use(node.checkedInput);
     arguments.add(codegen.pop());
@@ -95,7 +98,7 @@ class TypeVariableCheckedModeHelper extends CheckedModeHelper {
   void generateAdditionalArguments(SsaCodeGenerator codegen,
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
-    assert(node.typeExpression.kind == TypeKind.TYPE_VARIABLE);
+    assert(node.typeExpression.isTypeVariable);
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
   }

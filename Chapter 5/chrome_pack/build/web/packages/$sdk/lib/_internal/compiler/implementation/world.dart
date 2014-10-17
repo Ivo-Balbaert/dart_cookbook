@@ -10,6 +10,8 @@ class World {
   final Set<Element> functionsCalledInLoop = new Set<Element>();
   final Map<Element, SideEffects> sideEffects = new Map<Element, SideEffects>();
 
+  final Set<TypedefElement> allTypedefs = new Set<TypedefElement>();
+
   final Map<ClassElement, Set<MixinApplicationElement>> mixinUses =
       new Map<ClassElement, Set<MixinApplicationElement>>();
 
@@ -31,6 +33,8 @@ class World {
 
   final Set<Element> functionsThatMightBePassedToApply =
       new Set<FunctionElement>();
+
+  final Set<Element> alreadyPopulated;
 
   Set<ClassElement> subclassesOf(ClassElement cls) {
     return _subclasses[cls.declaration];
@@ -55,10 +59,14 @@ class World {
 
   World(Compiler compiler)
       : allFunctions = new FunctionSet(compiler),
-        this.compiler = compiler;
+        this.compiler = compiler,
+        alreadyPopulated = compiler.cacheStrategy.newSet();
 
   void populate() {
     void addSubtypes(ClassElement cls) {
+      if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
+        return;
+      }
       assert(cls.isDeclaration);
       if (cls.resolutionState != STATE_DONE) {
         compiler.internalError(cls, 'Class "${cls.name}" is not resolved.');
@@ -141,7 +149,7 @@ class World {
   }
 
   bool hasAnyUserDefinedGetter(Selector selector) {
-    return allFunctions.filter(selector).any((each) => each.isGetter());
+    return allFunctions.filter(selector).any((each) => each.isGetter);
   }
 
   // Returns whether a subclass of [superclass] implements [type].
@@ -180,14 +188,14 @@ class World {
   }
 
   void registerUsedElement(Element element) {
-    if (element.isInstanceMember() && !element.isAbstract) {
+    if (element.isInstanceMember && !element.isAbstract) {
       allFunctions.add(element);
     }
   }
 
   VariableElement locateSingleField(Selector selector) {
     Element result = locateSingleElement(selector);
-    return (result != null && result.isField()) ? result : null;
+    return (result != null && result.isField) ? result : null;
   }
 
   Element locateSingleElement(Selector selector) {
@@ -206,8 +214,8 @@ class World {
   }
 
   bool fieldNeverChanges(Element element) {
-    if (!element.isField()) return false;
-    if (element.isNative()) {
+    if (!element.isField) return false;
+    if (element.isNative) {
       // Some native fields are views of data that may be changed by operations.
       // E.g. node.firstChild depends on parentNode.removeBefore(n1, n2).
       // TODO(sra): Refine the effect classification so that native effects are
@@ -215,9 +223,9 @@ class World {
       return false;
     }
 
-    return element.modifiers.isFinal()
-        || element.modifiers.isConst()
-        || (element.isInstanceMember()
+    return element.isFinal
+        || element.isConst
+        || (element.isInstanceMember
             && !compiler.resolverWorld.hasInvokedSetter(element, compiler));
   }
 
@@ -228,8 +236,8 @@ class World {
     // between a constructor and its body for side effects. This
     // implies that currently, the side effects of a constructor body
     // contain the side effects of the initializers.
-    assert(!element.isGenerativeConstructorBody());
-    assert(!element.isField());
+    assert(!element.isGenerativeConstructorBody);
+    assert(!element.isField);
     return sideEffects.putIfAbsent(element.declaration, () {
       return new SideEffects();
     });
@@ -247,18 +255,18 @@ class World {
 
   SideEffects getSideEffectsOfSelector(Selector selector) {
     // We're not tracking side effects of closures.
-    if (selector.isClosureCall()) return new SideEffects();
+    if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
     for (Element e in allFunctions.filter(selector)) {
-      if (e.isField()) {
-        if (selector.isGetter()) {
+      if (e.isField) {
+        if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {
             sideEffects.setDependsOnInstancePropertyStore();
           }
-        } else if (selector.isSetter()) {
+        } else if (selector.isSetter) {
           sideEffects.setChangesInstanceProperty();
         } else {
-          assert(selector.isCall());
+          assert(selector.isCall);
           sideEffects.setAllSideEffects();
           sideEffects.setDependsOnSomething();
         }
@@ -277,9 +285,9 @@ class World {
     return elementsThatCannotThrow.contains(element);
   }
 
-  void registerImplicitSuperCall(TreeElements elements,
+  void registerImplicitSuperCall(Registry registry,
                                  FunctionElement superConstructor) {
-    elements.otherDependencies.add(superConstructor);
+    registry.registerDependency(superConstructor);
   }
 
   void registerMightBePassedToApply(Element element) {
@@ -293,7 +301,7 @@ class World {
     // expressions. In such a case, we have to look at the original
     // function expressions's element.
     // TODO(herhut): Generate classes for function expressions earlier.
-    if (element is SynthesizedCallMethodElementX) {
+    if (element is closureMapping.SynthesizedCallMethodElementX) {
       return getMightBePassedToApply(element.expression);
     }
     return functionsThatMightBePassedToApply.contains(element);

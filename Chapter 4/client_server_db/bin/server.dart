@@ -9,7 +9,7 @@ import 'package:client_server/shared_model.dart';
  */
 
 const String HOST = "127.0.0.1"; // eg: localhost
-const int PORT = 8080;
+const int PORT = 8081;
 
 Tasks tasks = new Tasks();
 

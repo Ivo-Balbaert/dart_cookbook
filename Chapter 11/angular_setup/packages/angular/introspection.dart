@@ -13,6 +13,8 @@ import 'package:angular/core_dom/module_internal.dart';
 import 'package:angular/core_dom/directive_injector.dart' show DirectiveInjector;
 import 'package:angular/core/static_keys.dart';
 
+export 'package:angular/core_dom/module_internal.dart' show ElementProbe;
+
 
 /**
  * A global write only variable which keeps track of objects attached to the
@@ -26,7 +28,11 @@ ElementProbe _findProbeWalkingUp(dom.Node node, [dom.Node ascendUntil]) {
   while (node != null && node != ascendUntil) {
     var probe = elementExpando[node];
     if (probe != null) return probe;
-    node = node.parent;
+    if (node is dom.ShadowRoot) {
+      node = (node as dom.ShadowRoot).host;
+    } else {
+      node = node.parentNode;
+    }
   }
   return null;
 }
@@ -37,6 +43,14 @@ _walkProbesInTree(dom.Node node, Function walker) {
   if (probe == null || walker(probe) != true) {
     for (var child in node.childNodes) {
       _walkProbesInTree(child, walker);
+    }
+    if (node is dom.Element) {
+      var shadowRoot = (node as dom.Element).shadowRoot;
+      if (shadowRoot != null) {
+        for (var child in shadowRoot.childNodes) {
+          _walkProbesInTree(child, walker);
+        }
+      }
     }
   }
 }
@@ -275,7 +289,7 @@ class _Testability implements _JsObjectProxyable {
   _Testability(this.node, this.probe);
 
   whenStable(callback) {
-    probe.injector.get(VmTurnZone).run(
+    (probe.injector.get(VmTurnZone) as VmTurnZone).run(
         () => new async.Timer(Duration.ZERO, callback));
   }
 

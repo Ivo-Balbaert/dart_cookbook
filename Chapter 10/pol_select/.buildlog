@@ -489,3 +489,13 @@ build.dart --machine --full
 
 build.dart finished [1891 ms]
 
+---
+build.dart --machine --full
+
+build.dart finished [1719 ms]
+
+---
+build.dart --machine --changed=web\pol_select.dart
+
+build.dart finished [1579 ms]
+

@@ -53,6 +53,8 @@ abstract class ConstantSystem {
   Constant createString(DartString string);
   Constant createBool(bool value);
   Constant createNull();
+  Constant createMap(Compiler compiler, InterfaceType type,
+                     List<Constant> keys, List<Constant> values);
 
   // We need to special case the subtype check for JavaScript constant
   // system because an int is a double at runtime.
@@ -69,9 +71,36 @@ abstract class ConstantSystem {
   /** Returns true if the [constant] is null at runtime. */
   bool isNull(Constant constant);
 
-  Operation lookupUnary(String operator) {
-    if (operator == '-') return negate;
-    if (operator == '~') return bitNot;
-    return null;
+  UnaryOperation lookupUnary(String operator) {
+    switch (operator) {
+      case '~': return bitNot;
+      case '-': return negate;
+      case '!': return not;
+      default:  return null;
+    }
+  }
+
+  BinaryOperation lookupBinary(String operator) {
+    switch (operator) {
+      case "+":   return add;
+      case "-":   return subtract;
+      case "*":   return multiply;
+      case "/":   return divide;
+      case "%":   return modulo;
+      case "~/":  return truncatingDivide;
+      case "|":   return bitOr;
+      case "&":   return bitAnd;
+      case "^":   return bitXor;
+      case "||":  return booleanOr;
+      case "&&":  return booleanAnd;
+      case "<<":  return shiftLeft;
+      case ">>":  return shiftRight;
+      case "<":   return less;
+      case "<=":  return lessEqual;
+      case ">":   return greater;
+      case ">=":  return greaterEqual;
+      case "==":  return equal;
+      default:    return null;
+    }
   }
 }

@@ -3,7 +3,7 @@ import 'package:polymer/polymer.dart';
 
 @CustomTag('find-nodes')
 class Findnodes extends PolymerElement {
-  Findnodes.created() : super.created() {  }
+  Findnodes.created() : super.created();
 
   btnclick(MouseEvent  e, var detail, Node target) {
     // making the paragraph visible:

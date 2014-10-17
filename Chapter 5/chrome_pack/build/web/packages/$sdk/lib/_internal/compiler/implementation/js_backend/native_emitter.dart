@@ -6,7 +6,9 @@ part of js_backend;
 
 class NativeEmitter {
 
-  CodeEmitterTask emitter;
+  final Map<Element, ClassBuilder> cachedBuilders;
+
+  final CodeEmitterTask emitter;
   CodeBuffer nativeBuffer;
 
   // Native classes found in the application.
@@ -26,11 +28,13 @@ class NativeEmitter {
   // it finds any native class that needs noSuchMethod handling.
   bool handleNoSuchMethod = false;
 
-  NativeEmitter(this.emitter)
-      : subtypes = new Map<ClassElement, List<ClassElement>>(),
+  NativeEmitter(CodeEmitterTask emitter)
+      : this.emitter = emitter,
+        subtypes = new Map<ClassElement, List<ClassElement>>(),
         directSubtypes = new Map<ClassElement, List<ClassElement>>(),
         nativeMethods = new Set<FunctionElement>(),
-        nativeBuffer = new CodeBuffer();
+        nativeBuffer = new CodeBuffer(),
+        cachedBuilders = emitter.compiler.cacheStrategy.newMap();
 
   Compiler get compiler => emitter.compiler;
   JavaScriptBackend get backend => compiler.backend;
@@ -40,7 +44,7 @@ class NativeEmitter {
   String get N => emitter.N;
 
   jsAst.Expression get defPropFunction {
-    Element element = compiler.findHelper('defineProperty');
+    Element element = backend.findHelper('defineProperty');
     return backend.namer.elementAccess(element);
   }
 
@@ -91,7 +95,7 @@ class NativeEmitter {
     Map<ClassElement, ClassBuilder> builders =
         new Map<ClassElement, ClassBuilder>();
     for (ClassElement classElement in classes) {
-      if (classElement.isNative()) {
+      if (classElement.isNative) {
         ClassBuilder builder = generateNativeClass(classElement);
         builders[classElement] = builder;
       }
@@ -136,7 +140,7 @@ class NativeEmitter {
       } else if (extensionPoints.containsKey(classElement)) {
         needed = true;
       }
-      if (classElement.isNative() &&
+      if (classElement.isNative &&
           native.nativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonleafClasses.add(classElement);
@@ -157,7 +161,7 @@ class NativeEmitter {
         new Map<ClassElement, Set<String>>();
 
     for (ClassElement classElement in classes) {
-      if (!classElement.isNative()) continue;
+      if (!classElement.isNative) continue;
       List<String> nativeTags = native.nativeTagsOfClass(classElement);
 
       if (nonleafClasses.contains(classElement) ||
@@ -234,13 +238,13 @@ class NativeEmitter {
 
     // Emit the native class interceptors that were actually used.
     for (ClassElement classElement in classes) {
-      if (!classElement.isNative()) continue;
+      if (!classElement.isNative) continue;
       if (neededClasses.contains(classElement)) {
         // Define interceptor class for [classElement].
         emitter.classEmitter.emitClassBuilderWithReflectionData(
             backend.namer.getNameOfClass(classElement),
             classElement, builders[classElement],
-            emitter.getElementDecriptor(classElement));
+            emitter.getElementDescriptor(classElement));
         emitter.needsDefineClass = true;
       }
     }
@@ -255,7 +259,7 @@ class NativeEmitter {
       List<ClassElement> classes) {
     ClassElement nativeSuperclassOf(ClassElement element) {
       if (element == null) return null;
-      if (element.isNative()) return element;
+      if (element.isNative) return element;
       return nativeSuperclassOf(element.superclass);
     }
 
@@ -267,7 +271,7 @@ class NativeEmitter {
         new Map<ClassElement, List<ClassElement>>();
 
     for (ClassElement classElement in classes) {
-      if (classElement.isNative()) continue;
+      if (classElement.isNative) continue;
       ClassElement nativeAncestor = nativeAncestorOf(classElement);
       if (nativeAncestor != null) {
         map
@@ -279,6 +283,16 @@ class NativeEmitter {
   }
 
   ClassBuilder generateNativeClass(ClassElement classElement) {
+    ClassBuilder builder;
+    if (compiler.hasIncrementalSupport) {
+      builder = cachedBuilders[classElement];
+      if (builder != null) return builder;
+      builder = new ClassBuilder(classElement, backend.namer);
+      cachedBuilders[classElement] = builder;
+    } else {
+      builder = new ClassBuilder(classElement, backend.namer);
+    }
+
     // TODO(sra): Issue #13731- this is commented out as part of custom element
     // constructor work.
     //assert(!classElement.hasBackendMembers);
@@ -294,7 +308,6 @@ class NativeEmitter {
 
     String superName = backend.namer.getNameOfClass(superclass);
 
-    ClassBuilder builder = new ClassBuilder(backend.namer);
     emitter.classEmitter.emitClassConstructor(classElement, builder);
     bool hasFields = emitter.classEmitter.emitFields(
         classElement, builder, superName, classIsNative: true);
@@ -323,8 +336,7 @@ class NativeEmitter {
       FunctionElement member,
       List<jsAst.Parameter> stubParameters) {
     FunctionSignature parameters = member.functionSignature;
-    Element converter =
-        compiler.findHelper('convertDartClosureToJS');
+    Element converter = backend.findHelper('convertDartClosureToJS');
     jsAst.Expression closureConverter = backend.namer.elementAccess(converter);
     parameters.forEachParameter((ParameterElement parameter) {
       String name = parameter.name;
@@ -349,7 +361,7 @@ class NativeEmitter {
   }
 
   List<jsAst.Statement> generateParameterStubStatements(
-      Element member,
+      FunctionElement member,
       bool isInterceptedMethod,
       String invocationName,
       List<jsAst.Parameter> stubParameters,
@@ -364,7 +376,7 @@ class NativeEmitter {
     // must be turned into a JS call to:
     //   foo(null, y).
 
-    ClassElement classElement = member.enclosingElement;
+    ClassElement classElement = member.enclosingClass;
 
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
@@ -376,7 +388,7 @@ class NativeEmitter {
     assert(invariant(member, nativeMethods.contains(member)));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = member.fixedBackendName();
+    target = member.fixedBackendName;
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
@@ -394,7 +406,7 @@ class NativeEmitter {
   }
 
   bool isSupertypeOfNativeClass(Element element) {
-    if (element.isTypeVariable()) {
+    if (element.isTypeVariable) {
       compiler.internalError(element, "Is check for type variable.");
       return false;
     }
@@ -404,7 +416,7 @@ class NativeEmitter {
       return false;
     }
 
-    if (!element.isClass()) {
+    if (!element.isClass) {
       compiler.internalError(element, "Is check does not handle element.");
       return false;
     }
@@ -423,7 +435,7 @@ class NativeEmitter {
     // by a native class in case we get a native instance that tries to spoof
     // the type info.  i.e the criteria for whether or not to use an interceptor
     // is whether the receiver can be native, not the type of the test.
-    if (!element.isClass()) return false;
+    if (element == null || !element.isClass) return false;
     ClassElement cls = element;
     if (Elements.isNativeOrExtendsNative(cls)) return true;
     return isSupertypeOfNativeClass(element);
@@ -432,8 +444,10 @@ class NativeEmitter {
   void assembleCode(CodeBuffer targetBuffer) {
     List<jsAst.Property> objectProperties = <jsAst.Property>[];
 
-    void addProperty(String name, jsAst.Expression value) {
-      objectProperties.add(new jsAst.Property(js.string(name), value));
+    jsAst.Property addProperty(String name, jsAst.Expression value) {
+      jsAst.Property prop = new jsAst.Property(js.string(name), value);
+      objectProperties.add(prop);
+      return prop;
     }
 
     if (!nativeClasses.isEmpty) {

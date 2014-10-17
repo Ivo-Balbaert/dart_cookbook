@@ -10,7 +10,9 @@ void main() {
 
   var sb = new StringBuffer();
   sb.writeAll([s1, " ", s2, s3]);
-  sb.writeAll([s1, " ", s2, s3],'-');
   res = sb.toString();
   print(res); // Dart CookBook
+  sb.writeAll([s1, " ", s2, s3],'-');
+  res = sb.toString();
+  print(res); // Dart- -Cook-Book
 }

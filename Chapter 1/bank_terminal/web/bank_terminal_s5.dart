@@ -1,5 +1,5 @@
 import 'dart:html';
-import 'package:bank_terminal_s5/bank_terminal.dart';
+import 'package:bank_terminal/bank_terminal.dart';
 
 LabelElement owner, balance, error;
 InputElement number, amount;

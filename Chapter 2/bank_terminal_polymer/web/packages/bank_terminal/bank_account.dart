@@ -2,13 +2,9 @@ part of bank_terminal;
 
 final Logger log = new Logger('Bank Account');
 
-/**
- * Class for normal bank accounts.
- */
 class BankAccount {
   String _number;
   Person owner;
-  /// Amount of money contained in this account.
   double _balance;
   int _pin_code;
   final DateTime date_created;
@@ -51,15 +47,11 @@ class BankAccount {
     this.date_modified = DateTime.parse(json["modified_date"]);
    }
   // methods:
-  /**
-   * Calculates the new balance for this account,
-   * when a transaction (deposit or withdrawal) for amount is initiated.
-   */
   transact(double amount) {
-    balance += amount;
     if (amount < 0 && (-amount) > balance) {
       log.severe("Balance will go negative!");
     }
+    balance += amount;
     date_modified = new DateTime.now();
   }
 

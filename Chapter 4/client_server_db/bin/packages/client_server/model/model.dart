@@ -38,6 +38,7 @@ class Task {
     if (title != null) {
       return title.compareTo(task.title);
     }
+    return 0;
   }
 
   /**
@@ -113,6 +114,7 @@ class Tasks {
         }
       }
     }
+    return null;
   }
 
   bool add(Task task) {

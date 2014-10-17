@@ -35,7 +35,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     if (cachedClassesUsingTypeVariableTests == null) {
       cachedClassesUsingTypeVariableTests = compiler.codegenWorld.isChecks
           .where((DartType t) => t is TypeVariableType)
-          .map((TypeVariableType v) => v.element.getEnclosingClass())
+          .map((TypeVariableType v) => v.element.enclosingClass)
           .toList();
     }
     return cachedClassesUsingTypeVariableTests;
@@ -52,17 +52,18 @@ class TypeTestEmitter extends CodeEmitterHelper {
       builder.addProperty(namer.operatorIs(other), js('true'));
     }
 
-    void generateFunctionTypeSignature(Element method, FunctionType type) {
+    void generateFunctionTypeSignature(FunctionElement method,
+                                       FunctionType type) {
       assert(method.isImplementation);
       jsAst.Expression thisAccess = new jsAst.This();
-      Node node = method.parseNode(compiler);
+      Node node = method.node;
       ClosureClassMap closureData =
           compiler.closureToClassMapper.closureMappingCache[node];
       if (closureData != null) {
-        Element thisElement =
-            closureData.freeVariableMapping[closureData.thisElement];
-        if (thisElement != null) {
-          String thisName = namer.instanceFieldPropertyName(thisElement);
+        ClosureFieldElement thisLocal =
+            closureData.getFreeVariableElement(closureData.thisLocal);
+        if (thisLocal != null) {
+          String thisName = namer.instanceFieldPropertyName(thisLocal);
           thisAccess = js('this.#', thisName);
         }
       }
@@ -116,7 +117,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
-      if (a.isClosure()) return true;
+      if (a.isClosure) return true;
       return backend.rti.isTrivialSubstitution(a, b);
     }
 
@@ -166,7 +167,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
         // If [cls] is a closure, it has a synthetic call operator method.
         call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
       }
-      if (call != null && call.isFunction()) {
+      if (call != null && call.isFunction) {
         generateInterfacesIsTests(compiler.functionClass,
                                   emitIsTest,
                                   emitSubstitution,
@@ -280,6 +281,7 @@ class TypeTestEmitter extends CodeEmitterHelper {
     // TODO(sigurdm): We should avoid running through this list for each
     // output unit.
 
+    jsAst.Statement variables = js.statement('var TRUE = !0, _;');
     List<jsAst.Statement> statements = <jsAst.Statement>[];
 
     for (ClassElement cls in typeChecks) {
@@ -288,26 +290,40 @@ class TypeTestEmitter extends CodeEmitterHelper {
       if (destination != outputUnit) continue;
       // TODO(9556).  The properties added to 'holder' should be generated
       // directly as properties of the class object, not added later.
-      jsAst.Expression holder = namer.elementAccess(cls);
+
+      // Each element is a pair: [propertyName, valueExpression]
+      List<List> properties = <List>[];
 
       for (TypeCheck check in typeChecks[cls]) {
-        ClassElement cls = check.cls;
-        buffer.write(
-            jsAst.prettyPrint(
-                js('#.# = true', [holder, namer.operatorIs(cls)]),
-                compiler));
-        buffer.write('$N');
+        ClassElement checkedClass = check.cls;
+        properties.add([namer.operatorIs(checkedClass), js('TRUE')]);
         Substitution substitution = check.substitution;
         if (substitution != null) {
           jsAst.Expression body = substitution.getCode(rti, false);
-          buffer.write(
-              jsAst.prettyPrint(
-                  js('#.# = #',
-                      [holder, namer.substitutionName(cls), body]),
-                  compiler));
-          buffer.write('$N');
+          properties.add([namer.substitutionName(checkedClass), body]);
         }
       }
+
+      jsAst.Expression holder = namer.elementAccess(cls);
+      if (properties.length > 1) {
+        // Use temporary shortened reference.
+        statements.add(js.statement('_ = #;', holder));
+        holder = js('#', '_');
+      }
+      for (List nameAndValue in properties) {
+        statements.add(
+            js.statement('#.# = #',
+                [holder, nameAndValue[0], nameAndValue[1]]));
+      }
+    }
+
+    if (statements.isNotEmpty) {
+      buffer.write(';');
+      buffer.write(
+          jsAst.prettyPrint(
+              js.statement('(function() { #; #; })()', [variables, statements]),
+              compiler));
+      buffer.write('$N');
     }
   }
 
@@ -372,12 +388,12 @@ class TypeTestEmitter extends CodeEmitterHelper {
     }
 
     bool canTearOff(Element function) {
-      if (!function.isFunction() ||
-          function.isConstructor() ||
-          function.isAccessor()) {
+      if (!function.isFunction ||
+          function.isConstructor ||
+          function.isAccessor) {
         return false;
-      } else if (function.isInstanceMember()) {
-        if (!function.getEnclosingClass().isClosure()) {
+      } else if (function.isInstanceMember) {
+        if (!function.enclosingClass.isClosure) {
           return compiler.codegenWorld.hasInvokedGetter(function, compiler);
         }
       }

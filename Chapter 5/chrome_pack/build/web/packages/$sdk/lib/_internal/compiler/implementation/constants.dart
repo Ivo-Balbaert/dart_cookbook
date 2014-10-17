@@ -5,6 +5,8 @@
 part of dart2js;
 
 abstract class ConstantVisitor<R> {
+  const ConstantVisitor();
+
   R visitFunction(FunctionConstant constant);
   R visitNull(NullConstant constant);
   R visitInt(IntConstant constant);
@@ -18,6 +20,7 @@ abstract class ConstantVisitor<R> {
   R visitType(TypeConstant constant);
   R visitInterceptor(InterceptorConstant constant);
   R visitDummy(DummyConstant constant);
+  R visitDeferred(DeferredConstant constant);
 }
 
 abstract class Constant {
@@ -339,7 +342,7 @@ class StringConstant extends PrimitiveConstant {
   accept(ConstantVisitor visitor) => visitor.visitString(this);
 
   String toString() {
-    return 'StringConstant(${Error.safeToString(value.slowToString())})';
+    return 'StringConstant("${value.slowToString()}")';
   }
 }
 
@@ -375,7 +378,7 @@ class TypeConstant extends ObjectConstant {
 
   accept(ConstantVisitor visitor) => visitor.visitType(this);
 
-  String toString() => 'TypeConstant(${Error.safeToString(representedType)})';
+  String toString() => 'TypeConstant(${representedType})';
 }
 
 class ListConstant extends ObjectConstant {
@@ -425,7 +428,7 @@ class ListConstant extends ObjectConstant {
     sb.write('ListConstant([');
     for (int i = 0 ; i < entries.length ; i++) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(entries[i]));
+      sb.write(entries[i]);
     }
     sb.write('])');
     return sb.toString();
@@ -433,40 +436,28 @@ class ListConstant extends ObjectConstant {
 }
 
 class MapConstant extends ObjectConstant {
-  /**
-   * The [PROTO_PROPERTY] must not be used as normal property in any JavaScript
-   * object. It would change the prototype chain.
-   */
-  static const LiteralDartString PROTO_PROPERTY =
-      const LiteralDartString("__proto__");
-
-  /** The dart class implementing constant map literals. */
-  static const String DART_CLASS = "ConstantMap";
-  static const String DART_STRING_CLASS = "ConstantStringMap";
-  static const String DART_PROTO_CLASS = "ConstantProtoMap";
-  static const String DART_GENERAL_CLASS = "GeneralConstantMap";
-  static const String LENGTH_NAME = "length";
-  static const String JS_OBJECT_NAME = "_jsObject";
-  static const String KEYS_NAME = "_keys";
-  static const String PROTO_VALUE = "_protoValue";
-  static const String JS_DATA_NAME = "_jsData";
-
-  final ListConstant keys;
+  final List<Constant> keys;
   final List<Constant> values;
-  final Constant protoValue;
   final int hashCode;
-  final bool onlyStringKeys;
 
-  MapConstant(DartType type, this.keys, List<Constant> values, this.protoValue,
-              this.onlyStringKeys)
-      : this.values = values,
-        this.hashCode = computeHash(type, values),
-        super(type);
+  MapConstant(DartType type, List<Constant> keys, List<Constant> values)
+      : this.keys = keys,
+        this.values = values,
+        this.hashCode = computeHash(type, keys, values),
+        super(type) {
+    assert(keys.length == values.length);
+  }
+
   bool get isMap => true;
 
-  static int computeHash(DartType type, List<Constant> values) {
+  static int computeHash(DartType type,
+                         List<Constant> keys,
+                         List<Constant> values) {
     // TODO(floitsch): create a better hash.
     int hash = 0;
+    for (Constant key in keys) {
+      hash ^= key.hashCode;
+    }
     for (Constant value in values) {
       hash ^= value.hashCode;
     }
@@ -483,8 +474,9 @@ class MapConstant extends ObjectConstant {
     MapConstant otherMap = other;
     if (hashCode != otherMap.hashCode) return false;
     if (type != other.type) return false;
-    if (keys != otherMap.keys) return false;
-    for (int i = 0; i < values.length; i++) {
+    if (length != other.length) return false;
+    for (int i = 0; i < length; i++) {
+      if (keys[i] != otherMap.keys[i]) return false;
       if (values[i] != otherMap.values[i]) return false;
     }
     return true;
@@ -492,13 +484,7 @@ class MapConstant extends ObjectConstant {
 
   List<Constant> getDependencies() {
     List<Constant> result = <Constant>[];
-    if (onlyStringKeys) {
-      result.add(keys);
-    } else {
-      // Add the keys individually to avoid generating a unused list constant
-      // for the keys.
-      result.addAll(keys.entries);
-    }
+    result.addAll(keys);
     result.addAll(values);
     return result;
   }
@@ -510,11 +496,11 @@ class MapConstant extends ObjectConstant {
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write('MapConstant({');
-    for (int i = 0 ; i < keys.entries.length ; i++) {
+    for (int i = 0; i < length; i++) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(keys.entries[i]));
+      sb.write(keys[i]);
       sb.write(':');
-      sb.write(Error.safeToString(values[i]));
+      sb.write(values[i]);
     }
     sb.write('})');
     return sb.toString();
@@ -541,7 +527,7 @@ class InterceptorConstant extends Constant {
 
   accept(ConstantVisitor visitor) => visitor.visitInterceptor(this);
 
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+  DartType computeType(Compiler compiler) => const DynamicType();
 
   ti.TypeMask computeMask(Compiler compiler) {
     return compiler.typesTask.nonNullType;
@@ -570,7 +556,7 @@ class DummyConstant extends Constant {
 
   accept(ConstantVisitor visitor) => visitor.visitDummy(this);
 
-  DartType computeType(Compiler compiler) => compiler.types.dynamicType;
+  DartType computeType(Compiler compiler) => const DynamicType();
 
   ti.TypeMask computeMask(Compiler compiler) => typeMask;
 
@@ -583,13 +569,17 @@ class ConstructedConstant extends ObjectConstant {
   final List<Constant> fields;
   final int hashCode;
 
-  ConstructedConstant(DartType type, List<Constant> fields)
+  ConstructedConstant(DartType type, List<Constant> fields,
+      {this.isLiteralSymbol: false})
     : this.fields = fields,
       hashCode = computeHash(type, fields),
       super(type) {
     assert(type != null);
   }
   bool get isConstructedObject => true;
+
+  /// True if this constant is constructed as a literal symbol.
+  final bool isLiteralSymbol;
 
   static int computeHash(DartType type, List<Constant> fields) {
     // TODO(floitsch): create a better hash.
@@ -643,12 +633,45 @@ class ConstructedConstant extends ObjectConstant {
     int i = 0;
     fieldElements.forEach((Element field, Constant value) {
       if (i > 0) sb.write(',');
-      sb.write(Error.safeToString(field.name));
+      sb.write(field.name);
       sb.write('=');
-      sb.write(Error.safeToString(value));
+      sb.write(value);
       i++;
     });
     sb.write('))');
     return sb.toString();
+  }
+}
+
+/// A reference to a constant in another output unit.
+/// Used for referring to deferred constants.
+class DeferredConstant extends Constant {
+  DeferredConstant(this.referenced, this.prefix);
+
+  final Constant referenced;
+  final PrefixElement prefix;
+
+  bool get isReference => true;
+
+  bool operator ==(other) {
+    return other is DeferredConstant
+        && referenced == other.referenced
+        && prefix == other.prefix;
+  }
+
+  get hashCode => (referenced.hashCode * 17 + prefix.hashCode) & 0x3fffffff;
+
+  List<Constant> getDependencies() => <Constant>[referenced];
+
+  accept(ConstantVisitor visitor) => visitor.visitDeferred(this);
+
+  DartType computeType(Compiler compiler) => referenced.computeType(compiler);
+
+  ti.TypeMask computeMask(Compiler compiler) {
+    return referenced.computeMask(compiler);
+  }
+
+  String toString() {
+    return 'DeferredConstant($referenced)';
   }
 }

@@ -5,7 +5,16 @@ void main() {
   embr(u); // callable methods!
   var m = new Mult();
   print(m(3, 4));
+  print(Multi(3, 4));
+  assert(Multi is IntOp);
+  f = Multi;
+  print(f(3, 4));
+  assert(f is IntOp);
 }
+
+typedef int IntOp(int a, int b);
+Function f;
+int Multi(int a, int b) => a * b;
 
 class Embrace {
   num _strength;

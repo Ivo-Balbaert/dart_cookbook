@@ -4,22 +4,25 @@
 
 part of js;
 
-class Printer implements NodeVisitor {
+class Printer extends Indentation implements NodeVisitor {
   final bool shouldCompressOutput;
   leg.Compiler compiler;
   leg.CodeBuffer outBuffer;
-  int indentLevel = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
   final DanglingElseVisitor danglingElseVisitor;
   final LocalNamer localNamer;
   bool pendingSemicolon = false;
   bool pendingSpace = false;
+  DumpInfoTask monitor = null;
+
   static final identifierCharacterRegExp = new RegExp(r'^[a-zA-Z_0-9$]');
   static final expressionContinuationRegExp = new RegExp(r'^[-+([]');
 
-  Printer(leg.Compiler compiler, { allowVariableMinification: true })
+  Printer(leg.Compiler compiler, DumpInfoTask monitor,
+          { allowVariableMinification: true })
       : shouldCompressOutput = compiler.enableMinification,
+        monitor = monitor,
         this.compiler = compiler,
         outBuffer = new leg.CodeBuffer(),
         danglingElseVisitor = new DanglingElseVisitor(compiler),
@@ -100,7 +103,7 @@ class Printer implements NodeVisitor {
   void outIndentLn(String str) { indent(); outLn(str); }
   void indent() {
     if (!shouldCompressOutput) {
-      for (int i = 0; i < indentLevel; i++) out("  ");
+      out(indentation);
     }
   }
 
@@ -122,7 +125,11 @@ class Printer implements NodeVisitor {
 
   visit(Node node) {
     beginSourceRange(node);
+    if (monitor != null) monitor.enteringAst(node, outBuffer.length);
+
     node.accept(this);
+
+    if (monitor != null) monitor.exitingAst(node, outBuffer.length);
     endSourceRange(node);
   }
 
@@ -165,9 +172,7 @@ class Printer implements NodeVisitor {
     } else {
       lineOut();
     }
-    indentLevel++;
-    visit(body);
-    indentLevel--;
+    indentBlock(() => visit(body));
     return false;
   }
 
@@ -187,9 +192,7 @@ class Printer implements NodeVisitor {
     beginSourceRange(node);
     out("{");
     lineOut();
-    indentLevel++;
-    node.statements.forEach(blockOutWithoutBraces);
-    indentLevel--;
+    indentBlock(() => node.statements.forEach(blockOutWithoutBraces));
     indent();
     out("}");
     endSourceRange(node);
@@ -216,9 +219,11 @@ class Printer implements NodeVisitor {
     Node elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
-    // Handle dangling elses.
+    // Handle dangling elses and a work-around for Android 4.0 stock browser.
+    // Android 4.0 requires braces for a single do-while in the `then` branch.
+    // See issue 10923.
     if (hasElse) {
-      bool needsBraces = node.then.accept(danglingElseVisitor);
+      bool needsBraces = node.then.accept(danglingElseVisitor) || then is Do;
       if (needsBraces) {
         then = new Block(<Statement>[then]);
       }
@@ -389,9 +394,7 @@ class Printer implements NodeVisitor {
     out(")");
     spaceOut();
     outLn("{");
-    indentLevel++;
-    visitAll(node.cases);
-    indentLevel--;
+    indentBlock(() => visitAll(node.cases));
     outIndentLn("}");
   }
 
@@ -402,18 +405,14 @@ class Printer implements NodeVisitor {
                           newInForInit: false, newAtStatementBegin: false);
     outLn(":");
     if (!node.body.statements.isEmpty) {
-      indentLevel++;
-      blockOutWithoutBraces(node.body);
-      indentLevel--;
+      indentBlock(() => blockOutWithoutBraces(node.body));
     }
   }
 
   visitDefault(Default node) {
     outIndentLn("default:");
     if (!node.body.statements.isEmpty) {
-      indentLevel++;
-      blockOutWithoutBraces(node.body);
-      indentLevel--;
+      indentBlock(() => blockOutWithoutBraces(node.body));
     }
   }
 
@@ -479,15 +478,6 @@ class Printer implements NodeVisitor {
     out("var ");
     visitCommaSeparated(list.declarations, ASSIGNMENT,
                         newInForInit: inForInit, newAtStatementBegin: false);
-  }
-
-  visitSequence(Sequence sequence) {
-    // Note that we only require that the entries are expressions and not
-    // assignments. This means that nested sequences are not put into
-    // parenthesis.
-    visitCommaSeparated(sequence.expressions, EXPRESSION,
-                        newInForInit: false,
-                        newAtStatementBegin: atStatementBegin);
   }
 
   visitAssignment(Assignment assignment) {
@@ -556,8 +546,9 @@ class Printer implements NodeVisitor {
     bool leftSpace = true;   // left<HERE>op right
     switch (op) {
       case ',':
+        //  x, (y, z) <=> (x, y), z.
         leftPrecedenceRequirement = EXPRESSION;
-        rightPrecedenceRequirement = LOGICAL_OR;
+        rightPrecedenceRequirement = EXPRESSION;
         leftSpace = false;
         break;
       case "||":
@@ -810,7 +801,7 @@ class Printer implements NodeVisitor {
     // decision based on layout.
     List<Property> properties = node.properties;
     out("{");
-    ++indentLevel;
+    indentMore();
     for (int i = 0; i < properties.length; i++) {
       Expression value = properties[i].value;
       if (i != 0) {
@@ -821,9 +812,9 @@ class Printer implements NodeVisitor {
         forceLine();
         indent();
       }
-      visitProperty(properties[i]);
+      visit(properties[i]);
     }
-    --indentLevel;
+    indentLess();
     if (!node.isOneLiner && !properties.isEmpty) {
       lineOut();
       indent();
@@ -1032,9 +1023,10 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
 
 
 leg.CodeBuffer prettyPrint(Node node, leg.Compiler compiler,
-                           { allowVariableMinification: true }) {
+                           {DumpInfoTask monitor,
+                            allowVariableMinification: true}) {
   Printer printer =
-      new Printer(compiler,
+      new Printer(compiler, monitor,
                   allowVariableMinification: allowVariableMinification);
   printer.visit(node);
   return printer.outBuffer;

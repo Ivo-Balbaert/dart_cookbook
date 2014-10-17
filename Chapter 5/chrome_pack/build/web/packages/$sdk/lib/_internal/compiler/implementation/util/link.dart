@@ -8,25 +8,6 @@ class Link<T> {
   T get head => null;
   Link<T> get tail => null;
 
-  factory Link.fromList(List<T> list) {
-    switch (list.length) {
-      case 0:
-        return new Link<T>();
-      case 1:
-        return new LinkEntry<T>(list[0]);
-      case 2:
-        return new LinkEntry<T>(list[0], new LinkEntry<T>(list[1]));
-      case 3:
-        return new LinkEntry<T>(
-            list[0], new LinkEntry<T>(list[1], new LinkEntry<T>(list[2])));
-    }
-    Link link = new Link<T>();
-    for (int i = list.length ; i > 0; i--) {
-      link = link.prepend(list[i - 1]);
-    }
-    return link;
-  }
-
   const Link();
 
   Link<T> prepend(T element) {
@@ -49,6 +30,38 @@ class Link<T> {
     int i = 0;
     for (Link<T> link = this; !link.isEmpty; link = link.tail) {
       result[i++] = link.head;
+    }
+    return result;
+  }
+
+  /// Lazily maps over this linked list, returning an [Iterable].
+  Iterable map(dynamic fn(T item)) {
+    return new MappedLinkIterable<T,dynamic>(this, fn);
+  }
+
+  /// Invokes `fn` for every item in the linked list and returns the results
+  /// in a [List].
+  List mapToList(dynamic fn(T item), { bool growable: true }) {
+    List result;
+    if (!growable) {
+      result = new List(slowLength());
+    } else {
+      result = new List();
+      result.length = slowLength();
+    }
+    int i = 0;
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+      result[i++] = fn(link.head);
+    }
+    return result;
+  }
+
+  /// Invokes `fn` for every item in the linked list and returns the results
+  /// in a [Set].
+  Set mapToSet(dynamic fn(T item)) {
+    Set result = new Set();
+    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
+      result.add(fn(link.head));
     }
     return result;
   }
@@ -124,6 +137,8 @@ abstract class LinkBuilder<T> {
    * returned and the builder is cleared.
    */
   Link<T> toLink([Link<T> tail = const Link()]);
+
+  List<T> toList();
 
   void addLast(T t);
 

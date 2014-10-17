@@ -12,7 +12,8 @@ import 'dart:_js_helper' show
     Null,
     Primitives,
     convertDartClosureToJS,
-    random64;
+    random64,
+    requiresPreamble;
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CREATE_ISOLATE,
@@ -89,7 +90,6 @@ void startRootIsolate(entry, args) {
   // isolate automatically we try to give them a reasonable context to live in
   // by having a "default" isolate (the first one created).
   _globalState.currentContext = rootContext;
-
   if (entry is _MainFunctionArgs) {
     rootContext.eval(() { entry(args); });
   } else if (entry is _MainFunctionArgsMessage) {
@@ -229,14 +229,23 @@ class _Manager {
         "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
         DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
         mainManager);
-    JS("void", r"#.onmessage = #", globalThis, function);
-    // We define dartPrint so that the implementation of the Dart
+    JS("void", r"self.onmessage = #", function);
+    // We ensure dartPrint is defined so that the implementation of the Dart
     // print method knows what to call.
-    // TODO(ngeoffray): Should we forward to the main isolate? What if
-    // it exited?
-    JS('void', r'#.dartPrint = function (object) {}', globalThis);
+    JS('', '''self.dartPrint = self.dartPrint || (function(serialize) {
+  return function (object) {
+    if (self.console && self.console.log) {
+      self.console.log(object)
+    } else {
+      self.postMessage(serialize(object));
+    }
+  }
+})(#)''', DART_CLOSURE_TO_JS(_serializePrintMessage));
   }
 
+  static _serializePrintMessage(object) {
+    return _serializeMessage({"command": "print", "msg": object});
+  }
 
   /**
    * Close the worker running this code if all isolates are done and
@@ -271,6 +280,13 @@ class _IsolateContext implements IsolateContext {
   final Capability pauseCapability = new Capability();
   final Capability terminateCapability = new Capability();  // License to kill.
 
+  /// Boolean flag set when the initial method of the isolate has been executed.
+  ///
+  /// Used to avoid considering the isolate dead when it has no open
+  /// receive ports and no scheduled timers, because it hasn't had time to
+  /// create them yet.
+  bool initialized = false;
+
   // TODO(lrn): Store these in single "PauseState" object, so they don't take
   // up as much room when not pausing.
   bool isPaused = false;
@@ -290,11 +306,11 @@ class _IsolateContext implements IsolateContext {
   var _scheduledControlEvents;
   bool _isExecutingEvent = false;
 
-  /** Whether errors are considered fatal. */
-  // This doesn't do anything yet. We need to be able to catch uncaught errors
-  // (oxymoronically) in order to take lethal action. This is waiting for the
-  // same change as the uncaught error listeners.
-  bool errorsAreFatal = false;
+  /** Whether uncaught errors are considered fatal. */
+  bool errorsAreFatal = true;
+
+  // Set of ports that listen to uncaught errors.
+  Set<SendPort> errorPorts = new Set();
 
   _IsolateContext() {
     this.registerWeak(controlPort._id, controlPort);
@@ -379,6 +395,38 @@ class _IsolateContext implements IsolateContext {
     _scheduledControlEvents.addLast(kill);
   }
 
+  void addErrorListener(SendPort port) {
+    errorPorts.add(port);
+  }
+
+  void removeErrorListener(SendPort port) {
+    errorPorts.remove(port);
+  }
+
+  /** Function called with an uncaught error. */
+  void handleUncaughtError(error, StackTrace stackTrace) {
+    // Just print the error if there is no error listener registered.
+    if (errorPorts.isEmpty) {
+      // An uncaught error in the root isolate will terminate the program?
+      if (errorsAreFatal && identical(this, _globalState.rootContext)) {
+        // The error will be rethrown to reach the global scope, so
+        // don't print it.
+        return;
+      }
+      if (JS('bool', 'self.console && self.console.error')) {
+        JS('void', 'self.console.error(#, #)', error, stackTrace);
+      } else {
+        print(error);
+        if (stackTrace != null) print(stackTrace);
+      }
+      return;
+    }
+    List message = new List(2)
+        ..[0] = error.toString()
+        ..[1] = (stackTrace == null) ? null : stackTrace.toString();
+    for (SendPort port in errorPorts) port.send(message);
+  }
+
   /**
    * Run [code] in the context of the isolate represented by [this].
    */
@@ -390,6 +438,15 @@ class _IsolateContext implements IsolateContext {
     _isExecutingEvent = true;
     try {
       result = code();
+    } catch (e, s) {
+      handleUncaughtError(e, s);
+      if (errorsAreFatal) {
+        kill();
+        // An uncaught error in the root context terminates all isolates.
+        if (identical(this, _globalState.rootContext)) {
+          rethrow;
+        }
+      }
     } finally {
       _isExecutingEvent = false;
       _globalState.currentContext = old;
@@ -437,6 +494,12 @@ class _IsolateContext implements IsolateContext {
       case "kill":
         handleKill(message[1], message[2]);
         break;
+      case "getErrors":
+        addErrorListener(message[1]);
+        break;
+      case "stopErrors":
+        removeErrorListener(message[1]);
+        break;
       default:
     }
   }
@@ -468,7 +531,7 @@ class _IsolateContext implements IsolateContext {
   }
 
   void _updateGlobalState() {
-    if (ports.length - weakPorts.length > 0 || isPaused) {
+    if (ports.length - weakPorts.length > 0 || isPaused || !initialized) {
       _globalState.isolates[id] = this; // indicate this isolate is active
     } else {
       kill();
@@ -490,6 +553,7 @@ class _IsolateContext implements IsolateContext {
     ports.clear();
     weakPorts.clear();
     _globalState.isolates.remove(id); // indicate this isolate is not active
+    errorPorts.clear();
     if (doneHandlers != null) {
       for (SendPort port in doneHandlers) {
         port.send(null);
@@ -622,17 +686,27 @@ class _MainManagerStub {
     //
     // See: http://www.w3.org/TR/workers/#the-global-scope
     // and: http://www.w3.org/TR/Window/#dfn-self-attribute
+    requiresPreamble();
     JS("void", r"self.postMessage(#)", msg);
   }
 }
 
 const String _SPAWNED_SIGNAL = "spawned";
+const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
-var globalThis = Primitives.computeGlobalThis();
-var globalWindow = JS('', "#.window", globalThis);
-var globalWorker = JS('', "#.Worker", globalThis);
-bool globalPostMessageDefined =
-    JS('', "#.postMessage !== (void 0)", globalThis);
+get globalWindow {
+  requiresPreamble();
+  return JS('', "self.window");
+}
+
+get globalWorker {
+  requiresPreamble();
+  return JS('', "self.Worker");
+}
+bool get globalPostMessageDefined {
+  requiresPreamble();
+  return JS('bool', "!!self.postMessage");
+}
 
 typedef _MainFunction();
 typedef _MainFunctionArgs(args);
@@ -641,6 +715,15 @@ typedef _MainFunctionArgsMessage(args, message);
 /// Note: IsolateNatives depends on _globalState which is only set up correctly
 /// when 'dart:isolate' has been imported.
 class IsolateNatives {
+
+  // We set [enableSpawnWorker] to true (not null) when calling isolate
+  // primitives that require support for spawning workers. The field starts out
+  // by being null, and dart2js' type inference will track if it can have a
+  // non-null value. So by testing if this value is not null, we generate code
+  // that dart2js knows is dead when worker support isn't needed.
+  // TODO(herhut): Initialize this to false when able to track compile-time
+  // constants.
+  static var enableSpawnWorker;
 
   static String thisScript = computeThisScript();
 
@@ -746,10 +829,7 @@ class IsolateNatives {
         _globalState.topEventLoop.run();
         break;
       case 'spawn-worker':
-        _spawnWorker(msg['functionName'], msg['uri'],
-                     msg['args'], msg['msg'],
-                     msg['isSpawnUri'], msg['startPaused'],
-                     msg['replyPort']);
+        if (enableSpawnWorker != null) handleSpawnWorkerRequest(msg);
         break;
       case 'message':
         SendPort port = msg['port'];
@@ -780,6 +860,17 @@ class IsolateNatives {
     }
   }
 
+  static handleSpawnWorkerRequest(msg) {
+    var replyPort = msg['replyPort'];
+    spawn(msg['functionName'], msg['uri'],
+          msg['args'], msg['msg'],
+          false, msg['isSpawnUri'], msg['startPaused']).then((msg) {
+      replyPort.send(msg);
+    }, onError: (String errorMessage) {
+      replyPort.send([_SPAWN_FAILED_SIGNAL, errorMessage]);
+    });
+  }
+
   /** Log a message, forwarding to the main [_Manager] if appropriate. */
   static _log(msg) {
     if (_globalState.isWorker) {
@@ -795,7 +886,8 @@ class IsolateNatives {
   }
 
   static void _consoleLog(msg) {
-    JS("void", r"#.console.log(#)", globalThis, msg);
+    requiresPreamble();
+    JS("void", r"self.console.log(#)", msg);
   }
 
   static _getJSFunctionFromName(String functionName) {
@@ -819,6 +911,7 @@ class IsolateNatives {
   static Future<List> spawnFunction(void topLevelFunction(message),
                                     var message,
                                     bool startPaused) {
+    IsolateNatives.enableSpawnWorker = true;
     final name = _getJSFunctionName(topLevelFunction);
     if (name == null) {
       throw new UnsupportedError(
@@ -831,6 +924,7 @@ class IsolateNatives {
 
   static Future<List> spawnUri(Uri uri, List<String> args, var message,
                                bool startPaused) {
+    IsolateNatives.enableSpawnWorker = true;
     bool isLight = false;
     bool isSpawnUri = true;
     return spawn(null, uri.toString(), args, message,
@@ -849,22 +943,28 @@ class IsolateNatives {
     if (uri != null && uri.endsWith(".dart")) uri += ".js";
 
     ReceivePort port = new ReceivePort();
-    Future<List> result = port.first.then((msg) {
-      assert(msg[0] == _SPAWNED_SIGNAL);
-      return msg;
+    Completer<List> completer = new Completer();
+    port.first.then((msg) {
+      if (msg[0] == _SPAWNED_SIGNAL) {
+        completer.complete(msg);
+      } else {
+        assert(msg[0] == _SPAWN_FAILED_SIGNAL);
+        completer.completeError(msg[1]);
+      }
     });
 
     SendPort signalReply = port.sendPort;
 
     if (_globalState.useWorkers && !isLight) {
-      _startWorker(functionName, uri, args, message, isSpawnUri, startPaused,
-                   signalReply);
+      _startWorker(
+          functionName, uri, args, message, isSpawnUri, startPaused,
+          signalReply, (String message) => completer.completeError(message));
     } else {
       _startNonWorker(
           functionName, uri, args, message, isSpawnUri, startPaused,
           signalReply);
     }
-    return result;
+    return completer.future;
   }
 
   static void _startWorker(
@@ -872,7 +972,8 @@ class IsolateNatives {
       List<String> args, message,
       bool isSpawnUri,
       bool startPaused,
-      SendPort replyPort) {
+      SendPort replyPort,
+      void onError(String message)) {
     if (_globalState.isWorker) {
       _globalState.mainManager.postMessage(_serializeMessage({
           'command': 'spawn-worker',
@@ -885,7 +986,7 @@ class IsolateNatives {
           'replyPort': replyPort}));
     } else {
       _spawnWorker(functionName, uri, args, message,
-                   isSpawnUri, startPaused, replyPort);
+                   isSpawnUri, startPaused, replyPort, onError);
     }
   }
 
@@ -900,6 +1001,8 @@ class IsolateNatives {
       throw new UnsupportedError(
           "Currently spawnUri is not supported without web workers.");
     }
+    message = _serializeMessage(message);
+    args = _serializeMessage(args);  // Or just args.toList() ?
     _globalState.topEventLoop.enqueue(new _IsolateContext(), () {
       final func = _getJSFunctionFromName(functionName);
       _startIsolate(func, args, message, isSpawnUri, startPaused, replyPort);
@@ -920,6 +1023,7 @@ class IsolateNatives {
                   context.terminateCapability]);
 
     void runStartFunction() {
+      context.initialized = true;
       if (!isSpawnUri) {
         topLevel(message);
       } else if (topLevel is _MainFunctionArgsMessage) {
@@ -948,14 +1052,38 @@ class IsolateNatives {
                            List<String> args, message,
                            bool isSpawnUri,
                            bool startPaused,
-                           SendPort replyPort) {
+                           SendPort replyPort,
+                           void onError(String message)) {
     if (uri == null) uri = thisScript;
     final worker = JS('var', 'new Worker(#)', uri);
+    // Trampolines are used when wanting to call a Dart closure from
+    // JavaScript.  The helper function DART_CLOSURE_TO_JS only accepts
+    // top-level or static methods, and the trampoline allows us to capture
+    // arguments and values which can be passed to a static method.
+    final onerrorTrampoline = JS(
+        '',
+        '''
+(function (f, u, c) {
+  return function(e) {
+    return f(e, u, c)
+  }
+})(#, #, #)''',
+        DART_CLOSURE_TO_JS(workerOnError), uri, onError);
+    JS('void', '#.onerror = #', worker, onerrorTrampoline);
 
-    var processWorkerMessageTrampoline =
-      JS('', "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
-         DART_CLOSURE_TO_JS(_processWorkerMessage),
-         worker);
+    var processWorkerMessageTrampoline = JS(
+        '',
+        """
+(function (f, a) {
+  return function (e) {
+    // We can stop listening for errors when the first message is received as
+    // we only listen for messages to determine if the uri was bad.
+    e.onerror = null;
+    return f(a, e);
+  }
+})(#, #)""",
+        DART_CLOSURE_TO_JS(_processWorkerMessage),
+        worker);
     JS('void', '#.onmessage = #', worker, processWorkerMessageTrampoline);
     var workerId = _globalState.nextManagerId++;
     // We also store the id on the worker itself so that we can unregister it.
@@ -974,6 +1102,25 @@ class IsolateNatives {
         'isSpawnUri': isSpawnUri,
         'startPaused': startPaused,
         'functionName': functionName }));
+  }
+
+  static bool workerOnError(
+      /* Event */ event,
+      String uri,
+      void onError(String message)) {
+    // Attempt to shut up the browser, as the error has been handled.  Chrome
+    // ignores this :-(
+    JS('void', '#.preventDefault()', event);
+    String message = JS('String|Null', '#.message', event);
+    if (message == null) {
+      // Some browsers, including Chrome, fail to provide a proper error
+      // event.
+      message = 'Error spawning worker for $uri';
+    } else {
+      message = 'Error spawning worker for $uri ($message)';
+    }
+    onError(message);
+    return true;
   }
 }
 
@@ -1583,8 +1730,7 @@ class TimerImpl implements Timer {
 
       enterJsAsync();
 
-      _handle = JS('int', '#.setTimeout(#, #)',
-                   globalThis,
+      _handle = JS('int', 'self.setTimeout(#, #)',
                    convertDartClosureToJS(internalCallback, 0),
                    milliseconds);
     } else {
@@ -1597,8 +1743,7 @@ class TimerImpl implements Timer {
       : _once = false {
     if (hasTimer()) {
       enterJsAsync();
-      _handle = JS('int', '#.setInterval(#, #)',
-                   globalThis,
+      _handle = JS('int', 'self.setInterval(#, #)',
                    convertDartClosureToJS(() { callback(this); }, 0),
                    milliseconds);
     } else {
@@ -1614,9 +1759,9 @@ class TimerImpl implements Timer {
       if (_handle == null) return;
       leaveJsAsync();
       if (_once) {
-        JS('void', '#.clearTimeout(#)', globalThis, _handle);
+        JS('void', 'self.clearTimeout(#)', _handle);
       } else {
-        JS('void', '#.clearInterval(#)', globalThis, _handle);
+        JS('void', 'self.clearInterval(#)', _handle);
       }
       _handle = null;
     } else {
@@ -1627,7 +1772,10 @@ class TimerImpl implements Timer {
   bool get isActive => _handle != null;
 }
 
-bool hasTimer() => JS('', '#.setTimeout', globalThis) != null;
+bool hasTimer() {
+  requiresPreamble();
+  return JS('', 'self.setTimeout') != null;
+}
 
 
 /**

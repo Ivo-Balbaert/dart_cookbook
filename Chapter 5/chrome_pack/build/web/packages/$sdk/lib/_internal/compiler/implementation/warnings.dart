@@ -146,15 +146,6 @@ class MessageKind {
   static const MessageKind THIS_IS_THE_METHOD = const MessageKind(
       "This is the method declaration.");
 
-  static const MessageKind UNREACHABLE_CODE = const MessageKind(
-      "Unreachable code.");
-
-  static const MessageKind MISSING_RETURN = const MessageKind(
-      "Missing return.");
-
-  static const MessageKind MAYBE_MISSING_RETURN = const MessageKind(
-      "Not all paths lead to a return or throw statement.");
-
   static const MessageKind CANNOT_RESOLVE = const MessageKind(
       "Cannot resolve '#{name}'.");
 
@@ -400,8 +391,9 @@ main() => new C();"""]);
   static const MessageKind DUPLICATE_SUPER_INITIALIZER = const MessageKind(
       "Cannot have more than one super initializer.");
 
-  static const MessageKind INVALID_ARGUMENTS = const MessageKind(
-      "Arguments do not match the expected parameters of '#{methodName}'.");
+  static const MessageKind INVALID_CONSTRUCTOR_ARGUMENTS = const MessageKind(
+      "Arguments do not match the expected parameters of constructor "
+      "'#{constructorName}'.");
 
   static const MessageKind NO_MATCHING_CONSTRUCTOR = const MessageKind(
       "'super' call arguments and constructor parameters do not match.");
@@ -758,8 +750,10 @@ main() { F f = null; }"""]);
   static const MessageKind CANNOT_IMPLEMENT = const MessageKind(
       "'#{type}' cannot be implemented.");
 
+  // TODO(johnnwinther): Split messages into reasons for malformedness.
   static const MessageKind CANNOT_EXTEND_MALFORMED = const MessageKind(
-      "A class can't extend a malformed type.",
+      "Class '#{className}' can't extend the type '#{malformedType}' because "
+      "it is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "'extends' clause.",
       examples: const ["""
@@ -767,7 +761,8 @@ class A extends Malformed {}
 main() => new A();"""]);
 
   static const MessageKind CANNOT_IMPLEMENT_MALFORMED = const MessageKind(
-      "A class can't implement a malformed type.",
+      "Class '#{className}' can't implement the type '#{malformedType}' "
+      "because it is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "type from the 'implements' clause.",
       examples: const ["""
@@ -775,7 +770,8 @@ class A implements Malformed {}
 main() => new A();"""]);
 
   static const MessageKind CANNOT_MIXIN_MALFORMED = const MessageKind(
-      "A class can't mixin a malformed type.",
+      "Class '#{className}' can't mixin the type '#{malformedType}' because it "
+      "is malformed.",
       howToFix: "Try correcting the malformed type annotation or removing the "
         "type from the 'with' clause.",
       examples: const ["""
@@ -986,6 +982,16 @@ main() => new C();"""]);
   static const MessageKind ILLEGAL_FINAL_METHOD_MODIFIER = const MessageKind(
       "Cannot have final modifier on method.");
 
+  static const MessageKind ILLEGAL_CONST_FIELD_MODIFIER = const MessageKind(
+      "Cannot have const modifier on non-static field.",
+      howToFix: "Try adding a static modifier, or removing the const modifier.",
+      examples: const ["""
+class C {
+  const int a = 1;
+}
+
+main() => new C();"""]);
+
   static const MessageKind ILLEGAL_CONSTRUCTOR_MODIFIERS = const MessageKind(
       "Illegal constructor modifiers: '#{modifiers}'.");
 
@@ -1170,8 +1176,8 @@ main() => A.A = 1;
 
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
-          "Deferred loading is not supported by the dart backend yet. "
-          "Will not split the output.");
+          "Deferred loading is not supported by the dart backend yet."
+          "The output will not be split.");
 
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
       const MessageKind(
@@ -1472,6 +1478,11 @@ main() {}
           "'#{keyword}' is a reserved word and can't be used here.",
           howToFix: "Try using a different name.",
           examples: const ["do() {} main() {}"]);
+
+  static const MessageKind  NAMED_FUNCTION_EXPRESSION =
+      const MessageKind("Function expression '#{name}' cannot be named.",
+          howToFix: "Try removing the name.",
+          examples: const ["main() { var f = func() {}; }"]);
 
   static const MessageKind UNUSED_METHOD = const MessageKind(
       "The method '#{name}' is never called.",
@@ -1832,6 +1843,46 @@ main() {
 }
 /*"""]);
 
+  static const MessageKind MISSING_TOKEN_BEFORE_THIS = const MessageKind(
+      "Expected '#{token}' before this.",
+      // Consider the second example below: the parser expects a ')' before
+      // 'y', but a ',' would also have worked. We don't have enough
+      // information to give a good suggestion.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+          "main() => true ? 1;",
+          "main() => foo(x: 1 y: 2);",
+        ]);
+
+  static const MessageKind MISSING_TOKEN_AFTER_THIS = const MessageKind(
+      "Expected '#{token}' after this.",
+      // See [MISSING_TOKEN_BEFORE_THIS], we don't have enough information to
+      // give a good suggestion.
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const ["main(x) {x}"]);
+
+  static const MessageKind CONSIDER_ANALYZE_ALL = const MessageKind(
+      "Could not find '#{main}'.  Nothing will be analyzed.",
+      howToFix: "Try using '--analyze-all' to analyze everything.",
+      examples: const ['']);
+
+  static const MessageKind MISSING_MAIN = const MessageKind(
+      "Could not find '#{main}'.",
+      howToFix: "Try adding a method named '#{main}' to your program."
+      /* No example, test uses '--analyze-only' which will produce the above
+       * message [CONSIDER_ANALYZE_ALL].  An example for a human operator would
+       * be an empty file. */);
+
+  static const MessageKind MAIN_NOT_A_FUNCTION = const MessageKind(
+      "'#{main}' is not a function.",
+      howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+      examples: const ['var main;']);
+
+  static const MessageKind MAIN_WITH_EXTRA_PARAMETER = const MessageKind(
+      "'#{main}' cannot have more than two parameters.",
+      howToFix: DONT_KNOW_HOW_TO_FIX, /* Don't state the obvious. */
+      examples: const ['main(a, b, c) {}']);
+
   static const MessageKind COMPILER_CRASHED = const MessageKind(
       "The compiler crashed when compiling this element.");
 
@@ -1904,6 +1955,11 @@ Please include the following information:
 
   static const MessageKind HIDDEN_HINTS = const MessageKind(
       "#{hints} hint(s) suppressed in #{uri}.");
+
+  static const MessageKind PREAMBLE = const MessageKind(
+    "When run on the command-line, the compiled output might"
+    " require a preamble file located in:\n"
+    "  <sdk>/lib/_internal/lib/preambles.");
 
   //////////////////////////////////////////////////////////////////////////////
   // Patch errors start.
@@ -2026,7 +2082,7 @@ class Message {
     if (message == null) {
       message = kind.template;
       arguments.forEach((key, value) {
-        message = message.replaceAll('#{${key}}', value.toString());
+        message = message.replaceAll('#{${key}}', convertToString(value));
       });
       assert(invariant(
           CURRENT_ELEMENT_SPANNABLE,
@@ -2036,7 +2092,7 @@ class Message {
       if (!terse && kind.hasHowToFix) {
         String howToFix = kind.howToFix;
         arguments.forEach((key, value) {
-          howToFix = howToFix.replaceAll('#{${key}}', value.toString());
+          howToFix = howToFix.replaceAll('#{${key}}', convertToString(value));
         });
         message = '$message\n$howToFix';
       }
@@ -2054,4 +2110,14 @@ class Message {
   }
 
   int get hashCode => throw new UnsupportedError('Message.hashCode');
+
+  static String convertToString(value) {
+    if (value is ErrorToken) {
+      // Shouldn't happen.
+      return value.assertionMessage;
+    } else if (value is Token) {
+      value = value.value;
+    }
+    return '$value';
+  }
 }
